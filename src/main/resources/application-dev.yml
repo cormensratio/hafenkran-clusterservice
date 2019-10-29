@@ -1,0 +1,12 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/clusterservice
+    username: clusterservice
+    password: test
+  jpa:
+    properties:
+      hibernate:
+        ddl-auto: update
