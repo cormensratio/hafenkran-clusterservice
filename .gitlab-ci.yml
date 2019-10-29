@@ -8,7 +8,7 @@ before_script:
 
 build:
   stage: build
-  script: ./mvnw package
+  script: ./mvnw verify
   artifacts:
     paths:
-      - target/clusterservice-0.0.1-SNAPSHOT.jar
+      - target/*.jar
