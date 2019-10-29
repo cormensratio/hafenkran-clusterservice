@@ -9,6 +9,3 @@ before_script:
 build:
   stage: build
   script: ./mvnw verify
-  artifacts:
-    paths:
-      - target/*.jar

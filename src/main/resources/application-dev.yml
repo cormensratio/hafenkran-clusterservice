@@ -1,0 +1,12 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/hafenkran
+    username: hafenkran
+    password: test
+  jpa:
+    properties:
+      hibernate:
+        ddl-auto: update
