@@ -14,10 +14,10 @@ cache:
 image: maven:3.3.9-jdk-8
 
 stages:
-  - build
+  - verify
 
 verify:
-  stage: test
+  stage: verify
   script:
     - 'mvn $MAVEN_CLI_OPTS verify site site:stage'
   except:
