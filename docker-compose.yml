@@ -1,0 +1,13 @@
+version: '3.7'
+services:
+  db:
+    image: "postgres:12.0"
+    container_name: "hafenkran-db"
+    environment:
+      - POSTGRES_USER=hafenkran
+      - POSTGRES_PASSWORD=test
+      - POSTGRES_DB=hafenkran
+    ports:
+      - 5432:5432
+    volumes:
+      - db-data:/var/lib/postgresql/data

@@ -3,8 +3,8 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/clusterservice
-    username: clusterservice
+    url: jdbc:postgresql://localhost:5432/hafenkran
+    username: hafenkran
     password: test
   jpa:
     properties:
