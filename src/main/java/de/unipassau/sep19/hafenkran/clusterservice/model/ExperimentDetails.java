@@ -15,6 +15,7 @@ import java.util.UUID;
 public class ExperimentDetails {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
     @NonNull
