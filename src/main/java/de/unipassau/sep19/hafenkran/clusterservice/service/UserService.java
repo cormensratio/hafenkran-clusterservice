@@ -1,13 +1,14 @@
 package de.unipassau.sep19.hafenkran.clusterservice.service;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import de.unipassau.sep19.hafenkran.clusterservice.model.UserDetails;
 
-@Slf4j
-@Service
-@AllArgsConstructor
-@Data
-public class UserService {
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+
+public interface UserService {
+
+    public UserDetails createUser(@Valid UserDetails userDetails);
+
+    public UserDetails findUserByName(@NotBlank String userName);
+
 }
