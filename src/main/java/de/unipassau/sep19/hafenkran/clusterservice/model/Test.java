@@ -6,9 +6,8 @@ import javax.persistence.*;
 @Table(name = "testdetails", schema = "hafenkran")
 public class Test {
 
-    private static final long serialVersionUID = -7049957706738879274L;
-
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     public Test() {
