@@ -23,8 +23,7 @@ public class ExperimentController {
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.FOUND)
-    public ExperimentDTO getExperimentDTO(@NotNull @PathVariable Long id){
-        ExperimentDTO experimentDTO = experimentServiceImpl.findExperimentDTOById(id);
-        return experimentDTO;
+    public ExperimentDTO getExperimentDTO(@NotNull @PathVariable Long id) {
+        return experimentServiceImpl.findExperimentDTOById(id);
     }
 }

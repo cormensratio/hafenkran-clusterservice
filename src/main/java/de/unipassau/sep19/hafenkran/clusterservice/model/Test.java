@@ -3,7 +3,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.model;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "testdetails", schema = "hafenkran")
+@Table(name = "testdetails")
 public class Test {
 
     @Id

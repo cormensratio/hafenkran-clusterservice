@@ -12,7 +12,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Entity
 @Data
-@Table(name = "userdetails", schema = "hafenkran")
+@Table(name = "userdetails")
 public class UserDetails {
 
     @Id
@@ -31,14 +31,16 @@ public class UserDetails {
     @NonNull
     private List<ExperimentDetails> experimentDetails;
 
-    public UserDetails(@NotBlank(message = "Name is required!") @NonNull String name, @NotBlank(message = "Password is required!") @NonNull String password, @NonNull List<ExperimentDetails> experimentDetails) {
+    public UserDetails(@NotBlank(message = "Name is required!") @NonNull String name,
+                       @NotBlank(message = "Password is required!") @NonNull String password,
+                       @NonNull List<ExperimentDetails> experimentDetails) {
         this.name = name;
         this.password = password;
         this.experimentDetails = experimentDetails;
     }
 
     @PrePersist
-    private void prePersist(){
+    private void prePersist() {
         this.id = UUID.randomUUID();
     }
 }

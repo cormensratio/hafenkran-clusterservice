@@ -11,7 +11,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Entity
 @Data
-@Table(name = "experimentdetails", schema = "hafenkran")
+@Table(name = "experimentdetails")
 public class ExperimentDetails {
 
     @Id
@@ -41,7 +41,7 @@ public class ExperimentDetails {
     }
 
     @PrePersist
-    private void prePersist(){
+    private void prePersist() {
         this.id = UUID.randomUUID();
     }
 }

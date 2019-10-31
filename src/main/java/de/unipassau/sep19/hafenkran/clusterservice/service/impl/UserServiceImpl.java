@@ -22,8 +22,8 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private ExperimentServiceImpl experimentServiceImpl;
 
-    public UserDetails createUser(@Valid UserDetails userDetails){
-        if (userRepository.findByName(userDetails.getName()).isPresent()){
+    public UserDetails createUser(@Valid UserDetails userDetails) {
+        if (userRepository.findByName(userDetails.getName()).isPresent()) {
             throw new ResourceAlreadyExistsException(UserDetails.class, "name", userDetails.getName());
         }
 
@@ -32,7 +32,7 @@ public class UserServiceImpl implements UserService {
         return userDetails;
     }
 
-    public UserDetails findUserByName(@NotBlank String userName){
+    public UserDetails findUserByName(@NotBlank String userName) {
         final Optional<UserDetails> user = userRepository.findByName(userName);
         return user.orElse(null);
     }

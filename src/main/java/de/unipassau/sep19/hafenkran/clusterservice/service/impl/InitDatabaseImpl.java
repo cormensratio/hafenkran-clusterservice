@@ -1,32 +1,20 @@
 package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
-import de.unipassau.sep19.hafenkran.clusterservice.model.Test;
+import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
+import de.unipassau.sep19.hafenkran.clusterservice.model.UserDetails;
+import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
+import de.unipassau.sep19.hafenkran.clusterservice.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
+
 @Slf4j
 @Component
 public class InitDatabaseImpl implements CommandLineRunner {
 
-
-    @Autowired
-    TestServiceImpl testService;
-
-    @Override
-    public void run(String... args) throws Exception{
-
-        final Test test1 = new Test();
-        testService.createTest(test1);
-
-        log.info("database initialized");
-    }
-
-
-
-
-/*
     @Autowired
     UserService userService;
 
@@ -44,6 +32,17 @@ public class InitDatabaseImpl implements CommandLineRunner {
 
         log.info("Database initialized!");
     }
+    /*
+    @Autowired
+    TestServiceImpl testService;
 
+    @Override
+    public void run(String... args) throws Exception{
+
+        final Test test1 = new Test();
+        testService.createTest(test1);
+
+        log.info("database initialized");
+    }
 */
 }
