@@ -2,42 +2,39 @@ package de.unipassau.sep19.hafenkran.clusterservice.model;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@NoArgsConstructor
-@Entity
 @Data
 @Table(name = "experimentdetails")
+@Entity
+@NoArgsConstructor
 public class ExperimentDetails {
 
     @Id
     private UUID id;
 
-    @NonNull
+    @NotNull
     private String experimentName;
 
-    @NonNull
-    private String experimentId;
-
     @Basic
+    @NotNull
     private LocalDateTime createdAt;
 
-    @NonNull
+    @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     private UserDetails owner;
 
-    @NonNull
     private long size;
 
-    public ExperimentDetails(@NonNull String experimentName, @NonNull UserDetails owner, @NonNull long size) {
+    public ExperimentDetails(@NotNull String experimentName, @NotNull UserDetails owner, long size) {
         this.experimentName = experimentName;
-        this.createdAt = LocalDateTime.now();
         this.owner = owner;
         this.size = size;
+        this.createdAt = LocalDateTime.now();
     }
 
     @PrePersist
@@ -45,3 +42,5 @@ public class ExperimentDetails {
         this.id = UUID.randomUUID();
     }
 }
+
+

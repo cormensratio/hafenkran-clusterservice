@@ -4,6 +4,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.UserDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
 import de.unipassau.sep19.hafenkran.clusterservice.service.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -13,13 +14,12 @@ import java.util.Collections;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class InitDatabaseImpl implements CommandLineRunner {
 
-    @Autowired
-    UserService userService;
+    private final UserService userService;
 
-    @Autowired
-    ExperimentService experimentService;
+    private final ExperimentService experimentService;
 
     @Override
     public void run(String... args) throws Exception {

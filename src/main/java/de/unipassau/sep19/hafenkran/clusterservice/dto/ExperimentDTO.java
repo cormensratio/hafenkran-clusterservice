@@ -1,32 +1,29 @@
 package de.unipassau.sep19.hafenkran.clusterservice.dto;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
-import de.unipassau.sep19.hafenkran.clusterservice.model.UserDetails;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
-@AllArgsConstructor
 @Data
-@Slf4j
+@AllArgsConstructor(onConstructor = @__(@JsonCreator))
 public class ExperimentDTO {
 
-    private final UUID id;
+    @JsonProperty("experimentName")
     private final String experimentName;
-    private final String experimentId;
-    private final LocalDateTime timestamp;
-    private final UserDetails owner;
+
+    @JsonProperty("createdAt")
+    private final LocalDateTime createdAt;
+
+    @JsonProperty("size")
     private final Long size;
 
     public ExperimentDTO(final ExperimentDetails experimentDetails) {
-        this.id = experimentDetails.getId();
         this.experimentName = experimentDetails.getExperimentName();
-        this.experimentId = experimentDetails.getExperimentId();
-        this.timestamp = experimentDetails.getCreatedAt();
-        this.owner = experimentDetails.getOwner();
+        this.createdAt = experimentDetails.getCreatedAt();
         this.size = experimentDetails.getSize();
     }
 }

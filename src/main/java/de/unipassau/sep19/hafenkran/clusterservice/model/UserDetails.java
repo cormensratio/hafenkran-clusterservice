@@ -9,10 +9,10 @@ import javax.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.UUID;
 
-@NoArgsConstructor
-@Entity
 @Data
 @Table(name = "userdetails")
+@Entity
+@NoArgsConstructor
 public class UserDetails {
 
     @Id
