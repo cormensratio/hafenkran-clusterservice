@@ -27,7 +27,7 @@ public class InitDatabaseImpl implements CommandLineRunner {
         final UserDetails userDetails1 = new UserDetails("Kurt", "password", Collections.emptyList());
         userService.createUser(userDetails1);
 
-        final ExperimentDetails experimentDetails1 = new ExperimentDetails("mongo-db", userDetails1, 300);
+        final ExperimentDetails experimentDetails1 = new ExperimentDetails("experiment1", userDetails1, 300);
         experimentService.createExperiment(experimentDetails1);
 
         log.info("Database initialized!");
