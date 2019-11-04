@@ -17,6 +17,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 
@@ -24,19 +25,20 @@ import static org.mockito.Mockito.*;
 public class ExperimentServiceImplTest {
 
     private static final UUID MOCK_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
+
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
+
     @Mock
     private ExperimentRepository experimentRepository;
+
     private UserRepository userRepository;
     private ExperimentService subject;
-
     private ExperimentDetails mockExperimentDetails;
 
     @Before
-    public void setup() {
-
-        subject = new ExperimentServiceImpl(experimentRepository, userRepository);
+    public void setUp() {
+        this.subject = new ExperimentServiceImpl(experimentRepository, userRepository);
         mockExperimentDetails = new ExperimentDetails(MOCK_ID, "testExperiment", 500);
     }
 
@@ -51,7 +53,7 @@ public class ExperimentServiceImplTest {
 
         // Assert
         verify(experimentRepository, times(1)).findById(MOCK_ID);
-        Assertions.assertEquals(mockExperimentDetails, actual);
+        assertEquals(mockExperimentDetails, actual);
         verifyNoMoreInteractions(experimentRepository);
     }
 
@@ -65,11 +67,53 @@ public class ExperimentServiceImplTest {
         // Act
         ExperimentDetails actual = subject.getExperimentById(MOCK_ID);
 
-        // Assert
+        // Assert - with rule
         verify(experimentRepository, times(1)).findById(MOCK_ID);
         Assertions.assertNull(actual);
         verifyNoMoreInteractions(experimentRepository);
     }
 
+    @Test
+    public void testGetExperimentById_idIsNull_throwsException() {
 
+        // Arrange
+        expectedEx.expect(NullPointerException.class);
+        expectedEx.expectMessage("id is marked non-null but is null");
+
+        // Act
+        ExperimentDetails actual = subject.getExperimentById(null);
+
+        // Arrange - with rule
+        verifyNoMoreInteractions(experimentRepository);
+
+    }
+
+    @Test
+    public void testCreateExperiment_existingExperimentDetails_validExperimentDetailsReturned() {
+
+        // Arrange
+        when(experimentRepository.save(mockExperimentDetails)).thenReturn(mockExperimentDetails);
+
+        // Act
+        ExperimentDetails actual = subject.createExperiment(mockExperimentDetails);
+
+        // Assert
+        verify(experimentRepository, times(1)).save(mockExperimentDetails);
+        assertEquals(mockExperimentDetails, actual);
+        verifyNoMoreInteractions(experimentRepository);
+    }
+
+    @Test
+    public void testCreateExperiment_experimentDetailsIsNull_throwsException() {
+
+        // Arrange
+        expectedEx.expect(NullPointerException.class);
+        expectedEx.expectMessage("experimentDetails is marked non-null but is null");
+
+        // Act
+        ExperimentDetails actual = subject.createExperiment(null);
+
+        // Arrange - with rule
+        verifyNoMoreInteractions(experimentRepository);
+    }
 }

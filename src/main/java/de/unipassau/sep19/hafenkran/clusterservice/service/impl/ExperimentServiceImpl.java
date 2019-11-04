@@ -28,7 +28,7 @@ public class ExperimentServiceImpl implements ExperimentService {
 
     private final UserRepository userRepository;
 
-    public ExperimentDetails createExperiment(@Valid ExperimentDetails experimentDetails) {
+    public ExperimentDetails createExperiment(@Valid @NonNull ExperimentDetails experimentDetails) {
         final ExperimentDetails savedExperimentDetails = experimentRepository.save(experimentDetails);
 
         log.info(String.format("Experiment with id %s created", savedExperimentDetails.getId()));
