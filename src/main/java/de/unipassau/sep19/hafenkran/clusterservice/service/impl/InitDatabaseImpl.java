@@ -7,6 +7,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -18,11 +19,17 @@ import java.util.UUID;
 public class InitDatabaseImpl implements CommandLineRunner {
 
     private final UserService userService;
-
     private final ExperimentService experimentService;
+
+    @Value("true")
+    private String mockdata;
 
     @Override
     public void run(String... args) throws Exception {
+
+        if (!mockdata.equals("true")) {
+            return;
+        }
 
         final UserDetails userDetails1 = new UserDetails("Kurt", "password");
         userService.createUser(userDetails1);
