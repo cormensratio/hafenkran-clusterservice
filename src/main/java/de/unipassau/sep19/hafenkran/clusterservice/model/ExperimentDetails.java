@@ -2,6 +2,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.model;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -18,21 +19,23 @@ public class ExperimentDetails {
     private UUID id;
 
     @NotNull
+    @NonNull
     private String experimentName;
 
     @Basic
     @NotNull
+    @NonNull
     private LocalDateTime createdAt;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY)
-    private UserDetails owner;
+    @NonNull
+    private UUID userId;
 
     private long size;
 
-    public ExperimentDetails(@NotNull String experimentName, @NotNull UserDetails owner, long size) {
+    public ExperimentDetails(@NotNull @NonNull UUID userId, @NotNull @NonNull String experimentName, long size) {
+        this.userId = userId;
         this.experimentName = experimentName;
-        this.owner = owner;
         this.size = size;
         this.createdAt = LocalDateTime.now();
     }

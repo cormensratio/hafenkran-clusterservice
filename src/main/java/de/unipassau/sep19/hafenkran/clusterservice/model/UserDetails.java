@@ -4,9 +4,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.PrePersist;
+import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
-import java.util.List;
+import javax.validation.constraints.NotNull;
 import java.util.UUID;
 
 @Data
@@ -16,28 +19,36 @@ import java.util.UUID;
 public class UserDetails {
 
     @Id
+    @NotNull
     @NonNull
     private UUID id;
 
-    @NotBlank(message = "Name is required!")
+    @NotNull
     @NonNull
+    @NotBlank(message = "Name is required!")
     private String name;
 
-    @NotBlank(message = "Password is required!")
+    @NotNull
     @NonNull
+    @NotBlank(message = "Password is required!")
     private String password;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner", orphanRemoval = true)
-    @NonNull
-    private List<ExperimentDetails> experimentDetails;
-
-    public UserDetails(@NotBlank(message = "Name is required!") @NonNull String name,
-                       @NotBlank(message = "Password is required!") @NonNull String password,
-                       @NonNull List<ExperimentDetails> experimentDetails) {
+    public UserDetails(@NotNull @NonNull @NotBlank(message = "Name is required!") String name,
+                       @NotNull @NonNull @NotBlank(message = "Password is required!") String password) {
         this.name = name;
         this.password = password;
-        this.experimentDetails = experimentDetails;
     }
+
+    /*
+    public UserDetails(@NotBlank(message = "Name is required!") @NonNull String name,
+                       @NotBlank(message = "Password is required!") @NonNull String password,
+                       @NonNull List<ExperimentDetails> experimentDetailsList) {
+        this.name = name;
+        this.password = password;
+        this.experimentDetailsList = experimentDetailsList;
+    }
+
+     */
 
     @PrePersist
     private void prePersist() {

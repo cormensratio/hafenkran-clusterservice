@@ -7,10 +7,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @AllArgsConstructor(onConstructor = @__(@JsonCreator))
 public class ExperimentDTO {
+
+    @JsonProperty("userId")
+    private final UUID userId;
 
     @JsonProperty("experimentName")
     private final String experimentName;
@@ -22,6 +26,7 @@ public class ExperimentDTO {
     private final Long size;
 
     public ExperimentDTO(final ExperimentDetails experimentDetails) {
+        this.userId = experimentDetails.getUserId();
         this.experimentName = experimentDetails.getExperimentName();
         this.createdAt = experimentDetails.getCreatedAt();
         this.size = experimentDetails.getSize();

@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -24,11 +24,14 @@ public class InitDatabaseImpl implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
-        final UserDetails userDetails1 = new UserDetails("Kurt", "password", Collections.emptyList());
+        final UserDetails userDetails1 = new UserDetails("Kurt", "password");
         userService.createUser(userDetails1);
 
-        final ExperimentDetails experimentDetails1 = new ExperimentDetails("experiment1", userDetails1, 300);
+        final ExperimentDetails experimentDetails1 = new ExperimentDetails(UUID.fromString("c8aef4f2-92f8-47eb-bbe9-bd457f91f0e6"), "experiment1", 300);
         experimentService.createExperiment(experimentDetails1);
+
+        final ExperimentDetails experimentDetails2 = new ExperimentDetails(UUID.fromString("c8aef4f2-92f8-47eb-bbe9-bd457f91f0e6"), "experiment2", 1024);
+        experimentService.createExperiment(experimentDetails2);
 
         log.info("Database initialized!");
     }

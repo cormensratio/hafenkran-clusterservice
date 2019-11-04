@@ -18,6 +18,7 @@ public class TestServiceImpl implements TestService {
     private final TestRepository testRepository;
 
     public Test createTest(@Valid Test test) {
+
         final Test savedTest = testRepository.save(test);
 
         log.info(String.format("Test with id %s created", savedTest.getId()));
