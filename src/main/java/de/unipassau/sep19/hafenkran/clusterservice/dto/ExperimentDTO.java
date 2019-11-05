@@ -9,6 +9,9 @@ import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * The Data Transfer Object (DTO) representation of an {@link ExperimentDetails}.
+ */
 @Data
 @AllArgsConstructor(onConstructor = @__(@JsonCreator))
 public class ExperimentDTO {

@@ -7,11 +7,13 @@ import lombok.Data;
 import lombok.NonNull;
 
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * The Data Transfer Object (DTO) representation of a list of {@link ExperimentDetails}.
+ */
 @Data
 public class ExperimentDTOList {
 
@@ -27,10 +29,16 @@ public class ExperimentDTOList {
         this.experimentDTOList = convertExperimentListToDTOList(experimentDetailsList);
     }
 
-    private static ExperimentDTO convertExperimentToDTO(@NotNull @NonNull ExperimentDetails experiment) {
+    private static ExperimentDTO convertExperimentToDTO(@NonNull ExperimentDetails experiment) {
         return new ExperimentDTO(experiment);
     }
 
+    /**
+     * Converts a list of {@link ExperimentDetails} into a {@link ExperimentDTOList}.
+     *
+     * @param experimentDetailsList The list of {@link ExperimentDetails} that is going to be converted.
+     * @return The converted {@link ExperimentDTOList}.
+     */
     public static List<ExperimentDTO> convertExperimentListToDTOList(
             @NonNull @NotEmpty List<ExperimentDetails> experimentDetailsList) {
 

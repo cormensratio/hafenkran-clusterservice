@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,6 +24,13 @@ public class ExperimentServiceImpl implements ExperimentService {
 
     private final ExperimentRepository experimentRepository;
 
+    private List<ExperimentDetails> findExperimentsListOfUserId(@NonNull UUID userId) {
+        return experimentRepository.findExperimentDetailsByUserId(userId);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public ExperimentDetails createExperiment(@Valid @NonNull ExperimentDetails experimentDetails) {
         final ExperimentDetails savedExperimentDetails = experimentRepository.save(experimentDetails);
 
@@ -33,33 +39,30 @@ public class ExperimentServiceImpl implements ExperimentService {
         return savedExperimentDetails;
     }
 
-    public ExperimentDetails getExperimentById(@NotNull @NonNull UUID id) {
+    /**
+     * {@inheritDoc}
+     */
+    public ExperimentDetails findExperimentById(@NonNull UUID id) {
         final Optional<ExperimentDetails> experimentDetails = experimentRepository.findById(id);
 
-        if (!experimentDetails.isPresent()) {
-            throw new ResourceNotFoundException(ExperimentDetails.class, "id",
-                    id.toString());
-        }
-
-        return experimentDetails.get();
+        return experimentDetails.orElseThrow(() -> new ResourceNotFoundException(ExperimentDetails.class, "id",
+                id.toString()));
     }
 
-    public ExperimentDTO getExperimentDTOById(@NotNull @NonNull UUID id) {
+    /**
+     * {@inheritDoc}
+     */
+    public ExperimentDTO findExperimentDTOById(@NonNull UUID id) {
         final Optional<ExperimentDetails> experiment = experimentRepository.findById(id);
 
-        if (!experiment.isPresent()) {
-            throw new ResourceNotFoundException(ExperimentDetails.class, "id",
-                    id.toString());
-        }
-
-        return new ExperimentDTO(experiment.get());
+        return new ExperimentDTO(experiment.orElseThrow(() -> new ResourceNotFoundException(ExperimentDetails.class, "id",
+                id.toString())));
     }
 
-    public List<ExperimentDetails> getExperimentsListOfUserId(@NotNull @NonNull UUID userId) {
-        return experimentRepository.findExperimentDetailsByUserId(userId);
-    }
-
-    public List<ExperimentDTO> getExperimentsDTOListOfUserId(@NotNull @NonNull UUID userId) {
-        return ExperimentDTOList.convertExperimentListToDTOList(getExperimentsListOfUserId(userId));
+    /**
+     * {@inheritDoc}
+     */
+    public List<ExperimentDTO> findExperimentsDTOListOfUserId(@NonNull UUID userId) {
+        return ExperimentDTOList.convertExperimentListToDTOList(findExperimentsListOfUserId(userId));
     }
 }

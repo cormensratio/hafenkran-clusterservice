@@ -5,10 +5,14 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * {@code ExperimentDetails} save the most significant data to identify a user's uploaded experiment.
+ */
 @Data
 @Table(name = "experimentdetails")
 @Entity
@@ -18,22 +22,21 @@ public class ExperimentDetails {
     @Id
     private UUID id;
 
-    @NotNull
+    @Valid
     @NonNull
+    @NotEmpty
     private String experimentName;
 
     @Basic
-    @NotNull
     @NonNull
     private LocalDateTime createdAt;
 
-    @NotNull
     @NonNull
     private UUID userId;
 
     private long size;
 
-    public ExperimentDetails(@NotNull @NonNull UUID userId, @NotNull @NonNull String experimentName, long size) {
+    public ExperimentDetails(@NonNull UUID userId, @NonNull String experimentName, long size) {
         this.userId = userId;
         this.experimentName = experimentName;
         this.size = size;

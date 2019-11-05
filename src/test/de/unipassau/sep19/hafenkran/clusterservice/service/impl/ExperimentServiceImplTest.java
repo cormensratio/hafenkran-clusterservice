@@ -47,7 +47,7 @@ public class ExperimentServiceImplTest {
         when(experimentRepository.findById(MOCK_ID)).thenReturn(Optional.of(mockExperimentDetails));
 
         // Act
-        ExperimentDetails actual = subject.getExperimentById(MOCK_ID);
+        ExperimentDetails actual = subject.findExperimentById(MOCK_ID);
 
         // Assert
         verify(experimentRepository, times(1)).findById(MOCK_ID);
@@ -63,7 +63,7 @@ public class ExperimentServiceImplTest {
         when(experimentRepository.findById(MOCK_ID)).thenReturn(Optional.empty());
 
         // Act
-        ExperimentDetails actual = subject.getExperimentById(MOCK_ID);
+        ExperimentDetails actual = subject.findExperimentById(MOCK_ID);
 
         // Assert - with rule
         verify(experimentRepository, times(1)).findById(MOCK_ID);
@@ -79,7 +79,7 @@ public class ExperimentServiceImplTest {
         expectedEx.expectMessage("id is marked non-null but is null");
 
         // Act
-        ExperimentDetails actual = subject.getExperimentById(null);
+        ExperimentDetails actual = subject.findExperimentById(null);
 
         // Arrange - with rule
         verifyNoMoreInteractions(experimentRepository);
