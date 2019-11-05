@@ -32,6 +32,7 @@ public class UploadServiceImpl implements UploadService {
         }
         Path fileStorageLocation = Paths.get(String.format("%s/%s/%s", path, experimentDetails.getUserId(), experimentDetails.getId()))
                 .toAbsolutePath().normalize();
+
         try {
             Files.createDirectories(fileStorageLocation);
         } catch (Exception e) {
@@ -39,7 +40,9 @@ public class UploadServiceImpl implements UploadService {
         }
 
         try {
-            if (StringUtils.isEmpty(fileName) || fileName.contains("..")) {
+            if (StringUtils.isEmpty(fileName)) {
+                throw new ResourceStorageException("Filename is empty.");
+            } else if (fileName.contains("..")) {
                 throw new ResourceStorageException("Filename contains invalid path sequence " + fileName);
             }
 
@@ -52,6 +55,5 @@ public class UploadServiceImpl implements UploadService {
             throw new ResourceStorageException("Could not store the file '" + fileName + "'. Please try again!", e);
         }
     }
-
 
 }
