@@ -4,7 +4,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
-import javax.persistence.*;
+import javax.persistence.Basic;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -38,12 +41,9 @@ public class ExperimentDetails {
         this.experimentName = experimentName;
         this.size = size;
         this.createdAt = LocalDateTime.now();
-    }
-
-    @PrePersist
-    private void prePersist() {
         this.id = UUID.randomUUID();
     }
+
 }
 
 
