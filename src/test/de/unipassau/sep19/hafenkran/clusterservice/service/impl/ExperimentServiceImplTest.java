@@ -3,7 +3,6 @@ package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
-import de.unipassau.sep19.hafenkran.clusterservice.repository.UserRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
 import org.junit.Before;
 import org.junit.Rule;
@@ -32,13 +31,12 @@ public class ExperimentServiceImplTest {
     @Mock
     private ExperimentRepository experimentRepository;
 
-    private UserRepository userRepository;
     private ExperimentService subject;
     private ExperimentDetails mockExperimentDetails;
 
     @Before
     public void setUp() {
-        this.subject = new ExperimentServiceImpl(experimentRepository, userRepository);
+        this.subject = new ExperimentServiceImpl(experimentRepository);
         mockExperimentDetails = new ExperimentDetails(MOCK_ID, "testExperiment", 500);
     }
 

@@ -1,9 +1,7 @@
 package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
-import de.unipassau.sep19.hafenkran.clusterservice.model.UserDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
-import de.unipassau.sep19.hafenkran.clusterservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,21 +16,17 @@ import java.util.UUID;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class InitDatabaseImpl implements CommandLineRunner {
 
-    private final UserService userService;
     private final ExperimentService experimentService;
 
-    @Value("true")
-    private String mockdata;
+    @Value("${mockdata}")
+    private boolean mockdata;
 
     @Override
     public void run(String... args) throws Exception {
 
-        if (!mockdata.equals("true")) {
+        if (!mockdata) {
             return;
         }
-
-        final UserDetails userDetails1 = new UserDetails("Kurt", "password");
-        userService.createUser(userDetails1);
 
         final ExperimentDetails experimentDetails1 = new ExperimentDetails(UUID.fromString("c8aef4f2-92f8-47eb-bbe9-bd457f91f0e6"), "experiment1", 300);
         experimentService.createExperiment(experimentDetails1);
@@ -42,17 +36,4 @@ public class InitDatabaseImpl implements CommandLineRunner {
 
         log.info("Database initialized!");
     }
-    /*
-    @Autowired
-    TestServiceImpl testService;
-
-    @Override
-    public void run(String... args) throws Exception{
-
-        final Test test1 = new Test();
-        testService.createTest(test1);
-
-        log.info("database initialized");
-    }
-*/
 }

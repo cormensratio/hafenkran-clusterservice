@@ -5,7 +5,6 @@ import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
-import de.unipassau.sep19.hafenkran.clusterservice.repository.UserRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -25,8 +24,6 @@ import java.util.UUID;
 public class ExperimentServiceImpl implements ExperimentService {
 
     private final ExperimentRepository experimentRepository;
-
-    private final UserRepository userRepository;
 
     public ExperimentDetails createExperiment(@Valid @NonNull ExperimentDetails experimentDetails) {
         final ExperimentDetails savedExperimentDetails = experimentRepository.save(experimentDetails);
