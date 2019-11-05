@@ -4,9 +4,12 @@ import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceStorageExce
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.UploadService;
 import lombok.NonNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.Valid;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,11 +19,16 @@ import java.nio.file.StandardCopyOption;
 @Component
 public class UploadServiceImpl implements UploadService {
 
-    private String path = "/home/ash265/";
+    @Value("${experimentsFileUploadLocation}")
+    private String path;
 
     @Override
-    public String storeFile(@NonNull MultipartFile file, @NonNull ExperimentDetails experimentDetails) {
+    public String storeFile(@NonNull MultipartFile file, @Valid @NonNull ExperimentDetails experimentDetails) {
         String fileName = file.getOriginalFilename();
+
+        if (StringUtils.isEmpty(path)) {
+            throw new ResourceStorageException("The experimentsFileUploadPath is not configured correctly");
+        }
         Path fileStorageLocation = Paths.get(String.format("%s/%s/%s", path, experimentDetails.getUserId(), experimentDetails.getId()))
                 .toAbsolutePath().normalize();
         try {
@@ -30,13 +38,13 @@ public class UploadServiceImpl implements UploadService {
         }
 
         try {
-            if (fileName.contains("..")) {
-                throw new ResourceStorageException("Sorry! Filename contains invalid path sequence " + fileName);
+            if (StringUtils.isEmpty(fileName) || fileName.contains("..")) {
+                throw new ResourceStorageException("Filename contains invalid path sequence " + fileName);
             }
 
             // Copy file to the target location
             Path uploadLocation = fileStorageLocation.resolve(fileName);
-            Files.copy(file.getInputStream(), uploadLocation, StandardCopyOption.REPLACE_EXISTING); // gleiche namen erlauben aber unterschiedliche ids?
+            Files.copy(file.getInputStream(), uploadLocation, StandardCopyOption.REPLACE_EXISTING);
 
             return fileName;
         } catch (IOException e) {

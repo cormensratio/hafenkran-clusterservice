@@ -16,3 +16,5 @@ spring:
             # Remove when updating Spring Boot to a later version
             # https://stackoverflow.com/a/52545424
             non_contextual_creation: true
+
+experimentsFileUploadLocation:
