@@ -22,6 +22,7 @@ import java.util.UUID;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class ExperimentController {
 
+    private static final UUID MOCK_ID = UUID.fromString("c8aef4f2-92f8-47eb-bbe9-bd457f91f0e6");
     private final ExperimentServiceImpl experimentServiceImpl;
 
     /**
@@ -38,15 +39,15 @@ public class ExperimentController {
     }
 
     /**
-     * GET-Endpoint for receiving an {@link ExperimentDTOList} by its {@code userId}.
+     * GET-Endpoint for receiving an {@link ExperimentDTOList} of current user.
      *
-     * @return The list of {@link ExperimentDTO}s of the requested {@code userId}.
+     * @return The list of {@link ExperimentDTO}s of the current user.
      */
     // TODO: get real userId
     @GetMapping
     @ResponseBody
     @ResponseStatus(HttpStatus.FOUND)
-    public List<ExperimentDTO> getExperimentDTOListOfUserId(@NonNull @PathVariable UUID userId) {
-        return experimentServiceImpl.findExperimentsDTOListOfUserId(UUID.fromString("c8aef4f2-92f8-47eb-bbe9-bd457f91f0e6"));
+    public List<ExperimentDTO> getExperimentDTOListOfCurrentUser() {
+        return experimentServiceImpl.findExperimentsDTOListOfUserId(MOCK_ID);
     }
 }
