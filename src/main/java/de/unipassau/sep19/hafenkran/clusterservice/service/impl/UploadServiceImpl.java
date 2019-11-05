@@ -1,5 +1,6 @@
 package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceStorageException;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.UploadService;
@@ -23,7 +24,7 @@ public class UploadServiceImpl implements UploadService {
     private String path;
 
     @Override
-    public String storeFile(@NonNull MultipartFile file, @Valid @NonNull ExperimentDetails experimentDetails) {
+    public ExperimentDTO storeFile(@NonNull MultipartFile file, @Valid @NonNull ExperimentDetails experimentDetails) {
         String fileName = file.getOriginalFilename();
 
         if (StringUtils.isEmpty(path)) {
@@ -46,7 +47,7 @@ public class UploadServiceImpl implements UploadService {
             Path uploadLocation = fileStorageLocation.resolve(fileName);
             Files.copy(file.getInputStream(), uploadLocation, StandardCopyOption.REPLACE_EXISTING);
 
-            return fileName;
+            return new ExperimentDTO(experimentDetails);
         } catch (IOException e) {
             throw new ResourceStorageException("Could not store the file '" + fileName + "'. Please try again!", e);
         }

@@ -41,7 +41,7 @@ public class ExperimentController {
     }
 
     @PostMapping("/uploadFile")
-    public String uploadFile(@RequestParam("file") MultipartFile file) {
+    public ExperimentDTO uploadFile(@RequestParam("file") MultipartFile file) {
         ExperimentDetails experimentDetails = new ExperimentDetails(UUID.randomUUID(), file.getName(), file.getSize());
         ExperimentDetails experiment = experimentService.createExperiment(experimentDetails);
 

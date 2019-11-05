@@ -13,6 +13,9 @@ import java.util.UUID;
 @AllArgsConstructor(onConstructor = @__(@JsonCreator))
 public class ExperimentDTO {
 
+    @JsonProperty("id")
+    private final UUID id;
+
     @JsonProperty("userId")
     private final UUID userId;
 
@@ -26,6 +29,7 @@ public class ExperimentDTO {
     private final Long size;
 
     public ExperimentDTO(final ExperimentDetails experimentDetails) {
+        this.id = experimentDetails.getId();
         this.userId = experimentDetails.getUserId();
         this.experimentName = experimentDetails.getExperimentName();
         this.createdAt = experimentDetails.getCreatedAt();
