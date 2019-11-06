@@ -5,6 +5,9 @@ import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import lombok.NonNull;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * The UploadService for uploading and storing files to an experiment.
+ */
 public interface UploadService {
 
     /**

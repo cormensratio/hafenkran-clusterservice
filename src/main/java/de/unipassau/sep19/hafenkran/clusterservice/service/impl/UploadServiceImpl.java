@@ -17,6 +17,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
+/**
+ * The UploadService for uploading and storing files to an experiment.
+ */
 @Component
 public class UploadServiceImpl implements UploadService {
 
