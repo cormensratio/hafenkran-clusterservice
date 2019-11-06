@@ -38,6 +38,8 @@ public class UploadServiceImpl implements UploadService {
         if (StringUtils.isEmpty(path)) {
             throw new ResourceStorageException("The experimentsFileUploadPath is not configured correctly");
         }
+
+        // Configure exact naming of fileStorageLocation-path
         Path fileStorageLocation = Paths.get(String.format("%s/%s/%s", path, experimentDetails.getUserId(), experimentDetails.getId()))
                 .toAbsolutePath().normalize();
 
