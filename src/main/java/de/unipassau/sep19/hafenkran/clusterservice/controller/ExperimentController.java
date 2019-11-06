@@ -21,15 +21,17 @@ import java.util.UUID;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class ExperimentController {
 
+    private static final UUID MOCK_ID = UUID.fromString("c8aef4f2-92f8-47eb-bbe9-bd457f91f0e6");
+
     private final ExperimentService experimentService;
 
     private final UploadService uploadService;
 
-    @GetMapping("/{id}")
+    @GetMapping("/{experimentId}")
     @ResponseBody
     @ResponseStatus(HttpStatus.FOUND)
-    public ExperimentDTO getExperimentDTOById(@NotNull @PathVariable UUID id) {
-        return experimentService.getExperimentDTOById(id);
+    public ExperimentDTO getExperimentDTOById(@NotNull @PathVariable UUID experimentId) {
+        return experimentService.getExperimentDTOById(experimentId);
     }
 
     // TODO: get real userId
@@ -37,7 +39,7 @@ public class ExperimentController {
     @ResponseBody
     @ResponseStatus(HttpStatus.FOUND)
     public List<ExperimentDTO> getExperimentDTOList() {
-        return experimentService.getExperimentsDTOListOfUserId(UUID.fromString("c8aef4f2-92f8-47eb-bbe9-bd457f91f0e6"));
+        return experimentService.getExperimentsDTOListOfUserId(MOCK_ID);
     }
 
     @PostMapping("/uploadFile")
