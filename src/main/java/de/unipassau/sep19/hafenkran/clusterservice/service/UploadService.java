@@ -6,12 +6,13 @@ import lombok.NonNull;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface UploadService {
+
     /**
-     * Stores a file at the location ROOT_PATH/{userId}/{experimentId}
+     * Stores a file at the location ROOT_PATH/{userId}/{experimentId}.
      *
      * @param file              the {@link MultipartFile} which should be saved
-     * @param experimentDetails the details for the new experiment
-     * @return the status of the store operation
+     * @param experimentDetails the details from the new experiment
+     * @return an ExperimentDTO with all new experimentDetails.
      */
     ExperimentDTO storeFile(@NonNull MultipartFile file, @NonNull ExperimentDetails experimentDetails);
 }

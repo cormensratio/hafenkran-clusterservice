@@ -23,6 +23,14 @@ public class UploadServiceImpl implements UploadService {
     @Value("${experimentsFileUploadLocation}")
     private String path;
 
+    /**
+     * Stores a file within the {@code fileStorageLocation} using {@link Path#resolve(String fileName)}. The path will
+     * contain {@code path}/{userId}/{experimentId}.
+     *
+     * @param file              the {@link MultipartFile} which should be saved
+     * @param experimentDetails the details from the new experiment
+     * @return an ExperimentDTO with all new experimentDetails.
+     */
     @Override
     public ExperimentDTO storeFile(@NonNull MultipartFile file, @Valid @NonNull ExperimentDetails experimentDetails) {
         String fileName = file.getOriginalFilename();
@@ -46,7 +54,7 @@ public class UploadServiceImpl implements UploadService {
                 throw new ResourceStorageException("Filename contains invalid path sequence " + fileName);
             }
 
-            // Copy file to the target location
+            // Copy file into the target location
             Path uploadLocation = fileStorageLocation.resolve(fileName);
             Files.copy(file.getInputStream(), uploadLocation, StandardCopyOption.REPLACE_EXISTING);
 
