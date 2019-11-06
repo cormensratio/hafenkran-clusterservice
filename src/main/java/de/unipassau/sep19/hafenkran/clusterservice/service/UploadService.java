@@ -10,9 +10,9 @@ public interface UploadService {
     /**
      * Stores a file at the location ROOT_PATH/{userId}/{experimentId}.
      *
-     * @param file              the {@link MultipartFile} which should be saved
-     * @param experimentDetails the details from the new experiment
-     * @return an ExperimentDTO with all new experimentDetails.
+     * @param file              The {@link MultipartFile} which should be saved.
+     * @param experimentDetails The details from the new experiment.
+     * @return An ExperimentDTO with all new experimentDetails.
      */
     ExperimentDTO storeFile(@NonNull MultipartFile file, @NonNull ExperimentDetails experimentDetails);
 }

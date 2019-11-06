@@ -42,6 +42,14 @@ public class ExperimentController {
         return experimentService.getExperimentsDTOListOfUserId(MOCK_ID);
     }
 
+    /**
+     * Creates a new experiment with an random UUID, the fileName as the experimentName and the fileSize as the
+     * experimentSize, stores it and uploads the specified MultipartFile {@code file} to the created
+     * experiment.
+     *
+     * @param file The file to be uploaded.
+     * @return An ExperimentDTO from the new created and stored experiment.
+     */
     @PostMapping("/uploadFile")
     public ExperimentDTO uploadFile(@RequestParam("file") MultipartFile file) {
         ExperimentDetails experimentDetails = new ExperimentDetails(UUID.randomUUID(), file.getName(), file.getSize());
