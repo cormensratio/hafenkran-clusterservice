@@ -17,10 +17,10 @@ import java.util.UUID;
 public class ExperimentDTO {
 
 
-    @JsonProperty("experimentId")
+    @JsonProperty("id")
     private final UUID id;
 
-    @JsonProperty("experimentName")
+    @JsonProperty("name")
     private final String name;
 
     @JsonProperty("userId")
