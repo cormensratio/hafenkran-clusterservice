@@ -1,0 +1,9 @@
+{
+  "properties": [
+    {
+      "name": "experimentsFileUploadLocation",
+      "type": "java.lang.String",
+      "description": "The path for storing experiment files uploaded by the user."
+    }
+  ]
+}

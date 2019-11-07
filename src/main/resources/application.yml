@@ -17,4 +17,6 @@ spring:
             # https://stackoverflow.com/a/52545424
             non_contextual_creation: true
 
+experimentsFileUploadLocation:
+
 mockdata: false

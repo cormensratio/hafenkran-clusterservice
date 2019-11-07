@@ -16,7 +16,6 @@ import java.util.UUID;
 @AllArgsConstructor(onConstructor = @__(@JsonCreator))
 public class ExperimentDTO {
 
-
     @JsonProperty("id")
     private final UUID id;
 

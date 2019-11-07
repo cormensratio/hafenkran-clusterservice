@@ -10,4 +10,6 @@ spring:
     hibernate:
       ddl-auto: create-drop
 
+experimentsFileUploadLocation: /tmp/hafenkran-clusterservice
+
 mockdata: true
