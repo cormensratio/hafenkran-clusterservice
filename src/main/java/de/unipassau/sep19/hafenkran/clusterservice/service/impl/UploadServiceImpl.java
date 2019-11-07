@@ -5,6 +5,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceStorageExce
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.UploadService;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -20,6 +21,7 @@ import java.nio.file.StandardCopyOption;
 /**
  * The UploadService for uploading and storing files to an experiment.
  */
+@RequiredArgsConstructor
 @Component
 public class UploadServiceImpl implements UploadService {
 

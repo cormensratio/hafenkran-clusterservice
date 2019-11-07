@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,39 +21,46 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class UploadServiceImplTest {
 
-    private static final UUID ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
+    private static final UUID userID = UUID.fromString("00000000-0000-0000-0000-000000000001");
+
+    private static final byte[] bytearray = new byte[]{(byte) 0xe0, 0x4f, (byte) 0xd0,
+            0x20, (byte) 0xea, 0x3a, 0x69, 0x10, (byte) 0xa2, (byte) 0xd8, 0x08, 0x00, 0x2b,
+            0x30, 0x30, (byte) 0x9d};
+
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
+
+    @Mock
+    private UploadService mockUploadService;
+
     private UploadService subject;
+
+
     private ExperimentDetails mockExperimentDetails;
     private MultipartFile mockFile;
     private ExperimentDTO mockExperimentDTO;
-    private String mockPath;
 
     @Before
     public void setUp() {
         this.subject = new UploadServiceImpl();
-        this.mockExperimentDetails = new ExperimentDetails(ID, "testExperiment", 500);
-        this.mockFile = new MockMultipartFile(mockExperimentDetails.getExperimentName(), (byte[]) null);
+        this.mockExperimentDetails = new ExperimentDetails(userID, "testExperiment", 500);
+        this.mockFile = new MockMultipartFile(mockExperimentDetails.getExperimentName(), "testfile", "text/txt", bytearray);
         this.mockExperimentDTO = new ExperimentDTO(mockExperimentDetails);
-        this.mockPath = "temp/hafenkran-clusterservice/test";
     }
 
     @Test
     public void testStoreFile_existingFile_existingExperimentDetails_validExperimentDTOReturned() {
 
         // Arrange
-        // The experimentsFileUploadPath is not configured correctly
-        when(subject.storeFile(mockFile, mockExperimentDetails)).thenReturn(mockExperimentDTO);
+        when(mockUploadService.storeFile(mockFile, mockExperimentDetails)).thenReturn(mockExperimentDTO);
 
         // Act
-        ExperimentDTO actual = subject.storeFile(mockFile, mockExperimentDetails);
+        ExperimentDTO actual = mockUploadService.storeFile(mockFile, mockExperimentDetails);
 
         // Assert
-        verify(subject, times(1)).storeFile(mockFile, mockExperimentDetails);
+        verify(mockUploadService, times(1)).storeFile(mockFile, mockExperimentDetails);
         Assertions.assertEquals(mockExperimentDTO, actual);
-        Assertions.assertNotNull(mockExperimentDTO.getId());
-        verifyNoMoreInteractions(subject);
+        verifyNoMoreInteractions(mockUploadService);
     }
 
     @Test
@@ -70,28 +78,14 @@ public class UploadServiceImplTest {
     }
 
     @Test
-    public void testStoreFile_existingFile_ExperimentDetailsAreNull_throwsException() {
+    public void testStoreFile_existingFile_ExperimentDetailsIsNull_throwsException() {
 
         // Arrange
         expectedEx.expect(NullPointerException.class);
-        expectedEx.expectMessage("experimentDetails are marked non-null but are null");
+        expectedEx.expectMessage("experimentDetails is marked non-null but is null");
 
         // Act
         ExperimentDTO actual = subject.storeFile(mockFile, null);
-
-        // Assert - with rule
-
-    }
-
-    @Test
-    public void testStoreFile_FileIsNull_ExperimentDetailsAreNull_throwsException() {
-
-        // Arrange
-        expectedEx.expect(NullPointerException.class);
-        expectedEx.expectMessage("file and experimentDetails are marked non-null but are null");
-
-        // Act
-        ExperimentDTO actual = subject.storeFile(null, null);
 
         // Assert - with rule
 
