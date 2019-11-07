@@ -16,14 +16,15 @@ import java.util.UUID;
 @AllArgsConstructor(onConstructor = @__(@JsonCreator))
 public class ExperimentDTO {
 
-    @JsonProperty("userId")
-    private final UUID userId;
 
     @JsonProperty("experimentId")
-    private final UUID experimentId;
+    private final UUID id;
 
     @JsonProperty("experimentName")
-    private final String experimentName;
+    private final String name;
+
+    @JsonProperty("userId")
+    private final UUID userId;
 
     @JsonProperty("createdAt")
     private final LocalDateTime createdAt;
@@ -32,9 +33,9 @@ public class ExperimentDTO {
     private final Long size;
 
     public ExperimentDTO(final ExperimentDetails experimentDetails) {
+        this.id = experimentDetails.getId();
+        this.name = experimentDetails.getExperimentName();
         this.userId = experimentDetails.getUserId();
-        this.experimentId = experimentDetails.getId();
-        this.experimentName = experimentDetails.getExperimentName();
         this.createdAt = experimentDetails.getCreatedAt();
         this.size = experimentDetails.getSize();
     }
