@@ -19,6 +19,9 @@ public class ExperimentDTO {
     @JsonProperty("userId")
     private final UUID userId;
 
+    @JsonProperty("experimentId")
+    private final UUID experimentId;
+
     @JsonProperty("experimentName")
     private final String experimentName;
 
@@ -30,6 +33,7 @@ public class ExperimentDTO {
 
     public ExperimentDTO(final ExperimentDetails experimentDetails) {
         this.userId = experimentDetails.getUserId();
+        this.experimentId = experimentDetails.getId();
         this.experimentName = experimentDetails.getExperimentName();
         this.createdAt = experimentDetails.getCreatedAt();
         this.size = experimentDetails.getSize();

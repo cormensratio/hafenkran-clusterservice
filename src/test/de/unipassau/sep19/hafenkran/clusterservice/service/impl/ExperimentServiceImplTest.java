@@ -7,19 +7,15 @@ import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentReposito
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.jupiter.api.Assertions;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.*;
 
 
@@ -34,22 +30,15 @@ public class ExperimentServiceImplTest {
     @Mock
     private ExperimentRepository experimentRepository;
 
-    @Mock
     private ExperimentDetails mockExperimentDetails;
 
-    @Mock
-    private List<ExperimentDetails> mockExperimentDetailsList;
-
-    @Mock
-    private List<ExperimentDTO> mockExperimentDTOList;
-
-    @InjectMocks
     private ExperimentServiceImpl subject;
 
 
     @Before
     public void setUp() {
-        mockExperimentDetails = new ExperimentDetails(MOCK_ID, "testExperiment", 500);
+        this.subject = new ExperimentServiceImpl(experimentRepository);
+        this.mockExperimentDetails = new ExperimentDetails(MOCK_ID, "testExperiment", 500);
     }
 
     @Test
@@ -78,9 +67,7 @@ public class ExperimentServiceImplTest {
         ExperimentDetails actual = subject.findExperimentById(MOCK_ID);
 
         // Assert - with rule
-        verify(experimentRepository, times(1)).findById(MOCK_ID);
-        Assertions.assertNull(actual);
-        verifyNoMoreInteractions(experimentRepository);
+
     }
 
     @Test
@@ -93,13 +80,12 @@ public class ExperimentServiceImplTest {
         // Act
         ExperimentDetails actual = subject.findExperimentById(null);
 
-        // Arrange - with rule
-        verifyNoMoreInteractions(experimentRepository);
+        // Assert - with rule
 
     }
 
     @Test
-    public void testCreateExperiment_existingExperimentDetails_validExperimentDetailsReturned() {
+    public void testCreateExperiment_validExperimentDetails_validExperimentDetailsReturned() {
 
         // Arrange
         when(experimentRepository.save(mockExperimentDetails)).thenReturn(mockExperimentDetails);
@@ -124,7 +110,7 @@ public class ExperimentServiceImplTest {
         ExperimentDetails actual = subject.createExperiment(null);
 
         // Assert - with rule
-        verifyNoMoreInteractions(experimentRepository);
+
     }
 
     @Test
@@ -153,10 +139,7 @@ public class ExperimentServiceImplTest {
         // Act
         ExperimentDTO actual = subject.findExperimentDTOById(MOCK_ID);
 
-        // Assert
-        verify(experimentRepository, times(1)).findById(MOCK_ID);
-        assertNull(actual);
-        verifyNoMoreInteractions(experimentRepository);
+        // Assert - with rule
 
     }
 
@@ -171,6 +154,6 @@ public class ExperimentServiceImplTest {
         ExperimentDTO actual = subject.findExperimentDTOById(null);
 
         // Assert - with rule
-        verifyNoMoreInteractions(experimentRepository);
+
     }
 }
