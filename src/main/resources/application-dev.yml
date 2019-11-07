@@ -7,6 +7,7 @@ spring:
     username: hafenkran
     password: test
   jpa:
-    properties:
-      hibernate:
-        ddl-auto: update
+    hibernate:
+      ddl-auto: create-drop
+
+mockdata: true
