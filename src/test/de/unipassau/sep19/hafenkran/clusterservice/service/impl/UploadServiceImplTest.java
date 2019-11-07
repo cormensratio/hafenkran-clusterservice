@@ -6,17 +6,14 @@ import de.unipassau.sep19.hafenkran.clusterservice.service.UploadService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.jupiter.api.Assertions;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
-import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UploadServiceImplTest {
@@ -30,37 +27,17 @@ public class UploadServiceImplTest {
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
 
-    @Mock
-    private UploadService mockUploadService;
-
     private UploadService subject;
 
 
     private ExperimentDetails mockExperimentDetails;
     private MultipartFile mockFile;
-    private ExperimentDTO mockExperimentDTO;
 
     @Before
     public void setUp() {
         this.subject = new UploadServiceImpl();
         this.mockExperimentDetails = new ExperimentDetails(userID, "testExperiment", 500);
         this.mockFile = new MockMultipartFile(mockExperimentDetails.getExperimentName(), "testfile", "text/txt", bytearray);
-        this.mockExperimentDTO = new ExperimentDTO(mockExperimentDetails);
-    }
-
-    @Test
-    public void testStoreFile_existingFile_existingExperimentDetails_validExperimentDTOReturned() {
-
-        // Arrange
-        when(mockUploadService.storeFile(mockFile, mockExperimentDetails)).thenReturn(mockExperimentDTO);
-
-        // Act
-        ExperimentDTO actual = mockUploadService.storeFile(mockFile, mockExperimentDetails);
-
-        // Assert
-        verify(mockUploadService, times(1)).storeFile(mockFile, mockExperimentDetails);
-        Assertions.assertEquals(mockExperimentDTO, actual);
-        verifyNoMoreInteractions(mockUploadService);
     }
 
     @Test
