@@ -66,11 +66,10 @@ public class ExperimentController {
      * @return An ExperimentDTO from the new created and stored experiment.
      */
     @PostMapping("/uploadFile")
-    public ExperimentDTO uploadFile(@RequestParam("file") MultipartFile file) {
-        ExperimentDetails experimentDetails = new ExperimentDetails(UUID.randomUUID(), file.getName(), file.getSize());
+    public ExperimentDTO uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("name") String experimentName) {
+        ExperimentDetails experimentDetails = new ExperimentDetails(MOCK_ID, experimentName, file.getSize());
         ExperimentDetails experiment = experimentService.createExperiment(experimentDetails);
 
         return uploadService.storeFile(file, experiment);
     }
-
 }
