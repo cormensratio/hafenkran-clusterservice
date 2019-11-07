@@ -85,7 +85,6 @@ public class ExperimentServiceImplTest {
 
         // Arrange - with rule
         verifyNoMoreInteractions(experimentRepository);
-
     }
 
     @Test
