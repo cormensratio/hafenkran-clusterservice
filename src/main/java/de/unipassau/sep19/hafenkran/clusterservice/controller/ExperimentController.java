@@ -29,7 +29,7 @@ public class ExperimentController {
 
     @GetMapping("/{experimentId}")
     @ResponseBody
-    @ResponseStatus(HttpStatus.FOUND)
+    @ResponseStatus(HttpStatus.OK)
     public ExperimentDTO getExperimentDTOById(@NotNull @PathVariable UUID experimentId) {
         return experimentService.getExperimentDTOById(experimentId);
     }
@@ -37,7 +37,7 @@ public class ExperimentController {
     // TODO: get real userId
     @GetMapping
     @ResponseBody
-    @ResponseStatus(HttpStatus.FOUND)
+    @ResponseStatus(HttpStatus.OK)
     public List<ExperimentDTO> getExperimentDTOList() {
         return experimentService.getExperimentsDTOListOfUserId(MOCK_ID);
     }
