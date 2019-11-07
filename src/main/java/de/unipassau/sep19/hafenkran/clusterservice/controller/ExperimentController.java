@@ -1,9 +1,11 @@
 package de.unipassau.sep19.hafenkran.clusterservice.controller;
 
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
 import de.unipassau.sep19.hafenkran.clusterservice.service.UploadService;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,10 +13,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * The REST-Controller for experiment specific POST and GET endpoints.
+ */
 @Slf4j
 @RestController
 @RequestMapping("/experiments")
@@ -27,19 +31,30 @@ public class ExperimentController {
 
     private final UploadService uploadService;
 
+    /**
+     * GET-Endpoint for receiving a single {@link ExperimentDTO} by its id.
+     *
+     * @param experimentId The UUID of the requested {@link ExperimentDTO}.
+     * @return The requested {@link ExperimentDTO} by its {@code id}.
+     */
     @GetMapping("/{experimentId}")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public ExperimentDTO getExperimentDTOById(@NotNull @PathVariable UUID experimentId) {
-        return experimentService.getExperimentDTOById(experimentId);
+    public ExperimentDTO getExperimentDTOById(@NonNull @PathVariable UUID experimentId) {
+        return experimentService.findExperimentDTOById(experimentId);
     }
 
+    /**
+     * GET-Endpoint for receiving an {@link ExperimentDTOList} of current user.
+     *
+     * @return The list of {@link ExperimentDTO}s of the current user.
+     */
     // TODO: get real userId
     @GetMapping
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public List<ExperimentDTO> getExperimentDTOList() {
-        return experimentService.getExperimentsDTOListOfUserId(MOCK_ID);
+    public List<ExperimentDTO> getExperimentDTOListOfCurrentUser() {
+        return experimentService.findExperimentsDTOListOfUserId(MOCK_ID);
     }
 
     /**

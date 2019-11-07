@@ -11,3 +11,5 @@ spring:
       ddl-auto: create-drop
 
 experimentsFileUploadLocation: /tmp/hafenkran-clusterservice
+
+mockdata: true
