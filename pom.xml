@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.uni-passau.sep19.hafenkran</groupId>
     <artifactId>clusterservice</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>clusterservice</name>
     <description>A web service for managing kubernetes deployments in Hafenkran.</description>
 
@@ -94,6 +94,7 @@
     </dependencies>
 
     <build>
+        <finalName>hafenkran-clusterservice</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
