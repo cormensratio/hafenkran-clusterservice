@@ -1,6 +1,6 @@
-version: '3.7'
+version: '3'
 services:
-  db:
+  hafenkran-db:
     image: "postgres:12.0"
     container_name: "hafenkran-db"
     environment:
@@ -9,8 +9,30 @@ services:
       - POSTGRES_DB=hafenkran
     ports:
       - 5432:5432
+    networks:
+      - backend
     volumes:
       - db-data:/var/lib/postgresql/data
 
+  hafenkran-clusterservice:
+    container_name: hafenkran-clusterservice
+    build:
+      context: .
+      dockerfile: Dockerfile.clusterservice
+    expose:
+      - "8080"
+    ports:
+      - "8080:8080"
+    networks:
+      - backend
+    depends_on:
+      - hafenkran-db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://hafenkran-db:5432/hafenkran
+
 volumes:
   db-data: {}
+
+networks:
+  backend:
+    driver: bridge
