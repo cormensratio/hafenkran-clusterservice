@@ -1,0 +1,22 @@
+server:
+  port:
+
+spring:
+  datasource:
+    url:
+    username:
+    password:
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          lob:
+            # Workaround for hibernate error in Spring Boot < 2.2.0.M(1-4)
+            # Remove when updating Spring Boot to a later version
+            # https://stackoverflow.com/a/52545424
+            non_contextual_creation: true
+
+experimentsFileUploadLocation:
+
+mockdata: false

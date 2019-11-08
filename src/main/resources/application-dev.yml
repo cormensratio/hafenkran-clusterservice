@@ -1,0 +1,15 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/hafenkran
+    username: hafenkran
+    password: test
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+experimentsFileUploadLocation: /tmp/hafenkran-clusterservice
+
+mockdata: true

@@ -1,0 +1,15 @@
+${Ansi.GREEN}
+                  ,llllllllc
+                 ,N'       ::
+                 ,M'       ::
+           ,lllc ,M'       ::
+          ,l   lc,M'      /  \
+           ,lllc ,M'    cccccccc
+                 ,M'    cccccccc
+               .:MMM:.
+              cKl   lKc
+            ,l'       'l,
+_  _ ____ ____ ____ _  _ _  _ ____ ____ _  _
+|__| |__| |___ |___ |\ | |_/  |__/ |__| |\ |
+|  | |  | |    |___ | \| | \_ |  \ |  | | \|
+${Ansi.RED}..............:ClusterService:..............
