@@ -17,9 +17,11 @@ import java.util.stream.Collectors;
 @Data
 public class ExperimentDTOList {
 
+    @NonNull
     @JsonProperty
     private final UUID userId;
 
+    @NonNull
     @JsonProperty
     private final List<ExperimentDTO> experimentDTOList;
 

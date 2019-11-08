@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -66,11 +67,13 @@ public class ExperimentController {
      * @return An ExperimentDTO from the new created and stored experiment.
      */
     @PostMapping("/uploadFile")
-    public ExperimentDTO uploadFile(@RequestParam("file") MultipartFile file) {
-        ExperimentDetails experimentDetails = new ExperimentDetails(UUID.randomUUID(), file.getName(), file.getSize());
+    public ExperimentDTO uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("name") String experimentName) {
+        if(StringUtils.isEmpty(experimentName)){
+            experimentName = file.getOriginalFilename();
+        }
+        ExperimentDetails experimentDetails = new ExperimentDetails(MOCK_ID, experimentName, file.getSize());
         ExperimentDetails experiment = experimentService.createExperiment(experimentDetails);
 
         return uploadService.storeFile(file, experiment);
     }
-
 }
