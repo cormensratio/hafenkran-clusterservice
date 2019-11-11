@@ -16,7 +16,7 @@ import java.util.UUID;
  * of {@link ExperimentDetails} with additional data.
  */
 @Data
-@Table(name = "executionDetails")
+@Table(name = "executiondetails")
 @Entity
 @NoArgsConstructor
 public class ExecutionDetails {
@@ -49,13 +49,14 @@ public class ExecutionDetails {
         RUNNING, FINISHED, CANCELED, ABORTED
     }
 
-    @Enumerated(EnumType.ORDINAL)
+    @Enumerated(EnumType.STRING)
     private Status status;
 
     public ExecutionDetails(@NonNull UUID experimentId, @NonNull @NotEmpty String executionName) {
         this.experimentId = experimentId;
         this.executionName = executionName;
         this.status = Status.RUNNING;
+        this.startedAt = LocalDateTime.now();
     }
 
     @PrePersist
