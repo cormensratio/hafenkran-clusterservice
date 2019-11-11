@@ -24,10 +24,8 @@ public class ExecutionDetails {
     @Id
     private UUID id;
 
-    @ManyToOne
-    @JoinColumn(name = "experimentId", nullable = false,
-            referencedColumnName = "id")
-    private ExperimentDetails experiment;
+    @NonNull
+    private UUID experimentId;
 
     @NonNull
     @NotEmpty
@@ -54,9 +52,14 @@ public class ExecutionDetails {
     @Enumerated(EnumType.ORDINAL)
     private Status status;
 
+    public ExecutionDetails(@NonNull UUID experimentId, @NonNull @NotEmpty String executionName) {
+        this.experimentId = experimentId;
+        this.executionName = executionName;
+        this.status = Status.RUNNING;
+    }
 
-
-
-
-
+    @PrePersist
+    private void prePersist() {
+        this.id = UUID.randomUUID();
+    }
 }
