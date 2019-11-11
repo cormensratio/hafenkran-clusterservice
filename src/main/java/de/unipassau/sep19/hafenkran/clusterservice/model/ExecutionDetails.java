@@ -10,16 +10,18 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * {@code ExecutionDetails} are directly linked to {@link ExperimentDetails}
- * and save the most significant data to identify an Execution and its'
- * related ExperimentDetail. {@link ExecutionDetails} are running instances
- * of {@link ExperimentDetails} with additional data.
+ * {@code ExecutionDetails} are directly linked to {@link ExperimentDetails} and
+ * save the most significant data to identify an Execution and its' related
+ * ExperimentDetail. {@link ExecutionDetails} are running instances of {@link
+ * ExperimentDetails} with additional data.
  */
 @Data
 @Table(name = "executiondetails")
 @Entity
 @NoArgsConstructor
 public class ExecutionDetails {
+
+    private static long executionCounter;
 
     @Id
     private UUID id;
@@ -29,6 +31,7 @@ public class ExecutionDetails {
 
     @NonNull
     @NotEmpty
+    @GeneratedValue
     private String executionName;
 
     @Basic
@@ -39,28 +42,32 @@ public class ExecutionDetails {
     @NonNull
     private LocalDateTime finishedAt;
 
-    /**
-     * Where {@code RUNNING} means that the execution is currently running.
-     * {@code FINISHED} means that the execution finished successfully.
-     * {@code CANCELED} means that the execution got canceled by the user.
-     * {@code ABORTED} means that the execution got aborted by the admin.
-     */
-    private enum Status {
-        RUNNING, FINISHED, CANCELED, ABORTED
-    }
-
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    public ExecutionDetails(@NonNull UUID experimentId, @NonNull @NotEmpty String executionName) {
-        this.experimentId = experimentId;
-        this.executionName = executionName;
+    public ExecutionDetails(@NonNull ExperimentDetails experimentDetails) {
+        executionCounter++;
+        this.experimentId = experimentDetails.getId();
         this.status = Status.RUNNING;
         this.startedAt = LocalDateTime.now();
+        this.executionName =
+                experimentDetails.getExperimentName().concat("_" + executionCounter);
     }
 
     @PrePersist
     private void prePersist() {
         this.id = UUID.randomUUID();
+    }
+
+    /**
+     * Where {@code RUNNING} means that the execution is currently running.
+     * {@code FINISHED} means that the execution finished successfully. {@code
+     * CANCELED} means that the execution got canceled by the user. {@code
+     * ABORTED} means that the execution got aborted by the admin. {@code
+     * FAILED} means that the execution ended due to an error. {@code WAITING}
+     * means that the execution is queued.
+     */
+    private enum Status {
+        RUNNING, FINISHED, CANCELED, ABORTED, FAILED, WAITING
     }
 }
