@@ -40,7 +40,7 @@ public class ExecutionDetails {
 
     @Basic
     @NonNull
-    private LocalDateTime finishedAt;
+    private LocalDateTime terminatedAt;
 
     @Enumerated(EnumType.STRING)
     private Status status;
@@ -67,7 +67,7 @@ public class ExecutionDetails {
      * FAILED} means that the execution ended due to an error. {@code WAITING}
      * means that the execution is queued.
      */
-    private enum Status {
+    public enum Status {
         RUNNING, FINISHED, CANCELED, ABORTED, FAILED, WAITING
     }
 }
