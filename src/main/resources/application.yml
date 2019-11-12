@@ -20,3 +20,5 @@ spring:
 experimentsFileUploadLocation:
 
 mockdata: false
+jwt:
+  secret:

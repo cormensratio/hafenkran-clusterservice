@@ -4,6 +4,16 @@
       "name": "experimentsFileUploadLocation",
       "type": "java.lang.String",
       "description": "The path for storing experiment files uploaded by the user."
+    },
+    {
+      "name": "mockdata",
+      "type": "java.lang.Boolean",
+      "description": "Populates the database with demo data for development purposes."
+    },
+    {
+      "name": "jwt.secret",
+      "type": "java.lang.String",
+      "description": "The secret used for signing JWTs."
     }
   ]
 }
