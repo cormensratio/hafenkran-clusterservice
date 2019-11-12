@@ -2,7 +2,9 @@ package de.unipassau.sep19.hafenkran.clusterservice.controller;
 
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
+import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,10 +24,19 @@ import java.util.UUID;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class ExecutionController {
 
-    //private static final UUID MOCK_EXPERIMENT_ID = UUID.fromString("c8aef4f2-92f8-47eb-bbe9-bd457f91f0e6");
-    private static final String MOCK_EXPERIMENT_NAME = "ColdFusionAlgorithm";
+    private static final UUID MOCK_ID = UUID.fromString("c8aef4f2-92f8-47eb-bbe9-bd457f91f0e6");
+
+    private static UUID MOCK_EXPERIMENT_ID;
+    //private static final String MOCK_EXPERIMENT_NAME = "ColdFusionAlgorithm";
 
     private final ExecutionService executionService;
+
+    private final ExperimentService experimentService;
+
+    private void initialiseMockExperimentId() {
+        List<ExperimentDTO> experimentDTOList = experimentService.findExperimentsDTOListOfUserId(MOCK_ID);
+        MOCK_EXPERIMENT_ID = experimentDTOList.get(0).getId();
+    }
 
     /**
      * GET-Endpoint for receiving a single {@link ExecutionDTO} by its id.
@@ -50,7 +61,8 @@ public class ExecutionController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public List<ExecutionDTO> getExecutionDTOListOfCurrentExperiment() {
-        return executionService.findExecutionsDTOListOfExperimentName(MOCK_EXPERIMENT_NAME);
+        initialiseMockExperimentId();
+        return executionService.findExecutionsDTOListOfExperimentId(MOCK_EXPERIMENT_ID);
     }
 
 }
