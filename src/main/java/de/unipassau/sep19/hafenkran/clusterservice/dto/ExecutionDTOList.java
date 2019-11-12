@@ -7,8 +7,8 @@ import lombok.Data;
 import lombok.NonNull;
 
 import javax.validation.constraints.NotEmpty;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -19,16 +19,23 @@ public class ExecutionDTOList {
 
     @NonNull
     @JsonProperty
-    private final UUID experimentId;
+    private final String experimentName;
 
     @NonNull
     @JsonProperty
     private final List<ExecutionDTO> executionDTOList;
 
     @JsonCreator
-    public ExecutionDTOList(@NonNull @NotEmpty List<ExecutionDetails> executionDetailsList) {
-        this.experimentId = executionDetailsList.get(0).getExperimentId();
-        this.executionDTOList = convertExecutionListToDTOList(executionDetailsList);
+    public ExecutionDTOList(@NonNull @NotEmpty List<ExecutionDetails> executionDetailsList, String experimentName) {
+        this.experimentName = experimentName;
+
+        List<ExecutionDetails> executionsForExperiment = new LinkedList<>();
+        for (ExecutionDetails execution : executionDetailsList) {
+            if (execution.getExperimentName().equals(experimentName)) {
+                executionsForExperiment.add(execution);
+            }
+        }
+        this.executionDTOList = convertExecutionListToDTOList(executionsForExperiment);
     }
 
     private static ExecutionDTO convertExecutionToDTO(@NonNull ExecutionDetails execution) {

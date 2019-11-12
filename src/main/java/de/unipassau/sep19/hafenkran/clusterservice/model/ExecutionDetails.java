@@ -30,6 +30,9 @@ public class ExecutionDetails {
     private UUID experimentId;
 
     @NonNull
+    private String experimentName;
+
+    @NonNull
     @NotEmpty
     @GeneratedValue
     private String executionName;
@@ -48,6 +51,7 @@ public class ExecutionDetails {
     public ExecutionDetails(@NonNull ExperimentDetails experimentDetails) {
         executionCounter++;
         this.experimentId = experimentDetails.getId();
+        this.experimentName = experimentDetails.getExperimentName();
         this.status = Status.RUNNING;
         this.startedAt = LocalDateTime.now();
         this.executionName =

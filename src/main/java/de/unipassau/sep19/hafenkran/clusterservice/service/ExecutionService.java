@@ -31,8 +31,8 @@ public interface ExecutionService {
     ExecutionDTO findExecutionDTOById(@NonNull UUID id);
 
     /**
-     * @param experimentId The {@code userId} of the owner's {@link ExecutionDTOList}
-     * @return The list of {@link ExecutionDTO}s of the requested {@code userId}.
+     * @param experimentName The {@code userId} of the owner's {@link ExecutionDTOList}
+     * @return The list of {@link ExecutionDTO}s of the requested {@code experimentName}.
      */
-    List<ExecutionDTO> findExecutionsDTOListOfExperimentId(@NonNull UUID experimentId);
+    List<ExecutionDTO> findExecutionsDTOListOfExperimentName(@NonNull String experimentName);
 }

@@ -10,6 +10,6 @@ import java.util.UUID;
 @Repository
 public interface ExecutionRepository extends CrudRepository<ExecutionDetails, UUID> {
 
-    List<ExecutionDetails> findExecutionDetailsByExperimentId(UUID experimentId);
+    List<ExecutionDetails> findExecutionDetailsByExperimentName(String experimentName);
 
 }
