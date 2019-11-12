@@ -21,13 +21,13 @@ import java.util.UUID;
 @NoArgsConstructor
 public class ExecutionDetails {
 
-    private static long executionCounter;
-
     @Id
     private UUID id;
 
     @NonNull
-    private UUID experimentId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "experimentid", nullable = false)
+    private ExperimentDetails experimentDetails;
 
     @NonNull
     @NotEmpty
@@ -40,18 +40,16 @@ public class ExecutionDetails {
 
     @Basic
     @NonNull
-    private LocalDateTime finishedAt;
+    private LocalDateTime terminatedAt;
 
     @Enumerated(EnumType.STRING)
     private Status status;
 
     public ExecutionDetails(@NonNull ExperimentDetails experimentDetails) {
-        executionCounter++;
-        this.experimentId = experimentDetails.getId();
-        this.status = Status.RUNNING;
+        this.experimentDetails = experimentDetails;
+        this.status = Status.WAITING;
         this.startedAt = LocalDateTime.now();
-        this.executionName =
-                experimentDetails.getExperimentName().concat("_" + executionCounter);
+        this.executionName = experimentDetails.getExperimentName();
     }
 
     @PrePersist
