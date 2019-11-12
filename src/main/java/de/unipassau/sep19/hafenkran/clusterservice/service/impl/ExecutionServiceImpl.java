@@ -54,11 +54,11 @@ public class ExecutionServiceImpl implements ExecutionService {
     /**
      * {@inheritDoc}
      */
-    public ExecutionDTO findExecutionDTOByExperimentId(@NonNull UUID experimentId) {
-        final Optional<ExecutionDetails> execution = executionRepository.findById(experimentId);
+    public ExecutionDTO findExecutionDTOById(@NonNull UUID id) {
+        final Optional<ExecutionDetails> execution = executionRepository.findById(id);
 
-        return new ExecutionDTO(execution.orElseThrow(() -> new ResourceNotFoundException(ExecutionDetails.class, "experimentId",
-                experimentId.toString())));
+        return new ExecutionDTO(execution.orElseThrow(() -> new ResourceNotFoundException(ExecutionDetails.class, "id",
+                id.toString())));
     }
 
     /**

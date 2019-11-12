@@ -25,10 +25,10 @@ public interface ExecutionService {
     ExecutionDetails findExecutionById(@NonNull UUID id);
 
     /**
-     * @param experimentId The UUID of the requested {@link ExecutionDTO}.
+     * @param id The UUID of the requested {@link ExecutionDTO}.
      * @return The requested {@link ExecutionDTO} by its {@code id}.
      */
-    ExecutionDTO findExecutionDTOByExperimentId(@NonNull UUID experimentId);
+    ExecutionDTO findExecutionDTOById(@NonNull UUID id);
 
     /**
      * @param experimentId The {@code userId} of the owner's {@link ExecutionDTOList}
