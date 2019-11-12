@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public interface ExecutionService {
 
-    public ExecutionDetails createExecution(@NonNull ExecutionDetails executionDetails);
+    ExecutionDetails createExecution(@NonNull ExecutionDetails executionDetails);
 
-    public ExecutionDetails findExecutionById(@NonNull UUID id);
+    ExecutionDetails findExecutionById(@NonNull UUID id);
 }

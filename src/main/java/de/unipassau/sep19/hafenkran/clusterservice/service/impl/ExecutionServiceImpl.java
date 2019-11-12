@@ -37,4 +37,7 @@ public class ExecutionServiceImpl implements ExecutionService {
         return executionDetails.orElseThrow(() ->
                 new ResourceNotFoundException(ExecutionDetails.class, "id", id.toString()));
     }
+
+    public void startExecution(UUID executionId){
+    }
 }
