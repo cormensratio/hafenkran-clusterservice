@@ -14,4 +14,8 @@ public class ResourceNotFoundException extends RuntimeException {
         this(resourceType, attribute, identifier, null);
     }
 
+    public ResourceNotFoundException(Class resourceType){
+        super(String.format("Error: Resource of type %s not found!", resourceType.getName()));
+    }
+
 }

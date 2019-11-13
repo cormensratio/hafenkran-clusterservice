@@ -19,7 +19,7 @@ public class ExperimentDTOList {
 
     @NonNull
     @JsonProperty
-    private final UUID userId;
+    private final UUID ownerId;
 
     @NonNull
     @JsonProperty
@@ -27,7 +27,7 @@ public class ExperimentDTOList {
 
     @JsonCreator
     public ExperimentDTOList(@NonNull @NotEmpty List<ExperimentDetails> experimentDetailsList) {
-        this.userId = experimentDetailsList.get(0).getUserId();
+        this.ownerId = experimentDetailsList.get(0).getOwnerId();
         this.experimentDTOList = convertExperimentListToDTOList(experimentDetailsList);
     }
 

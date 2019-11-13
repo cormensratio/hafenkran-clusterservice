@@ -45,7 +45,7 @@ public class UploadServiceImpl implements UploadService {
         }
 
         // Configure exact naming of fileStorageLocation-path
-        Path fileStorageLocation = Paths.get(String.format("%s/%s/%s", path, experimentDetails.getUserId(), experimentDetails.getId()))
+        Path fileStorageLocation = Paths.get(String.format("%s/%s/%s", path, experimentDetails.getOwnerId(), experimentDetails.getId()))
                 .toAbsolutePath().normalize();
 
         try {
