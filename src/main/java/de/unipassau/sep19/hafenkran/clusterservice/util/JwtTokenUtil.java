@@ -9,7 +9,6 @@ import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.io.Serializable;
 import java.util.Date;
@@ -17,6 +16,9 @@ import java.util.LinkedHashMap;
 import java.util.UUID;
 import java.util.function.Function;
 
+/**
+ * A utility class for working with JWTs.
+ */
 @Component
 public class JwtTokenUtil implements Serializable {
 
@@ -82,7 +84,7 @@ public class JwtTokenUtil implements Serializable {
     /**
      * Validates the JWT whether it is expired
      *
-     * @param token   the JWT
+     * @param token the JWT
      * @return {@code true} if token is valid
      */
     public Boolean validateToken(@NonNull @NotEmpty String token) {
