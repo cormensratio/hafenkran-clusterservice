@@ -27,8 +27,6 @@ import java.util.UUID;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class ExperimentController {
 
-    private static final UUID MOCK_ID = UUID.fromString("c8aef4f2-92f8-47eb-bbe9-bd457f91f0e6");
-
     private final ExperimentService experimentService;
 
     private final UploadService uploadService;
@@ -71,7 +69,8 @@ public class ExperimentController {
         if (StringUtils.isEmpty(experimentName)) {
             experimentName = file.getOriginalFilename();
         }
-        ExperimentDetails experimentDetails = new ExperimentDetails(MOCK_ID, experimentName, file.getSize());
+        ExperimentDetails experimentDetails = new ExperimentDetails(SecurityContextUtil.getCurrentUserDTO().getId(),
+                experimentName, file.getSize());
         ExperimentDetails experiment = experimentService.createExperiment(experimentDetails);
 
         return uploadService.storeFile(file, experiment);
