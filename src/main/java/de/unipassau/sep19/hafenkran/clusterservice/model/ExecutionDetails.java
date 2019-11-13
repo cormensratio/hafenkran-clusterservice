@@ -65,7 +65,7 @@ public class ExecutionDetails {
      * FAILED} means that the execution ended due to an error. {@code WAITING}
      * means that the execution is queued.
      */
-    public enum Status {
+    private enum Status {
         RUNNING, FINISHED, CANCELED, ABORTED, FAILED, WAITING
     }
 }

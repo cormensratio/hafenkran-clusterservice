@@ -1,7 +1,5 @@
 package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
-import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
-import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExecutionRepository;
@@ -12,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,13 +20,6 @@ public class ExecutionServiceImpl implements ExecutionService {
 
     private final ExecutionRepository executionRepository;
 
-    private List<ExecutionDetails> findExecutionsListOfExperimentId(@NonNull UUID experimentId) {
-        return executionRepository.findExecutionDetailsByExperimentId(experimentId);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     public ExecutionDetails createExecution(@NonNull ExecutionDetails executionDetails) {
         final ExecutionDetails savedExecutionDetails =
                 executionRepository.save(executionDetails);
@@ -40,9 +30,6 @@ public class ExecutionServiceImpl implements ExecutionService {
         return savedExecutionDetails;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public ExecutionDetails findExecutionById(@NonNull UUID id) {
         final Optional<ExecutionDetails> executionDetails =
                 executionRepository.findById(id);
@@ -50,22 +37,4 @@ public class ExecutionServiceImpl implements ExecutionService {
         return executionDetails.orElseThrow(() ->
                 new ResourceNotFoundException(ExecutionDetails.class, "id", id.toString()));
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    public ExecutionDTO findExecutionDTOById(@NonNull UUID id) {
-        final Optional<ExecutionDetails> execution = executionRepository.findById(id);
-
-        return new ExecutionDTO(execution.orElseThrow(() -> new ResourceNotFoundException(ExecutionDetails.class, "id",
-                id.toString())));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public List<ExecutionDTO> findExecutionsDTOListOfExperimentId(@NonNull UUID experimentId) {
-        return ExecutionDTOList.convertExecutionListToDTOList(findExecutionsListOfExperimentId(experimentId));
-    }
-
 }
