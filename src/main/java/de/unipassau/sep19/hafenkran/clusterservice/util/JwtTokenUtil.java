@@ -83,12 +83,10 @@ public class JwtTokenUtil implements Serializable {
      * Validates the JWT whether it is expired
      *
      * @param token   the JWT
-     * @param userDto the {@link UserDTO} of the user which it should be validated against.
      * @return {@code true} if token is valid
      */
-    public Boolean validateToken(@NonNull @NotEmpty String token, @NonNull @Valid UserDTO userDto) {
-        final UUID userIdFromToken = getUserIdFromToken(token);
-        return (userIdFromToken.equals(userDto.getId()) && !isTokenExpired(token));
+    public Boolean validateToken(@NonNull @NotEmpty String token) {
+        return !isTokenExpired(token);
     }
 
 }
