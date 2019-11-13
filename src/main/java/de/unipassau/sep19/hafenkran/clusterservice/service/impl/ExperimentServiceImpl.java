@@ -28,7 +28,9 @@ public class ExperimentServiceImpl implements ExperimentService {
     private final ExperimentRepository experimentRepository;
 
     private List<ExperimentDetails> findExperimentsListOfUserId(@NonNull UUID userId) {
-        return experimentRepository.findExperimentDetailsByUserId(userId);
+        List<ExperimentDetails> experimentDetailsByUserId = experimentRepository.findExperimentDetailsByUserId(userId);
+        experimentDetailsByUserId.forEach(ExperimentDetails::validatePermissions);
+        return experimentDetailsByUserId;
     }
 
     /**
@@ -46,20 +48,21 @@ public class ExperimentServiceImpl implements ExperimentService {
      * {@inheritDoc}
      */
     public ExperimentDetails findExperimentById(@NonNull UUID id) {
-        final Optional<ExperimentDetails> experimentDetails = experimentRepository.findById(id);
+        final Optional<ExperimentDetails> experimentDetailsOptional = experimentRepository.findById(id);
+        ExperimentDetails experimentDetails = experimentDetailsOptional.orElseThrow(
+                () -> new ResourceNotFoundException(ExperimentDetails.class, "id",
+                        id.toString()));
 
-        return experimentDetails.orElseThrow(() -> new ResourceNotFoundException(ExperimentDetails.class, "id",
-                id.toString()));
+        experimentDetails.validatePermissions();
+        return experimentDetails;
     }
 
     /**
      * {@inheritDoc}
      */
     public ExperimentDTO findExperimentDTOById(@NonNull UUID id) {
-        final Optional<ExperimentDetails> experiment = experimentRepository.findById(id);
-
-        return new ExperimentDTO(experiment.orElseThrow(() -> new ResourceNotFoundException(ExperimentDetails.class, "id",
-                id.toString())));
+        ExperimentDetails experimentDetails = findExperimentById(id);
+        return new ExperimentDTO(experimentDetails);
     }
 
     /**

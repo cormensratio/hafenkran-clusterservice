@@ -38,6 +38,8 @@ public class UploadServiceImpl implements UploadService {
      */
     @Override
     public ExperimentDTO storeFile(@NonNull MultipartFile file, @Valid @NonNull ExperimentDetails experimentDetails) {
+        experimentDetails.validatePermissions();
+
         String fileName = file.getOriginalFilename();
 
         if (StringUtils.isEmpty(path)) {

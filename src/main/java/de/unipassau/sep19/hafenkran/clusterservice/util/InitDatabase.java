@@ -1,4 +1,4 @@
-package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
+package de.unipassau.sep19.hafenkran.clusterservice.util;
 
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
@@ -14,7 +14,7 @@ import java.util.UUID;
 @Slf4j
 @Component
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-public class InitDatabaseImpl implements CommandLineRunner {
+public class InitDatabase implements CommandLineRunner {
 
     private final ExperimentService experimentService;
 
@@ -22,16 +22,18 @@ public class InitDatabaseImpl implements CommandLineRunner {
     private boolean mockdata;
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
 
         if (!mockdata) {
             return;
         }
 
-        final ExperimentDetails experimentDetails1 = new ExperimentDetails(UUID.fromString("c8aef4f2-92f8-47eb-bbe9-bd457f91f0e6"), "experiment1", 300);
+        final ExperimentDetails experimentDetails1 = new ExperimentDetails(
+                UUID.fromString("00000000-0000-0000-0000-000000000001"), "experiment1", 300);
         experimentService.createExperiment(experimentDetails1);
 
-        final ExperimentDetails experimentDetails2 = new ExperimentDetails(UUID.fromString("c8aef4f2-92f8-47eb-bbe9-bd457f91f0e6"), "experiment2", 1024);
+        final ExperimentDetails experimentDetails2 = new ExperimentDetails(
+                UUID.fromString("00000000-0000-0000-0000-000000000001"), "experiment2", 1024);
         experimentService.createExperiment(experimentDetails2);
 
         log.info("Database initialized!");

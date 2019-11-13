@@ -1,6 +1,8 @@
 package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
+import de.unipassau.sep19.hafenkran.clusterservice.config.JwtAuthentication;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.UserDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
@@ -11,6 +13,8 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -24,6 +28,10 @@ public class ExperimentServiceImplTest {
 
     private static final UUID MOCK_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
 
+    private static final UserDTO MOCK_USER = new UserDTO(MOCK_ID, "Rick", "", false);
+
+    private static final JwtAuthentication MOCK_AUTH = new JwtAuthentication(MOCK_USER);
+
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
 
@@ -34,17 +42,23 @@ public class ExperimentServiceImplTest {
 
     private ExperimentServiceImpl subject;
 
+    @Mock
+    private SecurityContext mockContext;
+
 
     @Before
     public void setUp() {
         this.subject = new ExperimentServiceImpl(experimentRepository);
         this.mockExperimentDetails = new ExperimentDetails(MOCK_ID, "testExperiment", 500);
+
+        SecurityContextHolder.setContext(mockContext);
     }
 
     @Test
     public void testFindExperimentById_existingId_validExperimentDetailsReturned() {
 
         // Arrange
+        when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
         when(experimentRepository.findById(MOCK_ID)).thenReturn(Optional.of(mockExperimentDetails));
 
         // Act
@@ -52,8 +66,26 @@ public class ExperimentServiceImplTest {
 
         // Assert
         verify(experimentRepository, times(1)).findById(MOCK_ID);
+        verify(mockContext, times(1)).getAuthentication();
         assertEquals(mockExperimentDetails, actual);
         verifyNoMoreInteractions(experimentRepository);
+    }
+
+    @Test
+    public void testFindExperimentById_notOwnerOrAdmin_throwsException() {
+
+        // Arrange
+        UserDTO wrongUser = new UserDTO(UUID.fromString("00000000-0000-0000-0000-000000000002"), "Rick", "", false);
+        JwtAuthentication auth = new JwtAuthentication(wrongUser);
+
+        expectedEx.expect(ResourceNotFoundException.class);
+        when(experimentRepository.findById(MOCK_ID)).thenReturn(Optional.of(mockExperimentDetails));
+        when(mockContext.getAuthentication()).thenReturn(auth);
+
+        // Act
+        ExperimentDetails actual = subject.findExperimentById(MOCK_ID);
+
+        // Assert - with rule
     }
 
     @Test
@@ -67,7 +99,6 @@ public class ExperimentServiceImplTest {
         ExperimentDetails actual = subject.findExperimentById(MOCK_ID);
 
         // Assert - with rule
-
     }
 
     @Test
@@ -119,14 +150,35 @@ public class ExperimentServiceImplTest {
         // Arrange
         ExperimentDTO mockExperimentDTO = new ExperimentDTO(mockExperimentDetails);
         when(experimentRepository.findById(MOCK_ID)).thenReturn(Optional.ofNullable(mockExperimentDetails));
+        when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
 
         // Act
         ExperimentDTO actual = subject.findExperimentDTOById(MOCK_ID);
 
         // Assert
         verify(experimentRepository, times(1)).findById(MOCK_ID);
+        verify(mockContext, times(1)).getAuthentication();
         assertEquals(actual, mockExperimentDTO);
         verifyNoMoreInteractions(experimentRepository);
+    }
+
+
+    @Test
+    public void testFindExperimentDTOById_notOwnerOrAdmin_throwsException() {
+
+        // Arrange
+        UserDTO wrongUser = new UserDTO(UUID.fromString("00000000-0000-0000-0000-000000000002"), "Rick", "", false);
+        JwtAuthentication auth = new JwtAuthentication(wrongUser);
+        when(mockContext.getAuthentication()).thenReturn(auth);
+
+        expectedEx.expect(ResourceNotFoundException.class);
+        when(experimentRepository.findById(MOCK_ID)).thenReturn(Optional.of(mockExperimentDetails));
+        when(mockContext.getAuthentication()).thenReturn(auth);
+
+        // Act
+        ExperimentDetails actual = subject.findExperimentById(MOCK_ID);
+
+        // Assert - with rule
     }
 
     @Test
