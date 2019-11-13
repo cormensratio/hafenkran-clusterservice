@@ -31,7 +31,7 @@ public class Resource {
     @NonNull
     private UUID ownerId;
 
-    public Resource(@NonNull UUID ownerId) {
+    Resource(@NonNull UUID ownerId) {
         this.id = UUID.randomUUID();
         this.createdAt = LocalDateTime.now();
         this.ownerId = ownerId;
