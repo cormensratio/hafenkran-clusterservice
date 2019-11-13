@@ -7,17 +7,17 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @Configuration
-@EnableJpaRepositories(basePackages = {
-        "de.unipassau.sep19.hafenkran.clusterservice.repository",
-})
 @ComponentScan(basePackages = {
         "de.unipassau.sep19.hafenkran.clusterservice.controller",
+        "de.unipassau.sep19.hafenkran.clusterservice.util",
         "de.unipassau.sep19.hafenkran.clusterservice.service.impl"
 })
 @EntityScan(basePackages = {
         "de.unipassau.sep19.hafenkran.clusterservice.model"
 })
-
+@EnableJpaRepositories(basePackages = {
+        "de.unipassau.sep19.hafenkran.clusterservice.repository",
+})
 @EnableAutoConfiguration
 public class ConfigEntrypoint {
 
