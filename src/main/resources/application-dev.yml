@@ -13,3 +13,5 @@ spring:
 experimentsFileUploadLocation: /tmp/hafenkran-clusterservice
 
 mockdata: true
+jwt:
+  secret: MCgCIQCAS7IFlSvaBOPXwSBHo+7+6C4RbkvYj3fgI5+Abe4pRwIDAQAB
