@@ -32,7 +32,7 @@ public class ExecutionDetails {
     @NonNull
     @NotEmpty
     @GeneratedValue
-    private String executionName;
+    private String name;
 
     @Basic
     @NonNull
@@ -49,7 +49,7 @@ public class ExecutionDetails {
         this.experimentDetails = experimentDetails;
         this.status = Status.WAITING;
         this.startedAt = LocalDateTime.now();
-        this.executionName = experimentDetails.getExperimentName();
+        this.name = experimentDetails.getExperimentName();
     }
 
     @PrePersist
