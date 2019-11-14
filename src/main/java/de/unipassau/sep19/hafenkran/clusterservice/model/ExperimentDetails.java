@@ -16,7 +16,7 @@ import java.util.UUID;
  * {@code ExperimentDetails} save the most significant data to identify a user's uploaded experiment.
  */
 @Data
-@Table(name = "experimentDetails")
+@Table(name = "experimentdetails")
 @Entity
 @NoArgsConstructor
 public class ExperimentDetails {

@@ -20,7 +20,7 @@ import java.util.UUID;
  */
 @Slf4j
 @RestController
-@RequestMapping("/executions")
+@RequestMapping("/experiments")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class ExecutionController {
 
@@ -44,7 +44,7 @@ public class ExecutionController {
      * @param executionId The UUID of the requested {@link ExecutionDTO}.
      * @return The requested {@link ExecutionDTO} by its {@code id}.
      */
-    @GetMapping("/{executionId}")
+    @GetMapping("/{experimentId}/executions/{executionId}")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public ExecutionDTO getExecutionDTOById(@NonNull @PathVariable UUID executionId) {
@@ -57,7 +57,7 @@ public class ExecutionController {
      * @return The list of {@link ExecutionDTO}s of the current experiment.
      */
     // TODO: get real experimentId
-    @GetMapping
+    @GetMapping("/executions")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public List<ExecutionDTO> getExecutionDTOListOfCurrentExperiment() {

@@ -24,7 +24,7 @@ public class ExecutionServiceImpl implements ExecutionService {
     private final ExecutionRepository executionRepository;
 
     private List<ExecutionDetails> findExecutionsListOfExperimentId(@NonNull UUID experimentId) {
-        return executionRepository.findExecutionDetailsByExperimentId(experimentId);
+        return executionRepository.findAllByExperimentDetails_Id(experimentId);
     }
 
     /**

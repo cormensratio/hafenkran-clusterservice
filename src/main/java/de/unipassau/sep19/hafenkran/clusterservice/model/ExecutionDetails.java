@@ -7,8 +7,6 @@ import lombok.NonNull;
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -26,15 +24,13 @@ public class ExecutionDetails {
     @Id
     private UUID id;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "experimentDetails")
-    private List<ExecutionDetails> executionDetailsList;
-
     @NonNull
-    private UUID experimentId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "experimentid", nullable = false)
+    private ExperimentDetails experimentDetails;
 
     @NonNull
     @NotEmpty
-    @GeneratedValue
     private String executionName;
 
     @Basic
@@ -49,10 +45,9 @@ public class ExecutionDetails {
     private Status status;
 
     public ExecutionDetails(@NonNull ExperimentDetails experimentDetails) {
-        this.experimentId = experimentDetails.getId();
-        this.status = Status.RUNNING;
-        this.startedAt = LocalDateTime.now();
-        this.executionDetailsList = Collections.emptyList();
+        this.experimentDetails = experimentDetails;
+        this.executionName = experimentDetails.getExperimentName();
+        this.status = Status.WAITING;
     }
 
     @PrePersist

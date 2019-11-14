@@ -8,7 +8,6 @@ import lombok.Data;
 import lombok.NonNull;
 
 import javax.validation.constraints.NotEmpty;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -33,7 +32,7 @@ public class ExecutionDTOList {
         this.executionDTOList = convertExecutionListToDTOList(experimentDetails.getExecutionDetailsList());
     }
 
-    private List<ExecutionDetails> findExecutionsForExperiment(List<ExecutionDetails> executionDetailsList) {
+    /*private List<ExecutionDetails> findExecutionsForExperiment(List<ExecutionDetails> executionDetailsList) {
         List<ExecutionDetails> executionsForExperiment = new LinkedList<>();
         for (ExecutionDetails execution : executionDetailsList) {
             if (execution.getExperimentId() == experimentId) {
@@ -41,7 +40,7 @@ public class ExecutionDTOList {
             }
         }
         return executionsForExperiment;
-    }
+    }*/
 
     private static ExecutionDTO convertExecutionToDTO(@NonNull ExecutionDetails execution) {
         return new ExecutionDTO(execution);
