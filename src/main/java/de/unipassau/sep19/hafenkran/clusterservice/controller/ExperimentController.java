@@ -5,6 +5,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
 import de.unipassau.sep19.hafenkran.clusterservice.service.UploadService;
+import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,8 +26,6 @@ import java.util.UUID;
 @RequestMapping("/experiments")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class ExperimentController {
-
-    private static final UUID MOCK_ID = UUID.fromString("c8aef4f2-92f8-47eb-bbe9-bd457f91f0e6");
 
     private final ExperimentService experimentService;
 
@@ -50,12 +49,11 @@ public class ExperimentController {
      *
      * @return The list of {@link ExperimentDTO}s of the current user.
      */
-    // TODO: get real userId
     @GetMapping
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public List<ExperimentDTO> getExperimentDTOListOfCurrentUser() {
-        return experimentService.findExperimentsDTOListOfUserId(MOCK_ID);
+        return experimentService.findExperimentsDTOListOfUserId(SecurityContextUtil.getCurrentUserDTO().getId());
     }
 
     /**
@@ -68,10 +66,11 @@ public class ExperimentController {
      */
     @PostMapping("/uploadFile")
     public ExperimentDTO uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("name") String experimentName) {
-        if(StringUtils.isEmpty(experimentName)){
+        if (StringUtils.isEmpty(experimentName)) {
             experimentName = file.getOriginalFilename();
         }
-        ExperimentDetails experimentDetails = new ExperimentDetails(MOCK_ID, experimentName, file.getSize());
+        ExperimentDetails experimentDetails = new ExperimentDetails(SecurityContextUtil.getCurrentUserDTO().getId(),
+                experimentName, file.getSize());
         ExperimentDetails experiment = experimentService.createExperiment(experimentDetails);
 
         return uploadService.storeFile(file, experiment);

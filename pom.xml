@@ -20,6 +20,7 @@
         <lombok.version>1.18.10</lombok.version>
         <junit.jupiter.version>5.5.2</junit.jupiter.version>
         <jackson.version>2.10.0</jackson.version>
+        <jjwt.version>0.9.1</jjwt.version>
     </properties>
 
     <dependencies>
@@ -33,6 +34,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt</artifactId>
+            <version>${jjwt.version}</version>
         </dependency>
 
         <!-- View mapping -->
