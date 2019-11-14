@@ -31,7 +31,6 @@ public class ExecutionDetails {
 
     @NonNull
     @NotEmpty
-    @GeneratedValue
     private String name;
 
     @Basic
@@ -45,11 +44,25 @@ public class ExecutionDetails {
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    public ExecutionDetails(@NonNull ExperimentDetails experimentDetails) {
+    private long ram;
+    private long cpu;
+    private long bookedTime;
+
+    public ExecutionDetails(@NonNull ExperimentDetails experimentDetails,
+                            @NonNull @NotEmpty String name, long ram,
+                            long cpu, long bookedTime) {
         this.experimentDetails = experimentDetails;
+        this.name = name;
         this.status = Status.WAITING;
-        this.startedAt = LocalDateTime.now();
+        this.ram = ram;
+        this.cpu = cpu;
+        this.bookedTime = bookedTime;
+    }
+
+    public ExecutionDetails(ExperimentDetails experimentDetails){
+        this.experimentDetails = experimentDetails;
         this.name = experimentDetails.getExperimentName();
+        this.status = Status.WAITING;
     }
 
     @PrePersist

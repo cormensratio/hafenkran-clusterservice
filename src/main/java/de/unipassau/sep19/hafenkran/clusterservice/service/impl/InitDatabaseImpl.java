@@ -44,15 +44,15 @@ public class InitDatabaseImpl implements CommandLineRunner {
 
         final ExecutionDetails executionDetails1 =
                 new ExecutionDetails(experimentDetails1);
-        executionService.createExecution(executionDetails1);
+        executionService.createExecutionFromExecDetails(executionDetails1);
 
         final ExecutionDetails executionDetails2 =
                 new ExecutionDetails(experimentDetails1);
-        executionService.createExecution(executionDetails2);
+        executionService.createExecutionFromExecDetails(executionDetails2);
 
         final ExecutionDetails executionDetails3 =
                 new ExecutionDetails(experimentDetails1);
-        executionService.createExecution(executionDetails3);
+        executionService.createExecutionFromExecDetails(executionDetails3);
 
         log.info("Database initialized!");
     }
