@@ -27,7 +27,6 @@ public class ExecutionController {
     private static final UUID MOCK_ID = UUID.fromString("c8aef4f2-92f8-47eb-bbe9-bd457f91f0e6");
 
     private static UUID MOCK_EXPERIMENT_ID;
-    //private static final String MOCK_EXPERIMENT_NAME = "ColdFusionAlgorithm";
 
     private final ExecutionService executionService;
 
