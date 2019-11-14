@@ -7,6 +7,8 @@ import lombok.NonNull;
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -21,10 +23,11 @@ import java.util.UUID;
 @NoArgsConstructor
 public class ExecutionDetails {
 
-    private static long executionCounter;
-
     @Id
     private UUID id;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "experimentDetails")
+    private List<ExecutionDetails> executionDetailsList;
 
     @NonNull
     private UUID experimentId;
@@ -46,12 +49,10 @@ public class ExecutionDetails {
     private Status status;
 
     public ExecutionDetails(@NonNull ExperimentDetails experimentDetails) {
-        executionCounter++;
         this.experimentId = experimentDetails.getId();
         this.status = Status.RUNNING;
         this.startedAt = LocalDateTime.now();
-        this.executionName =
-                experimentDetails.getExperimentName().concat("_" + executionCounter);
+        this.executionDetailsList = Collections.emptyList();
     }
 
     @PrePersist

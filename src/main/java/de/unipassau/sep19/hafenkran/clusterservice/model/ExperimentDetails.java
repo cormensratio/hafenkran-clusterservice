@@ -8,19 +8,24 @@ import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 /**
  * {@code ExperimentDetails} save the most significant data to identify a user's uploaded experiment.
  */
 @Data
-@Table(name = "experimentdetails")
+@Table(name = "experimentDetails")
 @Entity
 @NoArgsConstructor
 public class ExperimentDetails {
 
     @Id
     private UUID id;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "experimentDetails")
+    private List<ExecutionDetails> executionDetailsList;
 
     @Valid
     @NonNull
@@ -41,6 +46,7 @@ public class ExperimentDetails {
         this.experimentName = experimentName;
         this.size = size;
         this.createdAt = LocalDateTime.now();
+        this.executionDetailsList = Collections.emptyList();
     }
 
     @PrePersist

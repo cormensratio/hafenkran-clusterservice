@@ -3,6 +3,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.dto;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
+import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import lombok.Data;
 import lombok.NonNull;
 
@@ -27,9 +28,9 @@ public class ExecutionDTOList {
     private final List<ExecutionDTO> executionDTOList;
 
     @JsonCreator
-    public ExecutionDTOList(@NonNull @NotEmpty List<ExecutionDetails> executionDetailsList, UUID experimentId) {
-        this.experimentId = experimentId;
-        this.executionDTOList = convertExecutionListToDTOList(findExecutionsForExperiment(executionDetailsList));
+    public ExecutionDTOList(@NonNull @NotEmpty ExperimentDetails experimentDetails) {
+        this.experimentId = experimentDetails.getId();
+        this.executionDTOList = convertExecutionListToDTOList(experimentDetails.getExecutionDetailsList());
     }
 
     private List<ExecutionDetails> findExecutionsForExperiment(List<ExecutionDetails> executionDetailsList) {
