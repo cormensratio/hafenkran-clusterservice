@@ -1,8 +1,12 @@
 package de.unipassau.sep19.hafenkran.clusterservice.controller;
 
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTOList;
+import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
+import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
 import de.unipassau.sep19.hafenkran.clusterservice.service.UploadService;
 import lombok.NonNull;
@@ -75,5 +79,16 @@ public class ExperimentController {
         ExperimentDetails experiment = experimentService.createExperiment(experimentDetails);
 
         return uploadService.storeFile(file, experiment);
+    }
+
+    private final ExecutionService executionService;
+
+    @PostMapping("/{experimentId}/execute")
+    public @ResponseBody
+    ExecutionDTO startExecution(
+            @NonNull @RequestBody ExecutionCreateDTO executionCreateDTO) {
+
+        ExecutionDetails executionDetails = executionService.createExecutionFromExecDTO(executionCreateDTO);
+        return executionService.convertExecDetailsToExecDTO(executionDetails);
     }
 }
