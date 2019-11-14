@@ -32,16 +32,6 @@ public class ExecutionDTOList {
         this.executionDTOList = convertExecutionListToDTOList(experimentDetails.getExecutionDetailsList());
     }
 
-    /*private List<ExecutionDetails> findExecutionsForExperiment(List<ExecutionDetails> executionDetailsList) {
-        List<ExecutionDetails> executionsForExperiment = new LinkedList<>();
-        for (ExecutionDetails execution : executionDetailsList) {
-            if (execution.getExperimentId() == experimentId) {
-                executionsForExperiment.add(execution);
-            }
-        }
-        return executionsForExperiment;
-    }*/
-
     private static ExecutionDTO convertExecutionToDTO(@NonNull ExecutionDetails execution) {
         return new ExecutionDTO(execution);
     }
