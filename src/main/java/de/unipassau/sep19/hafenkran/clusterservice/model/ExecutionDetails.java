@@ -31,7 +31,7 @@ public class ExecutionDetails {
 
     @NonNull
     @NotEmpty
-    private String name;
+    private String executionName;
 
     @Basic
     @NonNull
@@ -49,19 +49,19 @@ public class ExecutionDetails {
     private long bookedTime;
 
     public ExecutionDetails(@NonNull ExperimentDetails experimentDetails,
-                            @NonNull @NotEmpty String name, long ram,
+                            @NonNull @NotEmpty String executionName, long ram,
                             long cpu, long bookedTime) {
         this.experimentDetails = experimentDetails;
-        this.name = name;
+        this.executionName = executionName;
         this.status = Status.WAITING;
         this.ram = ram;
         this.cpu = cpu;
         this.bookedTime = bookedTime;
     }
 
-    public ExecutionDetails(ExperimentDetails experimentDetails){
+    public ExecutionDetails(@NonNull ExperimentDetails experimentDetails){
         this.experimentDetails = experimentDetails;
-        this.name = experimentDetails.getExperimentName();
+        this.executionName = experimentDetails.getExperimentName();
         this.status = Status.WAITING;
     }
 

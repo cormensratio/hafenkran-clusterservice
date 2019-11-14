@@ -30,6 +30,6 @@ public class ExecutionCreateDTO {
     /**
      * The maximum timespan the user allows his execution to run
      */
-    @JsonProperty
+    @JsonProperty("bookedTime")
     private Optional<Long> bookedTime;
 }

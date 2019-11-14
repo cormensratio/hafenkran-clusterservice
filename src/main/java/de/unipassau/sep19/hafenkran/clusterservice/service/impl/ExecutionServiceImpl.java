@@ -1,6 +1,7 @@
 package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
@@ -25,8 +26,7 @@ public class ExecutionServiceImpl implements ExecutionService {
 
     private final ExperimentRepository experimentRepository;
 
-    public ExecutionDetails createExecutionFromExecDetails(@NonNull ExecutionDetails executionDetails) {
-
+    public ExecutionDetails createExecution(@NonNull ExecutionDetails executionDetails) {
         final ExecutionDetails savedExecutionDetails =
                 executionRepository.save(executionDetails);
 
@@ -58,7 +58,11 @@ public class ExecutionServiceImpl implements ExecutionService {
                 new ResourceNotFoundException(ExecutionDetails.class, "id", id.toString()));
     }
 
-    public ExecutionDetails convertExecCreateDTOtoExecDetails(ExecutionCreateDTO execCreateDTO) {
+    public ExecutionDTO convertExecDetailsToExecDTO(ExecutionDetails execDetails){
+        return new ExecutionDTO(execDetails);
+    }
+
+    private ExecutionDetails convertExecCreateDTOtoExecDetails(ExecutionCreateDTO execCreateDTO) {
 
         Optional<ExperimentDetails> byId =
                 experimentRepository.findById(execCreateDTO.getExperimentId());
@@ -70,6 +74,7 @@ public class ExecutionServiceImpl implements ExecutionService {
                 execCreateDTO.getBookedTime().get()
         );
     }
+
 
     // TODO: 13.11.19
     public void startExecution(UUID executionId) {

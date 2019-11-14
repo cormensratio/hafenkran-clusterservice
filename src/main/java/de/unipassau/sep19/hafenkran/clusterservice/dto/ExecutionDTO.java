@@ -19,6 +19,10 @@ public class ExecutionDTO {
     private final UUID id;
 
     @NonNull
+    @JsonProperty
+    private UUID experimentId;
+
+    @NonNull
     @JsonProperty("startedAt")
     private LocalDateTime startedAt;
 
@@ -32,6 +36,7 @@ public class ExecutionDTO {
 
     public ExecutionDTO(@NonNull final ExecutionDetails executionDetails) {
         this.id = executionDetails.getId();
+        this.experimentId = executionDetails.getExperimentDetails().getId();
         this.startedAt = executionDetails.getStartedAt();
         this.terminatedAt = executionDetails.getTerminatedAt();
         this.status = executionDetails.getStatus();

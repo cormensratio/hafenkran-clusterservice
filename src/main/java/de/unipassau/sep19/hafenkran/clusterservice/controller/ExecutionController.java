@@ -23,11 +23,7 @@ public class ExecutionController {
     ExecutionDTO startExecution(
             @NonNull @RequestBody ExecutionCreateDTO executionCreateDTO) {
 
-        ExecutionDetails executionDetails =
-                executionService.createExecutionFromExecDTO(executionCreateDTO);
-
-        //TODO: update executionDetails with kubernetes information
-
-        return new ExecutionDTO(executionDetails);
+        ExecutionDetails executionDetails = executionService.createExecutionFromExecDTO(executionCreateDTO);
+        return executionService.convertExecDetailsToExecDTO(executionDetails);
     }
 }
