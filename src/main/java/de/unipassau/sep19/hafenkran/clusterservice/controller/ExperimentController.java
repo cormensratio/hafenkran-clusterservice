@@ -1,8 +1,11 @@
 package de.unipassau.sep19.hafenkran.clusterservice.controller;
 
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
+import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
 import de.unipassau.sep19.hafenkran.clusterservice.service.UploadService;
 import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
@@ -30,6 +33,8 @@ public class ExperimentController {
     private final ExperimentService experimentService;
 
     private final UploadService uploadService;
+
+    private final ExecutionService executionService;
 
     /**
      * GET-Endpoint for receiving a single {@link ExperimentDTO} by its id.
@@ -74,5 +79,17 @@ public class ExperimentController {
         ExperimentDetails experiment = experimentService.createExperiment(experimentDetails);
 
         return uploadService.storeFile(file, experiment);
+    }
+
+    /**
+     * GET-Endpoint for receiving an {@link ExecutionDTOList} of the current experiment.
+     *
+     * @return The list of {@link ExecutionDTO}s of the current experiment.
+     */
+    @GetMapping("/{experimentId}/executions")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public List<ExecutionDTO> getExecutionDTOListForExperimentId(@PathVariable UUID experimentId) {
+        return executionService.findExecutionsDTOListOfExperimentId(experimentId);
     }
 }
