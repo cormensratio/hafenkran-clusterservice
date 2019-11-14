@@ -7,7 +7,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import lombok.Data;
 import lombok.NonNull;
 
-import javax.validation.constraints.NotEmpty;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -19,15 +19,15 @@ import java.util.stream.Collectors;
 public class ExecutionDTOList {
 
     @NonNull
-    @JsonProperty
+    @JsonProperty("experimentId")
     private final UUID experimentId;
 
     @NonNull
-    @JsonProperty
+    @JsonProperty("executionDTOList")
     private final List<ExecutionDTO> executionDTOList;
 
     @JsonCreator
-    public ExecutionDTOList(@NonNull @NotEmpty ExperimentDetails experimentDetails) {
+    public ExecutionDTOList(@NonNull ExperimentDetails experimentDetails) {
         this.experimentId = experimentDetails.getId();
         this.executionDTOList = convertExecutionListToDTOList(experimentDetails.getExecutionDetailsList());
     }
@@ -43,7 +43,11 @@ public class ExecutionDTOList {
      * @return The converted {@link ExecutionDTOList}.
      */
     public static List<ExecutionDTO> convertExecutionListToDTOList(
-            @NonNull @NotEmpty List<ExecutionDetails> executionDetailsList) {
+            @NonNull List<ExecutionDetails> executionDetailsList) {
+
+        if (executionDetailsList.isEmpty()) {
+            return Collections.emptyList();
+        }
 
         return executionDetailsList.stream()
                 .map(ExecutionDTOList::convertExecutionToDTO).collect(Collectors.toList());
