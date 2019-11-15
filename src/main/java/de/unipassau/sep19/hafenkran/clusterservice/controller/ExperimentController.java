@@ -4,7 +4,6 @@ import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTOList;
-import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
@@ -88,7 +87,6 @@ public class ExperimentController {
     ExecutionDTO startExecution(
             @NonNull @RequestBody ExecutionCreateDTO executionCreateDTO) {
 
-        ExecutionDetails executionDetails = executionService.createExecutionFromExecCreateDTO(executionCreateDTO);
-        return executionService.convertExecDetailsToExecDTO(executionDetails);
+        return executionService.convertExecDetailsToExecDTO(executionService.createExecutionFromExecCreateDTO(executionCreateDTO));
     }
 }
