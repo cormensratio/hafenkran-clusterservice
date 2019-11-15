@@ -59,11 +59,13 @@ public class ExecutionDetails {
         this.bookedTime = bookedTime;
     }
 
-    public ExecutionDetails(@NonNull ExperimentDetails experimentDetails){
+    /*
+    public ExecutionDetails(@NonNull ExperimentDetails experimentDetails) {
         this.experimentDetails = experimentDetails;
         this.executionName = experimentDetails.getExperimentName();
         this.status = Status.WAITING;
     }
+     */
 
     @PrePersist
     private void prePersist() {

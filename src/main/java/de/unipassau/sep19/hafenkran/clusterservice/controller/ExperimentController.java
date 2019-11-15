@@ -88,7 +88,7 @@ public class ExperimentController {
     ExecutionDTO startExecution(
             @NonNull @RequestBody ExecutionCreateDTO executionCreateDTO) {
 
-        ExecutionDetails executionDetails = executionService.createExecutionFromExecDTO(executionCreateDTO);
+        ExecutionDetails executionDetails = executionService.createExecutionFromExecCreateDTO(executionCreateDTO);
         return executionService.convertExecDetailsToExecDTO(executionDetails);
     }
 }

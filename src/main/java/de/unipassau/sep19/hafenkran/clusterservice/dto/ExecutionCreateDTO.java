@@ -21,15 +21,18 @@ public class ExecutionCreateDTO {
     @JsonProperty("name")
     private final Optional<String> name;
 
+    @NonNull
     @JsonProperty("ram")
     private Optional<Long> ram;
 
+    @NonNull
     @JsonProperty("cpu")
     private Optional<Long> cpu;
 
     /**
      * The maximum timespan the user allows his execution to run
      */
+    @NonNull
     @JsonProperty("bookedTime")
     private Optional<Long> bookedTime;
 }

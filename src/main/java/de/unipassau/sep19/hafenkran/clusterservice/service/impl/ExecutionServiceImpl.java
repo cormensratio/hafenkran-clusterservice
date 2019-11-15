@@ -36,7 +36,10 @@ public class ExecutionServiceImpl implements ExecutionService {
         return savedExecutionDetails;
     }
 
-    public ExecutionDetails createExecutionFromExecDTO(@NonNull ExecutionCreateDTO executionCreateDTO) {
+    /**
+     * {@inheritDoc}
+     */
+    public ExecutionDetails createExecutionFromExecCreateDTO(@NonNull ExecutionCreateDTO executionCreateDTO) {
 
         final ExecutionDetails executionDetails =
                 convertExecCreateDTOtoExecDetails(executionCreateDTO);
@@ -58,25 +61,20 @@ public class ExecutionServiceImpl implements ExecutionService {
                 new ResourceNotFoundException(ExecutionDetails.class, "id", id.toString()));
     }
 
-    public ExecutionDTO convertExecDetailsToExecDTO(ExecutionDetails execDetails){
+    public ExecutionDTO convertExecDetailsToExecDTO(@NonNull ExecutionDetails execDetails) {
         return new ExecutionDTO(execDetails);
     }
 
-    private ExecutionDetails convertExecCreateDTOtoExecDetails(ExecutionCreateDTO execCreateDTO) {
-
-        Optional<ExperimentDetails> byId =
+    private ExecutionDetails convertExecCreateDTOtoExecDetails(@NonNull ExecutionCreateDTO execCreateDTO) {
+        Optional<ExperimentDetails> experimentDetailsbyId =
                 experimentRepository.findById(execCreateDTO.getExperimentId());
+
         return new ExecutionDetails(
-                byId.get(),
-                execCreateDTO.getName().get(),
-                execCreateDTO.getRam().get(),
-                execCreateDTO.getCpu().get(),
-                execCreateDTO.getBookedTime().get()
+                experimentDetailsbyId.orElseThrow(() -> new ResourceNotFoundException(ExperimentDetails.class, "id", experimentDetailsbyId.get().getId().toString())),
+                execCreateDTO.getName().orElseThrow(() -> new ResourceNotFoundException(ExecutionCreateDTO.class, "name", execCreateDTO.getName().toString())),
+                execCreateDTO.getRam().orElseThrow(() -> new ResourceNotFoundException(ExecutionCreateDTO.class, "ram", execCreateDTO.getRam().toString())),
+                execCreateDTO.getCpu().orElseThrow(() -> new ResourceNotFoundException(ExecutionCreateDTO.class, "cpu", execCreateDTO.getCpu().toString())),
+                execCreateDTO.getBookedTime().orElseThrow(() -> new ResourceNotFoundException(ExecutionCreateDTO.class, "bookedTime", execCreateDTO.getBookedTime().toString()))
         );
-    }
-
-
-    // TODO: 13.11.19
-    public void startExecution(UUID executionId) {
     }
 }
