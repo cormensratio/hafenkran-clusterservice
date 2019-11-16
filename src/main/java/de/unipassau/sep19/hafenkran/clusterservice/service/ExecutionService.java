@@ -48,5 +48,5 @@ public interface ExecutionService {
      * @param userId The {@code userId} of the owner's {@link ExecutionDTOList}
      * @return The list of {@link ExecutionDTO}s of the requested {@code userId}.
      */
-    List<ExecutionDTO> findExecutionsDTOListOfCurrentUser(@NonNull UUID userId);
+    List<ExecutionDTO> findExecutionsDTOListForUserId(@NonNull UUID userId);
 }

@@ -27,7 +27,7 @@ public class ExecutionServiceImpl implements ExecutionService {
         return executionRepository.findAllByExperimentDetails_Id(experimentId);
     }
 
-    private List<ExecutionDetails> findExecutionsListOfCurrentUser(@NonNull UUID userId) {
+    private List<ExecutionDetails> findExecutionsListForUserId(@NonNull UUID userId) {
         return executionRepository.findAllByExperimentDetails_UserId(userId);
     }
 
@@ -75,8 +75,8 @@ public class ExecutionServiceImpl implements ExecutionService {
     /**
      * {@inheritDoc}
      */
-    public List<ExecutionDTO> findExecutionsDTOListOfCurrentUser(@NonNull UUID userId) {
-        return ExecutionDTOList.convertExecutionListToDTOList(findExecutionsListOfCurrentUser(userId));
+    public List<ExecutionDTO> findExecutionsDTOListForUserId(@NonNull UUID userId) {
+        return ExecutionDTOList.convertExecutionListToDTOList(findExecutionsListForUserId(userId));
     }
 
 }
