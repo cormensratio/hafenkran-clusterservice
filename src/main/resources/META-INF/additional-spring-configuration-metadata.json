@@ -19,6 +19,16 @@
       "name": "kubernetes.deployment.defaults.bookedTimeDefault",
       "type": "java.lang.String",
       "description": "The default value for the booked time if nothing is set."
+    },
+    {
+      "name": "mockdata",
+      "type": "java.lang.Boolean",
+      "description": "Populates the database with demo data for development purposes."
+    },
+    {
+      "name": "jwt.secret",
+      "type": "java.lang.String",
+      "description": "The secret used for signing JWTs."
     }
   ]
 }

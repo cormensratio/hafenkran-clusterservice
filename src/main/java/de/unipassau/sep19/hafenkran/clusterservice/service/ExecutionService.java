@@ -5,6 +5,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import lombok.NonNull;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface ExecutionService {
@@ -13,13 +14,19 @@ public interface ExecutionService {
 
     /**
      * Converts an {@link ExecutionCreateDTO} to {@link ExecutionDetails} and saves it in the database.
+     *
      * @param executionCreateDTO The {@link ExecutionCreateDTO} to be converted.
      * @return The conversion result as a {@link ExecutionDetails}.
      */
     ExecutionDetails createExecutionFromExecCreateDTO(@NonNull ExecutionCreateDTO executionCreateDTO);
 
+    ExecutionDTO findExecutionDTOById(@NonNull UUID id);
+
     ExecutionDetails findExecutionById(@NonNull UUID id);
 
     ExecutionDTO convertExecDetailsToExecDTO(ExecutionDetails execDetails);
 
-    }
+    List<ExecutionDTO> findExecutionsDTOListOfExperimentId(@NonNull UUID experimentId);
+
+
+}

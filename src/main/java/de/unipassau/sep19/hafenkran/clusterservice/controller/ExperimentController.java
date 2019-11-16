@@ -2,12 +2,14 @@ package de.unipassau.sep19.hafenkran.clusterservice.controller;
 
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
 import de.unipassau.sep19.hafenkran.clusterservice.service.UploadService;
+import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,11 +31,11 @@ import java.util.UUID;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class ExperimentController {
 
-    private static final UUID MOCK_ID = UUID.fromString("c8aef4f2-92f8-47eb-bbe9-bd457f91f0e6");
-
     private final ExperimentService experimentService;
 
     private final UploadService uploadService;
+
+    private final ExecutionService executionService;
 
     /**
      * GET-Endpoint for receiving a single {@link ExperimentDTO} by its id.
@@ -53,12 +55,11 @@ public class ExperimentController {
      *
      * @return The list of {@link ExperimentDTO}s of the current user.
      */
-    // TODO: get real userId
     @GetMapping
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public List<ExperimentDTO> getExperimentDTOListOfCurrentUser() {
-        return experimentService.findExperimentsDTOListOfUserId(MOCK_ID);
+        return experimentService.findExperimentsDTOListOfUserId(SecurityContextUtil.getCurrentUserDTO().getId());
     }
 
     /**
@@ -71,16 +72,27 @@ public class ExperimentController {
      */
     @PostMapping("/uploadFile")
     public ExperimentDTO uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("name") String experimentName) {
-        if(StringUtils.isEmpty(experimentName)){
+        if (StringUtils.isEmpty(experimentName)) {
             experimentName = file.getOriginalFilename();
         }
-        ExperimentDetails experimentDetails = new ExperimentDetails(MOCK_ID, experimentName, file.getSize());
+        ExperimentDetails experimentDetails = new ExperimentDetails(SecurityContextUtil.getCurrentUserDTO().getId(),
+                experimentName, file.getSize());
         ExperimentDetails experiment = experimentService.createExperiment(experimentDetails);
 
         return uploadService.storeFile(file, experiment);
     }
 
-    private final ExecutionService executionService;
+    /**
+     * GET-Endpoint for receiving an {@link ExecutionDTOList} of the current experiment.
+     *
+     * @return The list of {@link ExecutionDTO}s of the current experiment.
+     */
+    @GetMapping("/{experimentId}/executions")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public List<ExecutionDTO> getExecutionDTOListForExperimentId(@PathVariable UUID experimentId) {
+        return executionService.findExecutionsDTOListOfExperimentId(experimentId);
+    }
 
     @PostMapping("/{experimentId}/execute")
     public @ResponseBody
@@ -89,4 +101,6 @@ public class ExperimentController {
 
         return executionService.convertExecDetailsToExecDTO(executionService.createExecutionFromExecCreateDTO(executionCreateDTO));
     }
+
+
 }

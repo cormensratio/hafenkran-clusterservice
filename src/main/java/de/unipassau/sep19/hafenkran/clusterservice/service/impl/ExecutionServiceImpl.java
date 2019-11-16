@@ -2,6 +2,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,6 +38,13 @@ public class ExecutionServiceImpl implements ExecutionService {
     @Value("${kubernetes.deployment.defaults.bookedTimeDefault}")
     private long bookedTimeDefault;
 
+    private List<ExecutionDetails> findExecutionsListOfExperimentId(@NonNull UUID experimentId) {
+        return executionRepository.findAllByExperimentDetails_Id(experimentId);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public ExecutionDetails createExecution(@NonNull ExecutionDetails executionDetails) {
         final ExecutionDetails savedExecutionDetails =
                 executionRepository.save(executionDetails);
@@ -74,6 +83,24 @@ public class ExecutionServiceImpl implements ExecutionService {
     public ExecutionDTO convertExecDetailsToExecDTO(@NonNull ExecutionDetails execDetails) {
         return new ExecutionDTO(execDetails);
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    public ExecutionDTO findExecutionDTOById(@NonNull UUID id) {
+        final Optional<ExecutionDetails> execution = executionRepository.findById(id);
+
+        return new ExecutionDTO(execution.orElseThrow(() -> new ResourceNotFoundException(ExecutionDetails.class, "id",
+                id.toString())));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public List<ExecutionDTO> findExecutionsDTOListOfExperimentId(@NonNull UUID experimentId) {
+        return ExecutionDTOList.convertExecutionListToDTOList(findExecutionsListOfExperimentId(experimentId));
+    }
+
 
     private ExecutionDetails convertExecCreateDTOtoExecDetails(@NonNull ExecutionCreateDTO execCreateDTO) {
         Optional<ExperimentDetails> experimentDetailsbyId =

@@ -21,3 +21,5 @@ kubernetes:
       cpuDefault: 10
       bookedTimeDefault: 3600
 
+jwt:
+  secret: MCgCIQCAS7IFlSvaBOPXwSBHo+7+6C4RbkvYj3fgI5+Abe4pRwIDAQAB
