@@ -12,6 +12,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -25,6 +26,15 @@ public class ExecutionServiceImpl implements ExecutionService {
     private final ExecutionRepository executionRepository;
 
     private final ExperimentRepository experimentRepository;
+
+    @Value("${kubernetes.deployment.defaults.ramDefault}")
+    private long ramDefault;
+
+    @Value("${kubernetes.deployment.defaults.cpuDefault}")
+    private long cpuDefault;
+
+    @Value("${kubernetes.deployment.defaults.bookedTimeDefault}")
+    private long bookedTimeDefault;
 
     public ExecutionDetails createExecution(@NonNull ExecutionDetails executionDetails) {
         final ExecutionDetails savedExecutionDetails =
@@ -69,8 +79,8 @@ public class ExecutionServiceImpl implements ExecutionService {
         Optional<ExperimentDetails> experimentDetailsbyId =
                 experimentRepository.findById(execCreateDTO.getExperimentId());
 
-        ExecutionDetails executionDetails = new ExecutionDetails();
-        final ExperimentDetails experiment = experimentDetailsbyId.orElseThrow(() -> new ResourceNotFoundException(ExperimentDetails.class, "id", experimentDetailsbyId.get().getId().toString()));
+        final ExperimentDetails experiment = experimentDetailsbyId.orElseThrow(
+                () -> new ResourceNotFoundException(ExperimentDetails.class, "id", experimentDetailsbyId.get().getId().toString()));
         final String name;
         final long ram;
         final long cpu;
@@ -83,19 +93,19 @@ public class ExecutionServiceImpl implements ExecutionService {
         }
 
         if (!execCreateDTO.getRam().isPresent() || execCreateDTO.getRam().get() <= 0) {
-            ram = executionDetails.getRamDefault();
+            ram = ramDefault;
         } else {
             ram = execCreateDTO.getRam().get();
         }
 
         if (!execCreateDTO.getCpu().isPresent() || execCreateDTO.getCpu().get() <= 0) {
-            cpu = executionDetails.getCpuDefault();
+            cpu = ramDefault;
         } else {
             cpu = execCreateDTO.getCpu().get();
         }
 
         if (!execCreateDTO.getBookedTime().isPresent() || execCreateDTO.getBookedTime().get() <= 0) {
-            bookedTime = executionDetails.getBookedTimeDefault();
+            bookedTime = bookedTimeDefault;
         } else {
             bookedTime = execCreateDTO.getBookedTime().get();
         }

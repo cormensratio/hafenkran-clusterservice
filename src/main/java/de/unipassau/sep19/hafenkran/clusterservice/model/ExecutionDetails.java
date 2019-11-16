@@ -3,8 +3,6 @@ package de.unipassau.sep19.hafenkran.clusterservice.model;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
@@ -20,7 +18,6 @@ import java.util.UUID;
 @Data
 @Table(name = "executiondetails")
 @Entity
-@Component
 @NoArgsConstructor
 public class ExecutionDetails {
 
@@ -49,18 +46,9 @@ public class ExecutionDetails {
 
     private long ram;
 
-    @Value("${defaults.ramDefault}")
-    private long ramDefault;
-
     private long cpu;
 
-    @Value("${defaults.cpuDefault}")
-    private long cpuDefault;
-
     private long bookedTime;
-
-    @Value("${defaults.bookedTimeDefault}")
-    private long bookedTimeDefault;
 
     public ExecutionDetails(@NonNull ExperimentDetails experimentDetails,
                             @NonNull @NotEmpty String executionName, long ram,

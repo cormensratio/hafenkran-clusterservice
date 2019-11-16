@@ -14,8 +14,10 @@ experimentsFileUploadLocation: /tmp/hafenkran-clusterservice
 
 mockdata: true
 
-defaults:
-  ramDefault: 1000
-  cpuDefault: 10
-  bookedTimeDefault: 3600
+kubernetes:
+  deployment:
+    defaults:
+      ramDefault: 1000
+      cpuDefault: 10
+      bookedTimeDefault: 3600
 
