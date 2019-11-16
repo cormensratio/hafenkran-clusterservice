@@ -43,7 +43,6 @@ public class ExecutionController {
      *
      * @return The list of {@link ExecutionDTO}s of the current experiment.
      */
-    // TODO: ExecutionList from User
     @GetMapping
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
