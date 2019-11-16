@@ -69,14 +69,24 @@ public class ExecutionServiceImpl implements ExecutionService {
      * {@inheritDoc}
      */
     public List<ExecutionDTO> findExecutionsDTOListOfExperimentId(@NonNull UUID experimentId) {
-        return ExecutionDTOList.convertExecutionListToDTOList(findExecutionsListOfExperimentId(experimentId));
+        List<ExecutionDetails> executionDetailsList = findExecutionsListOfExperimentId(experimentId);
+
+        if (executionDetailsList.isEmpty()) {
+            throw new ResourceNotFoundException(ExecutionDetails.class, "experimentId", experimentId.toString());
+        }
+        return ExecutionDTOList.convertExecutionListToDTOList(executionDetailsList);
     }
 
     /**
      * {@inheritDoc}
      */
     public List<ExecutionDTO> findExecutionsDTOListForUserId(@NonNull UUID userId) {
-        return ExecutionDTOList.convertExecutionListToDTOList(findExecutionsListForUserId(userId));
+        List<ExecutionDetails> executionDetailsList = findExecutionsListForUserId(userId);
+
+        if (executionDetailsList.isEmpty()) {
+            throw new ResourceNotFoundException(ExecutionDetails.class, "userId", userId.toString());
+        }
+        return ExecutionDTOList.convertExecutionListToDTOList(executionDetailsList);
     }
 
 }
