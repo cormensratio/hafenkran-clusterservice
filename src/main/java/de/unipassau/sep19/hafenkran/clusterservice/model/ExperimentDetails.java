@@ -3,6 +3,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.model;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import org.assertj.core.util.VisibleForTesting;
 
 import javax.persistence.*;
 import javax.validation.Valid;
@@ -47,11 +48,12 @@ public class ExperimentDetails {
         this.size = size;
         this.createdAt = LocalDateTime.now();
         this.executionDetailsList = Collections.emptyList();
+        this.id = UUID.randomUUID();
     }
 
-    @PrePersist
-    private void prePersist() {
-        this.id = UUID.randomUUID();
+    @VisibleForTesting
+    public void setExecutionDetailsList(List<ExecutionDetails> executionDetailsList) {
+        this.executionDetailsList = executionDetailsList;
     }
 
 }

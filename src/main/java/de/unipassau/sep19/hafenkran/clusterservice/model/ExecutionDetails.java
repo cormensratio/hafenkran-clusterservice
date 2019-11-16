@@ -48,10 +48,6 @@ public class ExecutionDetails {
         this.experimentDetails = experimentDetails;
         this.executionName = experimentDetails.getExperimentName();
         this.status = Status.WAITING;
-    }
-
-    @PrePersist
-    private void prePersist() {
         this.id = UUID.randomUUID();
     }
 
