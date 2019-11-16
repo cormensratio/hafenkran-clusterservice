@@ -3,7 +3,6 @@ package de.unipassau.sep19.hafenkran.clusterservice.controller;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
-import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
 import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -25,8 +24,6 @@ import java.util.UUID;
 public class ExecutionController {
 
     private final ExecutionService executionService;
-
-    private final ExperimentService experimentService;
 
     /**
      * GET-Endpoint for receiving a single {@link ExecutionDTO} by its id.
@@ -51,9 +48,7 @@ public class ExecutionController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public List<ExecutionDTO> getExecutionDTOListForCurrentUser() {
-        SecurityContextUtil.getCurrentUserDTO();
-
-        return null;
+        return executionService.findExecutionsDTOListOfCurrentUser(SecurityContextUtil.getCurrentUserDTO().getId());
     }
 
 }

@@ -19,20 +19,34 @@ public interface ExecutionService {
     ExecutionDetails createExecution(@NonNull ExecutionDetails executionDetails);
 
     /**
+     * Returns the {@link ExecutionDetails} from the specified {@code id}.
+     *
      * @param id The UUID of the requested {@link ExecutionDetails}.
      * @return The requested {@link ExecutionDetails} by its {@code id}.
      */
     ExecutionDetails findExecutionById(@NonNull UUID id);
 
     /**
+     * Returns the {@link ExecutionDTO} from the specified {@code id}.
+     *
      * @param id The UUID of the requested {@link ExecutionDTO}.
      * @return The requested {@link ExecutionDTO} by its {@code id}.
      */
     ExecutionDTO findExecutionDTOById(@NonNull UUID id);
 
     /**
-     * @param experimentId The {@code userId} of the owner's {@link ExecutionDTOList}
+     * Returns a list of {@link ExecutionDTO}s from the specified {@code experimentId}.
+     *
+     * @param experimentId The {@code experimentId} of the owner's {@link ExecutionDTOList}
      * @return The list of {@link ExecutionDTO}s of the requested {@code experimentId}.
      */
     List<ExecutionDTO> findExecutionsDTOListOfExperimentId(@NonNull UUID experimentId);
+
+    /**
+     * Returns a list of {@link ExecutionDTO}s from the specified {@code userId}.
+     *
+     * @param userId The {@code userId} of the owner's {@link ExecutionDTOList}
+     * @return The list of {@link ExecutionDTO}s of the requested {@code userId}.
+     */
+    List<ExecutionDTO> findExecutionsDTOListOfCurrentUser(@NonNull UUID userId);
 }

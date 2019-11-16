@@ -27,6 +27,10 @@ public class ExecutionServiceImpl implements ExecutionService {
         return executionRepository.findAllByExperimentDetails_Id(experimentId);
     }
 
+    private List<ExecutionDetails> findExecutionsListOfCurrentUser(@NonNull UUID userId) {
+        return executionRepository.findAllByExperimentDetails_UserId(userId);
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -66,6 +70,13 @@ public class ExecutionServiceImpl implements ExecutionService {
      */
     public List<ExecutionDTO> findExecutionsDTOListOfExperimentId(@NonNull UUID experimentId) {
         return ExecutionDTOList.convertExecutionListToDTOList(findExecutionsListOfExperimentId(experimentId));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public List<ExecutionDTO> findExecutionsDTOListOfCurrentUser(@NonNull UUID userId) {
+        return ExecutionDTOList.convertExecutionListToDTOList(findExecutionsListOfCurrentUser(userId));
     }
 
 }
