@@ -69,12 +69,37 @@ public class ExecutionServiceImpl implements ExecutionService {
         Optional<ExperimentDetails> experimentDetailsbyId =
                 experimentRepository.findById(execCreateDTO.getExperimentId());
 
-        return new ExecutionDetails(
-                experimentDetailsbyId.orElseThrow(() -> new ResourceNotFoundException(ExperimentDetails.class, "id", experimentDetailsbyId.get().getId().toString())),
-                execCreateDTO.getName().orElseThrow(() -> new ResourceNotFoundException(ExecutionCreateDTO.class, "name", execCreateDTO.getName().toString())),
-                execCreateDTO.getRam().orElseThrow(() -> new ResourceNotFoundException(ExecutionCreateDTO.class, "ram", execCreateDTO.getRam().toString())),
-                execCreateDTO.getCpu().orElseThrow(() -> new ResourceNotFoundException(ExecutionCreateDTO.class, "cpu", execCreateDTO.getCpu().toString())),
-                execCreateDTO.getBookedTime().orElseThrow(() -> new ResourceNotFoundException(ExecutionCreateDTO.class, "bookedTime", execCreateDTO.getBookedTime().toString()))
-        );
+        ExecutionDetails executionDetails = new ExecutionDetails();
+        final ExperimentDetails experiment = experimentDetailsbyId.orElseThrow(() -> new ResourceNotFoundException(ExperimentDetails.class, "id", experimentDetailsbyId.get().getId().toString()));
+        final String name;
+        final long ram;
+        final long cpu;
+        final long bookedTime;
+
+        if (!execCreateDTO.getName().isPresent()) {
+            name = experiment.getExperimentName() + " #" + experiment.getExecutionDetailsList().size();
+        } else {
+            name = execCreateDTO.getName().get();
+        }
+
+        if (!execCreateDTO.getRam().isPresent() || execCreateDTO.getRam().get() <= 0) {
+            ram = executionDetails.getRamDefault();
+        } else {
+            ram = execCreateDTO.getRam().get();
+        }
+
+        if (!execCreateDTO.getCpu().isPresent() || execCreateDTO.getCpu().get() <= 0) {
+            cpu = executionDetails.getCpuDefault();
+        } else {
+            cpu = execCreateDTO.getCpu().get();
+        }
+
+        if (!execCreateDTO.getBookedTime().isPresent() || execCreateDTO.getBookedTime().get() <= 0) {
+            bookedTime = executionDetails.getBookedTimeDefault();
+        } else {
+            bookedTime = execCreateDTO.getBookedTime().get();
+        }
+
+        return new ExecutionDetails(experiment, name, ram, cpu, bookedTime);
     }
 }

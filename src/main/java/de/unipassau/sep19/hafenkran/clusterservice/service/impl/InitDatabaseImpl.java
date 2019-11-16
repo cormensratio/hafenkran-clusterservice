@@ -33,8 +33,6 @@ public class InitDatabaseImpl implements CommandLineRunner {
             return;
         }
 
-//________________________________________________________________________________________________________________
-
         final ExperimentDetails experimentDetails1 =
                 new ExperimentDetails(UUID.fromString("c8aef4f2-92f8-47eb" +
                         "-bbe9-bd457f91f0e6"), "ColdFusionAlgorithm", 300);
@@ -45,14 +43,10 @@ public class InitDatabaseImpl implements CommandLineRunner {
                         "-bbe9-bd457f91f0e6"), "CompletePI", 1024);
         experimentService.createExperiment(experimentDetails2);
 
-//________________________________________________________________________________________________________________
-
         final ExecutionCreateDTO executionCreateDTO
                 = new ExecutionCreateDTO(experimentDetails1.getId(),
-                Optional.of(experimentDetails1.getExperimentName() + " #1"),
+                Optional.of(experimentDetails1.getExperimentName()),
                 Optional.of((long)100), Optional.of((long)10), Optional.of((long)60));
-
-//________________________________________________________________________________________________________________
 
         executionService.createExecutionFromExecCreateDTO(executionCreateDTO);
 
