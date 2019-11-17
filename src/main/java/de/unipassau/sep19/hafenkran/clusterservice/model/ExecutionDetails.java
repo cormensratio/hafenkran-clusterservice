@@ -35,10 +35,12 @@ public class ExecutionDetails {
 
     @Basic
     @NonNull
+    private LocalDateTime createdAt;
+
+    @Basic
     private LocalDateTime startedAt;
 
     @Basic
-    @NonNull
     private LocalDateTime terminatedAt;
 
     @Enumerated(EnumType.STRING)
@@ -55,6 +57,7 @@ public class ExecutionDetails {
                             long cpu, long bookedTime) {
         this.experimentDetails = experimentDetails;
         this.executionName = executionName;
+        this.createdAt = LocalDateTime.now();
         this.status = Status.WAITING;
         this.ram = ram;
         this.cpu = cpu;
