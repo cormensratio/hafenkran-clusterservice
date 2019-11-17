@@ -58,7 +58,7 @@ public class ExecutionServiceImpl implements ExecutionService {
     /**
      * {@inheritDoc}
      */
-    public ExecutionDTO createExecutionDTOFromExecCreateDTO(@NonNull ExecutionCreateDTO executionCreateDTO) {
+    public ExecutionDTO createExecution(@NonNull ExecutionCreateDTO executionCreateDTO) {
 
         final ExecutionDetails executionDetails =
                 convertExecCreateDTOtoExecDetails(executionCreateDTO);
@@ -83,6 +83,9 @@ public class ExecutionServiceImpl implements ExecutionService {
                 new ResourceNotFoundException(ExecutionDetails.class, "id", id.toString()));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public ExecutionDTO convertExecDetailsToExecDTO(@NonNull ExecutionDetails execDetails) {
         return new ExecutionDTO(execDetails);
     }
@@ -103,7 +106,6 @@ public class ExecutionServiceImpl implements ExecutionService {
     public List<ExecutionDTO> findExecutionsDTOListOfExperimentId(@NonNull UUID experimentId) {
         return ExecutionDTOList.convertExecutionListToDTOList(findExecutionsListOfExperimentId(experimentId));
     }
-
 
     private ExecutionDetails convertExecCreateDTOtoExecDetails(@NonNull ExecutionCreateDTO execCreateDTO) {
         Optional<ExperimentDetails> experimentDetailsbyId =

@@ -48,7 +48,7 @@ public class InitDatabaseImpl implements CommandLineRunner {
                 Optional.of(experimentDetails1.getExperimentName()),
                 Optional.of((long)100), Optional.of((long)10), Optional.of((long)60));
 
-        executionService.createExecutionDTOFromExecCreateDTO(executionCreateDTO);
+        executionService.createExecution(executionCreateDTO);
 
         log.info("Database initialized!");
     }

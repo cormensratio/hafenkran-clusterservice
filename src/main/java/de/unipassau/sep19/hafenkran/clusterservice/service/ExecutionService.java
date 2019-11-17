@@ -10,6 +10,12 @@ import java.util.UUID;
 
 public interface ExecutionService {
 
+    /**
+     * Persists an given {@link ExecutionDetails} and saves it in the database.
+     *
+     * @param executionDetails The {@link ExecutionDetails}, which are going to be persisted.
+     * @return The persisted {@link ExecutionDetails}.
+     */
     ExecutionDetails createExecution(@NonNull ExecutionDetails executionDetails);
 
     /**
@@ -18,12 +24,18 @@ public interface ExecutionService {
      * @param executionCreateDTO The {@link ExecutionCreateDTO} to be converted.
      * @return The conversion result as a {@link ExecutionDTO}.
      */
-    ExecutionDTO createExecutionDTOFromExecCreateDTO(@NonNull ExecutionCreateDTO executionCreateDTO);
+    ExecutionDTO createExecution(@NonNull ExecutionCreateDTO executionCreateDTO);
 
     ExecutionDTO findExecutionDTOById(@NonNull UUID id);
 
     ExecutionDetails findExecutionById(@NonNull UUID id);
 
+    /**
+     * Converts the given {@link ExecutionDetails} to its {@link ExecutionDTO} representation.
+     *
+     * @param execDetails The {@link ExecutionDetails}, which are going to be converted.
+     * @return The converted {@link ExecutionDTO}.
+     */
     ExecutionDTO convertExecDetailsToExecDTO(ExecutionDetails execDetails);
 
     List<ExecutionDTO> findExecutionsDTOListOfExperimentId(@NonNull UUID experimentId);
