@@ -41,7 +41,8 @@ public class ExperimentDetails {
 
     private long size;
 
-    public ExperimentDetails(@NonNull UUID userId, @NonNull String experimentName, long size) {
+    public ExperimentDetails(@NonNull UUID userId,
+                             @NonNull String experimentName, long size) {
         this.userId = userId;
         this.experimentName = experimentName;
         this.size = size;

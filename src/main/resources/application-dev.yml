@@ -13,5 +13,13 @@ spring:
 experimentsFileUploadLocation: /tmp/hafenkran-clusterservice
 
 mockdata: true
+
+kubernetes:
+  deployment:
+    defaults:
+      ram: 1000
+      cpu: 10
+      bookedTime: 3600
+
 jwt:
   secret: MCgCIQCAS7IFlSvaBOPXwSBHo+7+6C4RbkvYj3fgI5+Abe4pRwIDAQAB

@@ -35,19 +35,33 @@ public class ExecutionDetails {
 
     @Basic
     @NonNull
+    private LocalDateTime createdAt;
+
+    @Basic
     private LocalDateTime startedAt;
 
     @Basic
-    @NonNull
     private LocalDateTime terminatedAt;
 
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    public ExecutionDetails(@NonNull ExperimentDetails experimentDetails) {
+    private long ram;
+
+    private long cpu;
+
+    private long bookedTime;
+
+    public ExecutionDetails(@NonNull ExperimentDetails experimentDetails,
+                            @NonNull @NotEmpty String executionName, long ram,
+                            long cpu, long bookedTime) {
         this.experimentDetails = experimentDetails;
-        this.executionName = experimentDetails.getExperimentName();
+        this.executionName = executionName;
+        this.createdAt = LocalDateTime.now();
         this.status = Status.WAITING;
+        this.ram = ram;
+        this.cpu = cpu;
+        this.bookedTime = bookedTime;
     }
 
     @PrePersist

@@ -17,23 +17,23 @@ public interface ExperimentService {
      * @param experimentDetails The {@link ExperimentDetails}, which are going to be persisted in the database.
      * @return The persisted {@link ExperimentDetails}.
      */
-    public ExperimentDetails createExperiment(@Valid ExperimentDetails experimentDetails);
+    ExperimentDetails createExperiment(@Valid ExperimentDetails experimentDetails);
 
     /**
      * @param id The UUID of the requested {@link ExperimentDetails}.
      * @return The requested {@link ExperimentDetails} by its {@code id}.
      */
-    public ExperimentDetails findExperimentById(@NonNull UUID id);
+    ExperimentDetails findExperimentById(@NonNull UUID id);
 
     /**
      * @param id The UUID of the requested {@link ExperimentDTO}.
      * @return The requested {@link ExperimentDTO} by its {@code id}.
      */
-    public ExperimentDTO findExperimentDTOById(@NonNull UUID id);
+    ExperimentDTO findExperimentDTOById(@NonNull UUID id);
 
     /**
      * @param userId The {@code userId} of the owner's {@link ExperimentDTOList}
      * @return The list of {@link ExperimentDTO}s of the requested {@code userId}.
      */
-    public List<ExperimentDTO> findExperimentsDTOListOfUserId(@NonNull UUID userId);
+    List<ExperimentDTO> findExperimentsDTOListOfUserId(@NonNull UUID userId);
 }
