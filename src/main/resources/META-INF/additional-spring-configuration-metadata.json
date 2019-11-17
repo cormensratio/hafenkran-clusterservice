@@ -6,18 +6,18 @@
       "description": "The path for storing experiment files uploaded by the user."
     },
     {
-      "name": "kubernetes.deployment.defaults.ramDefault",
-      "type": "java.lang.String",
+      "name": "kubernetes.deployment.defaults.ram",
+      "type": "java.lang.Long",
       "description": "The default value for the RAM if nothing is set."
     },
     {
-      "name": "kubernetes.deployment.defaults.cpuDefault",
-      "type": "java.lang.String",
+      "name": "kubernetes.deployment.defaults.cpu",
+      "type": "java.lang.Long",
       "description": "The default value for the CPU if nothing is set."
     },
     {
-      "name": "kubernetes.deployment.defaults.bookedTimeDefault",
-      "type": "java.lang.String",
+      "name": "kubernetes.deployment.defaults.bookedTime",
+      "type": "java.lang.Long",
       "description": "The default value for the booked time if nothing is set."
     },
     {

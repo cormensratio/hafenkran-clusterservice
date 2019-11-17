@@ -29,13 +29,13 @@ public class ExecutionServiceImpl implements ExecutionService {
 
     private final ExperimentRepository experimentRepository;
 
-    @Value("${kubernetes.deployment.defaults.ramDefault}")
+    @Value("${kubernetes.deployment.defaults.ram}")
     private long ramDefault;
 
-    @Value("${kubernetes.deployment.defaults.cpuDefault}")
+    @Value("${kubernetes.deployment.defaults.cpu}")
     private long cpuDefault;
 
-    @Value("${kubernetes.deployment.defaults.bookedTimeDefault}")
+    @Value("${kubernetes.deployment.defaults.bookedTime}")
     private long bookedTimeDefault;
 
     private List<ExecutionDetails> findExecutionsListOfExperimentId(@NonNull UUID experimentId) {
@@ -58,7 +58,7 @@ public class ExecutionServiceImpl implements ExecutionService {
     /**
      * {@inheritDoc}
      */
-    public ExecutionDetails createExecutionFromExecCreateDTO(@NonNull ExecutionCreateDTO executionCreateDTO) {
+    public ExecutionDTO createExecutionDTOFromExecCreateDTO(@NonNull ExecutionCreateDTO executionCreateDTO) {
 
         final ExecutionDetails executionDetails =
                 convertExecCreateDTOtoExecDetails(executionCreateDTO);
@@ -66,10 +66,13 @@ public class ExecutionServiceImpl implements ExecutionService {
         final ExecutionDetails savedExecutionDetails =
                 executionRepository.save(executionDetails);
 
+        final ExecutionDTO executionDTO =
+                convertExecDetailsToExecDTO(savedExecutionDetails);
+
         log.info(String.format("Execution with id %s created",
                 savedExecutionDetails.getId()));
 
-        return savedExecutionDetails;
+        return executionDTO;
     }
 
     public ExecutionDetails findExecutionById(@NonNull UUID id) {
@@ -126,7 +129,7 @@ public class ExecutionServiceImpl implements ExecutionService {
         }
 
         if (!execCreateDTO.getCpu().isPresent() || execCreateDTO.getCpu().get() <= 0) {
-            cpu = ramDefault;
+            cpu = cpuDefault;
         } else {
             cpu = execCreateDTO.getCpu().get();
         }

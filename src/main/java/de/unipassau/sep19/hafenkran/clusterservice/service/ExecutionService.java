@@ -13,12 +13,12 @@ public interface ExecutionService {
     ExecutionDetails createExecution(@NonNull ExecutionDetails executionDetails);
 
     /**
-     * Converts an {@link ExecutionCreateDTO} to {@link ExecutionDetails} and saves it in the database.
+     * Converts an {@link ExecutionCreateDTO} to {@link ExecutionDTO} and saves its {@link ExecutionDetails} in the database.
      *
      * @param executionCreateDTO The {@link ExecutionCreateDTO} to be converted.
-     * @return The conversion result as a {@link ExecutionDetails}.
+     * @return The conversion result as a {@link ExecutionDTO}.
      */
-    ExecutionDetails createExecutionFromExecCreateDTO(@NonNull ExecutionCreateDTO executionCreateDTO);
+    ExecutionDTO createExecutionDTOFromExecCreateDTO(@NonNull ExecutionCreateDTO executionCreateDTO);
 
     ExecutionDTO findExecutionDTOById(@NonNull UUID id);
 

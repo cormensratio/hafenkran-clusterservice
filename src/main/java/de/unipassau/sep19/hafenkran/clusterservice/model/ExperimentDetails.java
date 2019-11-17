@@ -13,8 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * {@code ExperimentDetails} save the most significant data to identify a user's
- * uploaded experiment.
+ * {@code ExperimentDetails} save the most significant data to identify a user's uploaded experiment.
  */
 @Data
 @Table(name = "experimentdetails")
