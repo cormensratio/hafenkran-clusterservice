@@ -13,10 +13,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -47,19 +44,15 @@ public class ExecutionServiceImplTest {
     @Before
     public void setUp() {
         this.subject = new ExecutionServiceImpl(executionRepository);
+
         ExperimentDetails experimentDetails = new ExperimentDetails(USER_ID, "testExperiment", 500);
         MOCK_EXPERIMENT_ID = experimentDetails.getId();
+
         this.mockExecutionDetails = new ExecutionDetails(experimentDetails);
         MOCK_EXECUTION_ID = mockExecutionDetails.getId();
-        //this.mockExecutionDetailsList = experimentDetails.getExecutionDetailsList();
 
         mockExecutionDTOS = new ArrayList<>();
-        mockExecutionDTOS.add(new ExecutionDTO(mockExecutionDetails.getId(),
-                mockExecutionDetails.getExperimentDetails().getId(),
-                mockExecutionDetails.getStartedAt(), mockExecutionDetails.getTerminatedAt(),
-                mockExecutionDetails.getStatus()));
         mockExecutionDetailsList = new ArrayList<>();
-        mockExecutionDetailsList.add(mockExecutionDetails);
     }
 
     @Test
@@ -182,6 +175,11 @@ public class ExecutionServiceImplTest {
     public void testFindExecutionsDTOListOfExperimentId_existingId_validExecutionDTOList() {
 
         // Arrange
+        mockExecutionDTOS.add(new ExecutionDTO(mockExecutionDetails.getId(),
+                mockExecutionDetails.getExperimentDetails().getId(),
+                mockExecutionDetails.getStartedAt(), mockExecutionDetails.getTerminatedAt(),
+                mockExecutionDetails.getStatus()));
+        mockExecutionDetailsList.add(mockExecutionDetails);
         when(executionRepository.findAllByExperimentDetails_Id(MOCK_EXPERIMENT_ID)).thenReturn(mockExecutionDetailsList);
 
         // Act
@@ -194,7 +192,7 @@ public class ExecutionServiceImplTest {
     }
 
     @Test
-    public void testFindExecutionsDTOListOfExperimentId_noExistingId_throwsException() {
+    public void testFindExecutionsDTOListOfExperimentId_noExistingId_emptyExecutionDetailsList() {
 
         // Arrange
         when(executionRepository.findAllByExperimentDetails_Id(MOCK_EXPERIMENT_ID)).thenReturn(mockExecutionDetailsList);
@@ -206,7 +204,6 @@ public class ExecutionServiceImplTest {
         verify(executionRepository, times(1)).findAllByExperimentDetails_Id(MOCK_EXPERIMENT_ID);
         assertEquals(mockExecutionDTOS, actual);
         verifyNoMoreInteractions(executionRepository);
-
     }
 
     @Test
@@ -224,9 +221,29 @@ public class ExecutionServiceImplTest {
     }
 
     @Test
+    public void testFindExecutionsDTOListOfExperimentId_validIdButEmptyExecutionList_emptyExecutionDetailsList() {
+
+        // Arrange
+        when(executionRepository.findAllByExperimentDetails_Id(MOCK_EXPERIMENT_ID)).thenReturn(Collections.emptyList());
+
+        // Act
+        List<ExecutionDTO> actual = subject.findExecutionsDTOListOfExperimentId(MOCK_EXPERIMENT_ID);
+
+        // Assert
+        verify(executionRepository, times(1)).findAllByExperimentDetails_Id(MOCK_EXPERIMENT_ID);
+        assertEquals(mockExecutionDTOS, actual);
+        verifyNoMoreInteractions(executionRepository);
+    }
+
+    @Test
     public void testFindExecutionsDTOListForUserId_existingUserId_validExecutionDTOList() {
 
         // Arrange
+        mockExecutionDTOS.add(new ExecutionDTO(mockExecutionDetails.getId(),
+                mockExecutionDetails.getExperimentDetails().getId(),
+                mockExecutionDetails.getStartedAt(), mockExecutionDetails.getTerminatedAt(),
+                mockExecutionDetails.getStatus()));
+        mockExecutionDetailsList.add(mockExecutionDetails);
         when(executionRepository.findAllByExperimentDetails_UserId(USER_ID)).thenReturn(mockExecutionDetailsList);
 
         // Act

@@ -46,7 +46,7 @@ public class ExecutionController {
     @GetMapping
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public List<ExecutionDTO> getExecutionDTOListForUserId() {
+    public List<ExecutionDTO> getExecutionDTOListForCurrentId() {
         return executionService.findExecutionsDTOListForUserId(SecurityContextUtil.getCurrentUserDTO().getId());
     }
 
