@@ -18,8 +18,8 @@ spring:
             non_contextual_creation: true
   servlet:
     multipart:
-      max-file-size: 1GB
-      max-request-size: 1GB
+      max-file-size: 1420MB
+      max-request-size: 1420MB
 
 experimentsFileUploadLocation:
 
