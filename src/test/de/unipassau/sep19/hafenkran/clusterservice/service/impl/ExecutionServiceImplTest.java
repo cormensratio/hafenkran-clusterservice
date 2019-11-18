@@ -5,6 +5,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundExc
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExecutionRepository;
+import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,6 +34,8 @@ public class ExecutionServiceImplTest {
     @Mock
     private ExecutionRepository executionRepository;
 
+    private ExperimentRepository experimentRepository;
+
     private ExecutionDetails mockExecutionDetails;
 
     private List<ExecutionDetails> mockExecutionDetailsList;
@@ -43,12 +46,12 @@ public class ExecutionServiceImplTest {
 
     @Before
     public void setUp() {
-        this.subject = new ExecutionServiceImpl(executionRepository);
+        this.subject = new ExecutionServiceImpl(executionRepository, experimentRepository);
 
         ExperimentDetails experimentDetails = new ExperimentDetails(USER_ID, "testExperiment", 500);
         MOCK_EXPERIMENT_ID = experimentDetails.getId();
 
-        this.mockExecutionDetails = new ExecutionDetails(experimentDetails);
+        this.mockExecutionDetails = new ExecutionDetails(experimentDetails, "Test1", 1L, 1L, 1L);
         MOCK_EXECUTION_ID = mockExecutionDetails.getId();
 
         this.mockExecutionDTOS = new ArrayList<>();
@@ -76,9 +79,10 @@ public class ExecutionServiceImplTest {
         // Arrange
         expectedEx.expect(NullPointerException.class);
         expectedEx.expectMessage("executionDetails is marked non-null but is null");
+        mockExecutionDetails = null;
 
         // Act
-        ExecutionDetails actual = subject.createExecution(null);
+        ExecutionDetails actual = subject.createExecution(mockExecutionDetails);
 
         // Assert - with rule
 
@@ -176,7 +180,7 @@ public class ExecutionServiceImplTest {
 
         // Arrange
         mockExecutionDTOS.add(new ExecutionDTO(mockExecutionDetails.getId(),
-                mockExecutionDetails.getExperimentDetails().getId(),
+                mockExecutionDetails.getExperimentDetails().getId(), mockExecutionDetails.getCreatedAt(),
                 mockExecutionDetails.getStartedAt(), mockExecutionDetails.getTerminatedAt(),
                 mockExecutionDetails.getStatus()));
         mockExecutionDetailsList.add(mockExecutionDetails);
@@ -240,7 +244,7 @@ public class ExecutionServiceImplTest {
 
         // Arrange
         mockExecutionDTOS.add(new ExecutionDTO(mockExecutionDetails.getId(),
-                mockExecutionDetails.getExperimentDetails().getId(),
+                mockExecutionDetails.getExperimentDetails().getId(), mockExecutionDetails.getCreatedAt(),
                 mockExecutionDetails.getStartedAt(), mockExecutionDetails.getTerminatedAt(),
                 mockExecutionDetails.getStatus()));
         mockExecutionDetailsList.add(mockExecutionDetails);
