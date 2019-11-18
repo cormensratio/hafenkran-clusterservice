@@ -62,10 +62,6 @@ public class ExecutionDetails {
         this.ram = ram;
         this.cpu = cpu;
         this.bookedTime = bookedTime;
-    }
-
-    @PrePersist
-    private void prePersist() {
         this.id = UUID.randomUUID();
     }
 

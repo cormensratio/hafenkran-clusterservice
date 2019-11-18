@@ -3,7 +3,6 @@ package de.unipassau.sep19.hafenkran.clusterservice.controller;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
-import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
 import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -26,8 +25,6 @@ public class ExecutionController {
 
     private final ExecutionService executionService;
 
-    private final ExperimentService experimentService;
-
     /**
      * GET-Endpoint for receiving a single {@link ExecutionDTO} by its id.
      *
@@ -46,14 +43,11 @@ public class ExecutionController {
      *
      * @return The list of {@link ExecutionDTO}s of the current experiment.
      */
-    // TODO: ExecutionList from User
     @GetMapping
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public List<ExecutionDTO> getExecutionDTOListForCurrentUser() {
-        SecurityContextUtil.getCurrentUserDTO();
-
-        return null;
+    public List<ExecutionDTO> getExecutionDTOListForCurrentId() {
+        return executionService.findExecutionsDTOListForUserId(SecurityContextUtil.getCurrentUserDTO().getId());
     }
 
 }

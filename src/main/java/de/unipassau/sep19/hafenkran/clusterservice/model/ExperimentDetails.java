@@ -48,10 +48,6 @@ public class ExperimentDetails {
         this.size = size;
         this.createdAt = LocalDateTime.now();
         this.executionDetailsList = Collections.emptyList();
-    }
-
-    @PrePersist
-    private void prePersist() {
         this.id = UUID.randomUUID();
     }
 

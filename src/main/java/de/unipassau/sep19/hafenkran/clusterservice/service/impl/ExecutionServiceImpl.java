@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -40,6 +41,10 @@ public class ExecutionServiceImpl implements ExecutionService {
 
     private List<ExecutionDetails> findExecutionsListOfExperimentId(@NonNull UUID experimentId) {
         return executionRepository.findAllByExperimentDetails_Id(experimentId);
+    }
+
+    private List<ExecutionDetails> findExecutionsListForUserId(@NonNull UUID userId) {
+        return executionRepository.findAllByExperimentDetails_UserId(userId);
     }
 
     /**
@@ -104,7 +109,24 @@ public class ExecutionServiceImpl implements ExecutionService {
      * {@inheritDoc}
      */
     public List<ExecutionDTO> findExecutionsDTOListOfExperimentId(@NonNull UUID experimentId) {
-        return ExecutionDTOList.convertExecutionListToDTOList(findExecutionsListOfExperimentId(experimentId));
+        List<ExecutionDetails> executionDetailsList = findExecutionsListOfExperimentId(experimentId);
+
+        if (executionDetailsList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return ExecutionDTOList.convertExecutionListToDTOList(executionDetailsList);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public List<ExecutionDTO> findExecutionsDTOListForUserId(@NonNull UUID userId) {
+        List<ExecutionDetails> executionDetailsList = findExecutionsListForUserId(userId);
+
+        if (executionDetailsList.isEmpty()) {
+            throw new ResourceNotFoundException(ExecutionDetails.class, "userId", userId.toString());
+        }
+        return ExecutionDTOList.convertExecutionListToDTOList(executionDetailsList);
     }
 
     private ExecutionDetails convertExecCreateDTOtoExecDetails(@NonNull ExecutionCreateDTO execCreateDTO) {

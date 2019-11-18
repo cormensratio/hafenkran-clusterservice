@@ -9,6 +9,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+  servlet:
+    multipart:
+      max-file-size: -1
+      max-request-size: -1
 
 experimentsFileUploadLocation: /tmp/hafenkran-clusterservice
 

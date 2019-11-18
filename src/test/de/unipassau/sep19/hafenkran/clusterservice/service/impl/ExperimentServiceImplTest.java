@@ -42,6 +42,35 @@ public class ExperimentServiceImplTest {
     }
 
     @Test
+    public void testCreateExperiment_validExperimentDetails_validExperimentDetailsReturned() {
+
+        // Arrange
+        when(experimentRepository.save(mockExperimentDetails)).thenReturn(mockExperimentDetails);
+
+        // Act
+        ExperimentDetails actual = subject.createExperiment(mockExperimentDetails);
+
+        // Assert
+        verify(experimentRepository, times(1)).save(mockExperimentDetails);
+        assertEquals(mockExperimentDetails, actual);
+        verifyNoMoreInteractions(experimentRepository);
+    }
+
+    @Test
+    public void testCreateExperiment_experimentDetailsIsNull_throwsException() {
+
+        // Arrange
+        expectedEx.expect(NullPointerException.class);
+        expectedEx.expectMessage("experimentDetails is marked non-null but is null");
+
+        // Act
+        ExperimentDetails actual = subject.createExperiment(null);
+
+        // Assert - with rule
+
+    }
+
+    @Test
     public void testFindExperimentById_existingId_validExperimentDetailsReturned() {
 
         // Arrange
@@ -79,35 +108,6 @@ public class ExperimentServiceImplTest {
 
         // Act
         ExperimentDetails actual = subject.findExperimentById(null);
-
-        // Assert - with rule
-
-    }
-
-    @Test
-    public void testCreateExperiment_validExperimentDetails_validExperimentDetailsReturned() {
-
-        // Arrange
-        when(experimentRepository.save(mockExperimentDetails)).thenReturn(mockExperimentDetails);
-
-        // Act
-        ExperimentDetails actual = subject.createExperiment(mockExperimentDetails);
-
-        // Assert
-        verify(experimentRepository, times(1)).save(mockExperimentDetails);
-        assertEquals(mockExperimentDetails, actual);
-        verifyNoMoreInteractions(experimentRepository);
-    }
-
-    @Test
-    public void testCreateExperiment_experimentDetailsIsNull_throwsException() {
-
-        // Arrange
-        expectedEx.expect(NullPointerException.class);
-        expectedEx.expectMessage("experimentDetails is marked non-null but is null");
-
-        // Act
-        ExperimentDetails actual = subject.createExperiment(null);
 
         // Assert - with rule
 

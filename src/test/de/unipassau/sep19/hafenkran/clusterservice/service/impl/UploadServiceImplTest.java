@@ -18,7 +18,7 @@ import java.util.UUID;
 @RunWith(MockitoJUnitRunner.class)
 public class UploadServiceImplTest {
 
-    private static final UUID userID = UUID.fromString("00000000-0000-0000-0000-000000000001");
+    private static final UUID USER_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
 
     private static final byte[] bytearray = new byte[]{(byte) 0xe0, 0x4f, (byte) 0xd0,
             0x20, (byte) 0xea, 0x3a, 0x69, 0x10, (byte) 0xa2, (byte) 0xd8, 0x08, 0x00, 0x2b,
@@ -36,7 +36,7 @@ public class UploadServiceImplTest {
     @Before
     public void setUp() {
         this.subject = new UploadServiceImpl();
-        this.mockExperimentDetails = new ExperimentDetails(userID, "testExperiment", 500);
+        this.mockExperimentDetails = new ExperimentDetails(USER_ID, "testExperiment", 500);
         this.mockFile = new MockMultipartFile(mockExperimentDetails.getExperimentName(), "testfile", "text/txt", bytearray);
     }
 
