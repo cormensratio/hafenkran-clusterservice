@@ -34,11 +34,9 @@ public class ExecutionDetails {
     private String executionName;
 
     @Basic
-    @NonNull
     private LocalDateTime startedAt;
 
     @Basic
-    @NonNull
     private LocalDateTime terminatedAt;
 
     @Enumerated(EnumType.STRING)

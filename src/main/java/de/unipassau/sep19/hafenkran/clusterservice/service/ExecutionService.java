@@ -35,7 +35,8 @@ public interface ExecutionService {
     ExecutionDTO findExecutionDTOById(@NonNull UUID id);
 
     /**
-     * Returns a list of {@link ExecutionDTO}s from the specified {@code experimentId}.
+     * Returns a list of {@link ExecutionDTO}s from the specified {@code experimentId} or an empty list, if there is
+     * no {@code experimentId} available.
      *
      * @param experimentId The {@code experimentId} of the owner's {@link ExecutionDTOList}
      * @return The list of {@link ExecutionDTO}s of the requested {@code experimentId}.
@@ -43,7 +44,9 @@ public interface ExecutionService {
     List<ExecutionDTO> findExecutionsDTOListOfExperimentId(@NonNull UUID experimentId);
 
     /**
-     * Returns a list of {@link ExecutionDTO}s from the specified {@code userId}.
+     * Returns a list of {@link ExecutionDTO}s from the specified {@code userId} or an
+     * {@link de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException}, if there is no
+     * {@code userId} available.
      *
      * @param userId The {@code userId} of the owner's {@link ExecutionDTOList}
      * @return The list of {@link ExecutionDTO}s of the requested {@code userId}.

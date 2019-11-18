@@ -36,25 +36,30 @@ public class ExecutionServiceImplTest {
     @Mock
     private ExecutionRepository executionRepository;
 
-    /*@Mock
-    private ExecutionRepository executionRepositoryForExperimentDetails;*/
-
     private ExecutionDetails mockExecutionDetails;
 
-    private ExperimentDetails experimentDetails;
-
     private List<ExecutionDetails> mockExecutionDetailsList;
+
+    private List<ExecutionDTO> mockExecutionDTOS;
 
     private ExecutionServiceImpl subject;
 
     @Before
     public void setUp() {
         this.subject = new ExecutionServiceImpl(executionRepository);
-        experimentDetails = new ExperimentDetails(USER_ID, "testExperiment", 500);
+        ExperimentDetails experimentDetails = new ExperimentDetails(USER_ID, "testExperiment", 500);
         MOCK_EXPERIMENT_ID = experimentDetails.getId();
         this.mockExecutionDetails = new ExecutionDetails(experimentDetails);
         MOCK_EXECUTION_ID = mockExecutionDetails.getId();
-        this.mockExecutionDetailsList = experimentDetails.getExecutionDetailsList();
+        //this.mockExecutionDetailsList = experimentDetails.getExecutionDetailsList();
+
+        mockExecutionDTOS = new ArrayList<>();
+        mockExecutionDTOS.add(new ExecutionDTO(mockExecutionDetails.getId(),
+                mockExecutionDetails.getExperimentDetails().getId(),
+                mockExecutionDetails.getStartedAt(), mockExecutionDetails.getTerminatedAt(),
+                mockExecutionDetails.getStatus()));
+        mockExecutionDetailsList = new ArrayList<>();
+        mockExecutionDetailsList.add(mockExecutionDetails);
     }
 
     @Test
@@ -141,7 +146,7 @@ public class ExecutionServiceImplTest {
 
         // Assert
         verify(executionRepository, times(1)).findById(MOCK_EXECUTION_ID);
-        assertEquals(actual, mockExecutionDTO);
+        assertEquals(mockExecutionDTO, actual);
         verifyNoMoreInteractions(executionRepository);
     }
 
@@ -177,17 +182,14 @@ public class ExecutionServiceImplTest {
     public void testFindExecutionsDTOListOfExperimentId_existingId_validExecutionDTOList() {
 
         // Arrange
-        List<ExecutionDetails> mockExecutionDetailsListTest = new ArrayList<>();
-        mockExecutionDetailsListTest.add(mockExecutionDetails);
-        when(executionRepository.findAllByExperimentDetails_Id(MOCK_EXPERIMENT_ID)).thenReturn(mockExecutionDetailsListTest);
-        experimentDetails.setExecutionDetailsList(mockExecutionDetailsListTest);
+        when(executionRepository.findAllByExperimentDetails_Id(MOCK_EXPERIMENT_ID)).thenReturn(mockExecutionDetailsList);
 
         // Act
         List<ExecutionDTO> actual = subject.findExecutionsDTOListOfExperimentId(MOCK_EXPERIMENT_ID);
 
         // Assert
         verify(executionRepository, times(1)).findAllByExperimentDetails_Id(MOCK_EXPERIMENT_ID);
-        assertEquals(actual, mockExecutionDetailsListTest);
+        assertEquals(mockExecutionDTOS, actual);
         verifyNoMoreInteractions(executionRepository);
     }
 
@@ -195,13 +197,15 @@ public class ExecutionServiceImplTest {
     public void testFindExecutionsDTOListOfExperimentId_noExistingId_throwsException() {
 
         // Arrange
-        expectedEx.expect(ResourceNotFoundException.class);
         when(executionRepository.findAllByExperimentDetails_Id(MOCK_EXPERIMENT_ID)).thenReturn(mockExecutionDetailsList);
 
         // Act
         List<ExecutionDTO> actual = subject.findExecutionsDTOListOfExperimentId(MOCK_EXPERIMENT_ID);
 
-        // Assert - with rule
+        // Assert
+        verify(executionRepository, times(1)).findAllByExperimentDetails_Id(MOCK_EXPERIMENT_ID);
+        assertEquals(mockExecutionDTOS, actual);
+        verifyNoMoreInteractions(executionRepository);
 
     }
 
@@ -223,17 +227,14 @@ public class ExecutionServiceImplTest {
     public void testFindExecutionsDTOListForUserId_existingUserId_validExecutionDTOList() {
 
         // Arrange
-        List<ExecutionDetails> mockExecutionDetailsListTest = new ArrayList<>();
-        mockExecutionDetailsListTest.add(mockExecutionDetails);
-        when(executionRepository.findAllByExperimentDetails_UserId(USER_ID)).thenReturn(mockExecutionDetailsListTest);
-        experimentDetails.setExecutionDetailsList(mockExecutionDetailsListTest);
+        when(executionRepository.findAllByExperimentDetails_UserId(USER_ID)).thenReturn(mockExecutionDetailsList);
 
         // Act
         List<ExecutionDTO> actual = subject.findExecutionsDTOListForUserId(USER_ID);
 
         // Assert
         verify(executionRepository, times(1)).findAllByExperimentDetails_UserId(USER_ID);
-        assertEquals(actual, mockExecutionDetailsListTest);
+        assertEquals(mockExecutionDTOS, actual);
         verifyNoMoreInteractions(executionRepository);
     }
 
@@ -242,7 +243,6 @@ public class ExecutionServiceImplTest {
 
         // Arrange
         expectedEx.expect(ResourceNotFoundException.class);
-        when(executionRepository.findAllByExperimentDetails_UserId(USER_ID)).thenReturn(mockExecutionDetailsList);
 
         // Act
         List<ExecutionDTO> actual = subject.findExecutionsDTOListForUserId(USER_ID);

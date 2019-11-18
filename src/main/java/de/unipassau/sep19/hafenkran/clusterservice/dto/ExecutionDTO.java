@@ -22,11 +22,9 @@ public class ExecutionDTO {
     @JsonProperty("experimentId")
     private UUID experimentId;
 
-    @NonNull
     @JsonProperty("startedAt")
     private LocalDateTime startedAt;
 
-    @NonNull
     @JsonProperty("terminatedAt")
     private LocalDateTime terminatedAt;
 
