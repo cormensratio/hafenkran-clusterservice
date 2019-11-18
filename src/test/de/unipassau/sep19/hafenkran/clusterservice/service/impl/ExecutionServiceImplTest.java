@@ -51,8 +51,8 @@ public class ExecutionServiceImplTest {
         this.mockExecutionDetails = new ExecutionDetails(experimentDetails);
         MOCK_EXECUTION_ID = mockExecutionDetails.getId();
 
-        mockExecutionDTOS = new ArrayList<>();
-        mockExecutionDetailsList = new ArrayList<>();
+        this.mockExecutionDTOS = new ArrayList<>();
+        this.mockExecutionDetailsList = new ArrayList<>();
     }
 
     @Test
