@@ -1,9 +1,11 @@
 package de.unipassau.sep19.hafenkran.clusterservice.controller;
 
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTOList;
+import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
@@ -91,5 +93,18 @@ public class ExperimentController {
     @ResponseStatus(HttpStatus.OK)
     public List<ExecutionDTO> getExecutionDTOListForExperimentId(@PathVariable UUID experimentId) {
         return executionService.findExecutionsDTOListOfExperimentId(experimentId);
+    }
+
+    /**
+     * POST-Endpoint for creating an {@link ExecutionDetails} and receiving its corresponding {@link ExecutionDTO}.
+     * @param executionCreateDTO The DTO representation of the execution that is going to be created.
+     * @return The corresponding {@link ExecutionDTO}.
+     */
+    @PostMapping("/{experimentId}/execute")
+    public @ResponseBody
+    ExecutionDTO startExecution(
+            @NonNull @RequestBody ExecutionCreateDTO executionCreateDTO) {
+
+        return executionService.createExecution(executionCreateDTO);
     }
 }

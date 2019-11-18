@@ -6,6 +6,21 @@
       "description": "The path for storing experiment files uploaded by the user."
     },
     {
+      "name": "kubernetes.deployment.defaults.ram",
+      "type": "java.lang.Long",
+      "description": "The default value for the RAM if nothing is set."
+    },
+    {
+      "name": "kubernetes.deployment.defaults.cpu",
+      "type": "java.lang.Long",
+      "description": "The default value for the CPU if nothing is set."
+    },
+    {
+      "name": "kubernetes.deployment.defaults.bookedTime",
+      "type": "java.lang.Long",
+      "description": "The default value for the booked time if nothing is set."
+    },
+    {
       "name": "mockdata",
       "type": "java.lang.Boolean",
       "description": "Populates the database with demo data for development purposes."

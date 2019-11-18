@@ -1,7 +1,7 @@
 package de.unipassau.sep19.hafenkran.clusterservice.service;
 
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
-import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import lombok.NonNull;
 
@@ -11,15 +11,22 @@ import java.util.UUID;
 public interface ExecutionService {
 
     /**
-     * Persists a given {@link ExecutionDetails} in the experiment database.
+     * Persists an given {@link ExecutionDetails} and saves it in the database.
      *
-     * @param executionDetails The {@link ExecutionDetails}, which are going to be persisted in the database.
+     * @param executionDetails The {@link ExecutionDetails}, which are going to be persisted.
      * @return The persisted {@link ExecutionDetails}.
      */
     ExecutionDetails createExecution(@NonNull ExecutionDetails executionDetails);
 
     /**
-     * Returns the {@link ExecutionDetails} from the specified {@code id}.
+     * Converts an {@link ExecutionCreateDTO} to {@link ExecutionDTO} and saves its {@link ExecutionDetails} in the database.
+     *
+     * @param executionCreateDTO The {@link ExecutionCreateDTO} to be converted.
+     * @return The conversion result as a {@link ExecutionDTO}.
+     */
+    ExecutionDTO createExecution(@NonNull ExecutionCreateDTO executionCreateDTO);
+
+    /** Returns the {@link ExecutionDetails} from the specified {@code id}.
      *
      * @param id The UUID of the requested {@link ExecutionDetails}.
      * @return The requested {@link ExecutionDetails} by its {@code id}.
@@ -33,6 +40,15 @@ public interface ExecutionService {
      * @return The requested {@link ExecutionDTO} by its {@code id}.
      */
     ExecutionDTO findExecutionDTOById(@NonNull UUID id);
+
+    /**
+     * Converts the given {@link ExecutionDetails} to its {@link ExecutionDTO} representation.
+     *
+     * @param execDetails The {@link ExecutionDetails}, which are going to be converted.
+     * @return The converted {@link ExecutionDTO}.
+     */
+    ExecutionDTO convertExecDetailsToExecDTO(ExecutionDetails execDetails);
+
 
     /**
      * Returns a list of {@link ExecutionDTO}s from the specified {@code experimentId} or an empty list, if there is
@@ -52,4 +68,5 @@ public interface ExecutionService {
      * @return The list of {@link ExecutionDTO}s of the requested {@code userId}.
      */
     List<ExecutionDTO> findExecutionsDTOListForUserId(@NonNull UUID userId);
+
 }
