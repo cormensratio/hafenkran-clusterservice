@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NonNull;
 
 import javax.validation.constraints.NotEmpty;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -26,13 +27,14 @@ public class ExperimentDTOList {
     private final List<ExperimentDTO> experimentDTOList;
 
     @JsonCreator
-    public ExperimentDTOList(@NonNull @NotEmpty List<ExperimentDetails> experimentDetailsList) {
-        this.ownerId = experimentDetailsList.get(0).getOwnerId();
-        this.experimentDTOList = convertExperimentListToDTOList(experimentDetailsList);
-    }
+    public ExperimentDTOList(@NonNull List<ExperimentDetails> experimentDetailsList) {
+        this.ownerId = experimentDetailsList.get(0).getUserId();
 
-    private static ExperimentDTO convertExperimentToDTO(@NonNull ExperimentDetails experiment) {
-        return new ExperimentDTO(experiment);
+        if (experimentDetailsList.isEmpty()) {
+            this.experimentDTOList = Collections.emptyList();
+        } else {
+            this.experimentDTOList = convertExperimentListToDTOList(experimentDetailsList);
+        }
     }
 
     /**
@@ -45,6 +47,6 @@ public class ExperimentDTOList {
             @NonNull @NotEmpty List<ExperimentDetails> experimentDetailsList) {
 
         return experimentDetailsList.stream()
-                .map(ExperimentDTOList::convertExperimentToDTO).collect(Collectors.toList());
+                .map(ExperimentDTO::new).collect(Collectors.toList());
     }
 }

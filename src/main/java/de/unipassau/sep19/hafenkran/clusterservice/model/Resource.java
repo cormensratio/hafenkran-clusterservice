@@ -30,13 +30,15 @@ public class Resource {
 
     @Basic
     @NonNull
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @NonNull
+    @Column(nullable = false)
     private UUID ownerId;
 
     Resource(@NonNull UUID ownerId) {
-        this.id = UUID.randomUUID();
+        this.id = ownerId;
         this.createdAt = LocalDateTime.now();
         this.ownerId = ownerId;
     }

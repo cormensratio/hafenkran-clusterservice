@@ -5,12 +5,12 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
-import javax.persistence.Entity;
-import javax.persistence.PrePersist;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -23,10 +23,23 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 public class ExperimentDetails extends Resource {
 
+    @Id
+    private UUID id;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "experimentDetails")
+    private List<ExecutionDetails> executionDetailsList;
+
     @Valid
     @NonNull
     @NotEmpty
     private String experimentName;
+
+    @Basic
+    @NonNull
+    private LocalDateTime createdAt;
+
+    @NonNull
+    private UUID userId;
 
     private long size;
 
@@ -34,6 +47,7 @@ public class ExperimentDetails extends Resource {
         super(ownerId);
         this.experimentName = experimentName;
         this.size = size;
+        this.executionDetailsList = Collections.emptyList();
     }
 
 }

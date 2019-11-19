@@ -55,18 +55,20 @@ public class ExperimentServiceImplTest {
     }
 
     @Test
-    public void testFindExperimentById_existingId_validExperimentDetailsReturned() {
+    public void testCreateExperiment_validExperimentDetails_validExperimentDetailsReturned() {
 
         // Arrange
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
         when(experimentRepository.findById(MOCK_ID)).thenReturn(Optional.of(mockExperimentDetails));
+        when(experimentRepository.save(mockExperimentDetails)).thenReturn(mockExperimentDetails);
 
         // Act
-        ExperimentDetails actual = subject.findExperimentById(MOCK_ID);
+        ExperimentDetails actual = subject.createExperiment(mockExperimentDetails);
 
         // Assert
         verify(experimentRepository, times(1)).findById(MOCK_ID);
         verify(mockContext, times(1)).getAuthentication();
+        verify(experimentRepository, times(1)).save(mockExperimentDetails);
         assertEquals(mockExperimentDetails, actual);
         verifyNoMoreInteractions(experimentRepository);
     }
@@ -89,6 +91,34 @@ public class ExperimentServiceImplTest {
     }
 
     @Test
+    public void testCreateExperiment_experimentDetailsIsNull_throwsException() {
+
+        // Arrange
+        expectedEx.expect(NullPointerException.class);
+        expectedEx.expectMessage("experimentDetails is marked non-null but is null");
+
+        // Act
+        ExperimentDetails actual = subject.createExperiment(null);
+
+        // Assert - with rule
+    }
+
+    @Test
+    public void testFindExperimentById_existingId_validExperimentDetailsReturned() {
+
+        // Arrange
+        when(experimentRepository.findById(MOCK_ID)).thenReturn(Optional.of(mockExperimentDetails));
+
+        // Act
+        ExperimentDetails actual = subject.findExperimentById(MOCK_ID);
+
+        // Assert
+        verify(experimentRepository, times(1)).findById(MOCK_ID);
+        assertEquals(mockExperimentDetails, actual);
+        verifyNoMoreInteractions(experimentRepository);
+    }
+
+    @Test
     public void testFindExperimentById_noExistingId_throwsException() {
 
         // Arrange
@@ -99,6 +129,7 @@ public class ExperimentServiceImplTest {
         ExperimentDetails actual = subject.findExperimentById(MOCK_ID);
 
         // Assert - with rule
+
     }
 
     @Test
@@ -110,35 +141,6 @@ public class ExperimentServiceImplTest {
 
         // Act
         ExperimentDetails actual = subject.findExperimentById(null);
-
-        // Assert - with rule
-
-    }
-
-    @Test
-    public void testCreateExperiment_validExperimentDetails_validExperimentDetailsReturned() {
-
-        // Arrange
-        when(experimentRepository.save(mockExperimentDetails)).thenReturn(mockExperimentDetails);
-
-        // Act
-        ExperimentDetails actual = subject.createExperiment(mockExperimentDetails);
-
-        // Assert
-        verify(experimentRepository, times(1)).save(mockExperimentDetails);
-        assertEquals(mockExperimentDetails, actual);
-        verifyNoMoreInteractions(experimentRepository);
-    }
-
-    @Test
-    public void testCreateExperiment_experimentDetailsIsNull_throwsException() {
-
-        // Arrange
-        expectedEx.expect(NullPointerException.class);
-        expectedEx.expectMessage("experimentDetails is marked non-null but is null");
-
-        // Act
-        ExperimentDetails actual = subject.createExperiment(null);
 
         // Assert - with rule
 
