@@ -40,9 +40,8 @@ public class UploadServiceImpl implements UploadService {
 
         ExperimentDetails experimentDetails = new ExperimentDetails(SecurityContextUtil.getCurrentUserDTO().getId(),
                 experimentName, file.getSize());
-        ExperimentDetails experiment = experimentService.createExperiment(experimentDetails);
 
-        experimentDetails.validatePermissions();
+        experimentService.createExperiment(experimentDetails);
 
         String fileName = file.getOriginalFilename();
 

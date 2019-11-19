@@ -16,9 +16,13 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -36,7 +40,7 @@ public class ExperimentServiceImplTest {
     public ExpectedException expectedEx = ExpectedException.none();
 
     @Mock
-    private ExperimentRepository experimentRepository;
+    private ExperimentRepository mockExperimentRepository;
 
     private ExperimentDetails mockExperimentDetails;
 
@@ -47,7 +51,7 @@ public class ExperimentServiceImplTest {
 
     @Before
     public void setUp() {
-        this.subject = new ExperimentServiceImpl(experimentRepository);
+        this.subject = new ExperimentServiceImpl(mockExperimentRepository);
         this.mockExperimentDetails = new ExperimentDetails(MOCK_ID, "testExperiment", 500);
 
         SecurityContextHolder.setContext(mockContext);
@@ -57,15 +61,15 @@ public class ExperimentServiceImplTest {
     public void testCreateExperiment_validExperimentDetails_validExperimentDetailsReturned() {
 
         // Arrange
-        when(experimentRepository.save(mockExperimentDetails)).thenReturn(mockExperimentDetails);
+        when(mockExperimentRepository.save(mockExperimentDetails)).thenReturn(mockExperimentDetails);
 
         // Act
         ExperimentDetails actual = subject.createExperiment(mockExperimentDetails);
 
         // Assert
-        verify(experimentRepository, times(1)).save(mockExperimentDetails);
+        verify(mockExperimentRepository, times(1)).save(mockExperimentDetails);
         assertEquals(mockExperimentDetails, actual);
-        verifyNoMoreInteractions(experimentRepository);
+        verifyNoMoreInteractions(mockExperimentRepository);
     }
 
     @Test
@@ -86,17 +90,17 @@ public class ExperimentServiceImplTest {
 
         // Arrange
         ExperimentDTO mockExperimentDTO = ExperimentDTO.fromExperimentDetails(mockExperimentDetails);
-        when(experimentRepository.findById(MOCK_ID)).thenReturn(Optional.ofNullable(mockExperimentDetails));
+        when(mockExperimentRepository.findById(MOCK_ID)).thenReturn(Optional.ofNullable(mockExperimentDetails));
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
 
         // Act
         ExperimentDTO actual = subject.retrieveExperimentDTOById(MOCK_ID);
 
         // Assert
-        verify(experimentRepository, times(1)).findById(MOCK_ID);
+        verify(mockExperimentRepository, times(1)).findById(MOCK_ID);
         verify(mockContext, times(1)).getAuthentication();
         assertEquals(actual, mockExperimentDTO);
-        verifyNoMoreInteractions(experimentRepository, mockContext);
+        verifyNoMoreInteractions(mockExperimentRepository, mockContext);
     }
 
 
@@ -109,7 +113,7 @@ public class ExperimentServiceImplTest {
         when(mockContext.getAuthentication()).thenReturn(auth);
 
         expectedEx.expect(ResourceNotFoundException.class);
-        when(experimentRepository.findById(MOCK_ID)).thenReturn(Optional.of(mockExperimentDetails));
+        when(mockExperimentRepository.findById(MOCK_ID)).thenReturn(Optional.of(mockExperimentDetails));
         when(mockContext.getAuthentication()).thenReturn(auth);
 
         // Act
@@ -123,7 +127,7 @@ public class ExperimentServiceImplTest {
 
         // Arrange
         expectedEx.expect(ResourceNotFoundException.class);
-        when(experimentRepository.findById(MOCK_ID)).thenReturn(Optional.empty());
+        when(mockExperimentRepository.findById(MOCK_ID)).thenReturn(Optional.empty());
 
         // Act
         ExperimentDTO actual = subject.retrieveExperimentDTOById(MOCK_ID);
@@ -144,5 +148,23 @@ public class ExperimentServiceImplTest {
 
         // Assert - with rule
 
+    }
+
+    @Test
+    public void testRetrieveExperimentsDTOListOfUserId_validId_listReturned() {
+        // Arrange
+        ExperimentDTO mockExperimentDTO = ExperimentDTO.fromExperimentDetails(mockExperimentDetails);
+        when(mockExperimentRepository.findExperimentDetailsByUserId(MOCK_ID)).thenReturn(
+                Collections.singletonList(mockExperimentDetails));
+        when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
+
+        // Act
+        List<ExperimentDTO> actual = subject.retrieveExperimentsDTOListOfUserId(MOCK_ID);
+
+        // Assert
+        verify(mockExperimentRepository, times(1)).findExperimentDetailsByUserId(MOCK_ID);
+        verify(mockContext, times(1)).getAuthentication();
+        assertThat(actual, containsInAnyOrder(mockExperimentDTO));
+        verifyNoMoreInteractions(mockExperimentRepository, mockContext);
     }
 }
