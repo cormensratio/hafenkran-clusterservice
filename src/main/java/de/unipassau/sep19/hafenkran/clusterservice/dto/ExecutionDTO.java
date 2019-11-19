@@ -23,6 +23,10 @@ public class ExecutionDTO {
     private UUID experimentId;
 
     @NonNull
+    @JsonProperty("executionName")
+    private String executionName;
+
+    @NonNull
     @JsonProperty("createdAt")
     private LocalDateTime createdAt;
 
@@ -36,12 +40,25 @@ public class ExecutionDTO {
     @JsonProperty("status")
     private ExecutionDetails.Status status;
 
+    @JsonProperty("ram")
+    private long ram;
+
+    @JsonProperty("cpu")
+    private long cpu;
+
+    @JsonProperty("bookedTime")
+    private long bookedTime;
+
     public ExecutionDTO(@NonNull final ExecutionDetails executionDetails) {
         this.id = executionDetails.getId();
         this.experimentId = executionDetails.getExperimentDetails().getId();
+        this.executionName = executionDetails.getExecutionName();
         this.createdAt = executionDetails.getCreatedAt();
         this.startedAt = executionDetails.getStartedAt();
         this.terminatedAt = executionDetails.getTerminatedAt();
         this.status = executionDetails.getStatus();
+        this.ram = executionDetails.getRam();
+        this.cpu = executionDetails.getCpu();
+        this.bookedTime = executionDetails.getBookedTime();
     }
 }
