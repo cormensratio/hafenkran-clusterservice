@@ -45,7 +45,6 @@ public class ExperimentServiceImplTest {
     @Mock
     private SecurityContext mockContext;
 
-
     @Before
     public void setUp() {
         this.subject = new ExperimentServiceImpl(experimentRepository);
@@ -58,36 +57,15 @@ public class ExperimentServiceImplTest {
     public void testCreateExperiment_validExperimentDetails_validExperimentDetailsReturned() {
 
         // Arrange
-        when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
-        when(experimentRepository.findById(MOCK_ID)).thenReturn(Optional.of(mockExperimentDetails));
         when(experimentRepository.save(mockExperimentDetails)).thenReturn(mockExperimentDetails);
 
         // Act
         ExperimentDetails actual = subject.createExperiment(mockExperimentDetails);
 
         // Assert
-        verify(experimentRepository, times(1)).findById(MOCK_ID);
-        verify(mockContext, times(1)).getAuthentication();
         verify(experimentRepository, times(1)).save(mockExperimentDetails);
         assertEquals(mockExperimentDetails, actual);
         verifyNoMoreInteractions(experimentRepository);
-    }
-
-    @Test
-    public void testFindExperimentById_notOwnerOrAdmin_throwsException() {
-
-        // Arrange
-        UserDTO wrongUser = new UserDTO(UUID.fromString("00000000-0000-0000-0000-000000000002"), "Rick", "", false);
-        JwtAuthentication auth = new JwtAuthentication(wrongUser);
-
-        expectedEx.expect(ResourceNotFoundException.class);
-        when(experimentRepository.findById(MOCK_ID)).thenReturn(Optional.of(mockExperimentDetails));
-        when(mockContext.getAuthentication()).thenReturn(auth);
-
-        // Act
-        ExperimentDetails actual = subject.findExperimentById(MOCK_ID);
-
-        // Assert - with rule
     }
 
     @Test
@@ -104,69 +82,26 @@ public class ExperimentServiceImplTest {
     }
 
     @Test
-    public void testFindExperimentById_existingId_validExperimentDetailsReturned() {
+    public void testRetrieveExperimentDTOById_existingId_validExperimentDTO() {
 
         // Arrange
-        when(experimentRepository.findById(MOCK_ID)).thenReturn(Optional.of(mockExperimentDetails));
-
-        // Act
-        ExperimentDetails actual = subject.findExperimentById(MOCK_ID);
-
-        // Assert
-        verify(experimentRepository, times(1)).findById(MOCK_ID);
-        assertEquals(mockExperimentDetails, actual);
-        verifyNoMoreInteractions(experimentRepository);
-    }
-
-    @Test
-    public void testFindExperimentById_noExistingId_throwsException() {
-
-        // Arrange
-        expectedEx.expect(ResourceNotFoundException.class);
-        when(experimentRepository.findById(MOCK_ID)).thenReturn(Optional.empty());
-
-        // Act
-        ExperimentDetails actual = subject.findExperimentById(MOCK_ID);
-
-        // Assert - with rule
-
-    }
-
-    @Test
-    public void testFindExperimentById_idIsNull_throwsException() {
-
-        // Arrange
-        expectedEx.expect(NullPointerException.class);
-        expectedEx.expectMessage("id is marked non-null but is null");
-
-        // Act
-        ExperimentDetails actual = subject.findExperimentById(null);
-
-        // Assert - with rule
-
-    }
-
-    @Test
-    public void testFindExperimentDTOById_existingId_validExperimentDTO() {
-
-        // Arrange
-        ExperimentDTO mockExperimentDTO = new ExperimentDTO(mockExperimentDetails);
+        ExperimentDTO mockExperimentDTO = ExperimentDTO.fromExperimentDetails(mockExperimentDetails);
         when(experimentRepository.findById(MOCK_ID)).thenReturn(Optional.ofNullable(mockExperimentDetails));
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
 
         // Act
-        ExperimentDTO actual = subject.findExperimentDTOById(MOCK_ID);
+        ExperimentDTO actual = subject.retrieveExperimentDTOById(MOCK_ID);
 
         // Assert
         verify(experimentRepository, times(1)).findById(MOCK_ID);
         verify(mockContext, times(1)).getAuthentication();
         assertEquals(actual, mockExperimentDTO);
-        verifyNoMoreInteractions(experimentRepository);
+        verifyNoMoreInteractions(experimentRepository, mockContext);
     }
 
 
     @Test
-    public void testFindExperimentDTOById_notOwnerOrAdmin_throwsException() {
+    public void testRetrieveExperimentDTOById_notOwnerOrAdmin_throwsException() {
 
         // Arrange
         UserDTO wrongUser = new UserDTO(UUID.fromString("00000000-0000-0000-0000-000000000002"), "Rick", "", false);
@@ -178,34 +113,34 @@ public class ExperimentServiceImplTest {
         when(mockContext.getAuthentication()).thenReturn(auth);
 
         // Act
-        ExperimentDetails actual = subject.findExperimentById(MOCK_ID);
+        ExperimentDTO actual = subject.retrieveExperimentDTOById(MOCK_ID);
 
         // Assert - with rule
     }
 
     @Test
-    public void testFindExperimentDTOById_noExistingId_throwsException() {
+    public void testRetrieveExperimentDTOById_noExistingId_throwsException() {
 
         // Arrange
         expectedEx.expect(ResourceNotFoundException.class);
         when(experimentRepository.findById(MOCK_ID)).thenReturn(Optional.empty());
 
         // Act
-        ExperimentDTO actual = subject.findExperimentDTOById(MOCK_ID);
+        ExperimentDTO actual = subject.retrieveExperimentDTOById(MOCK_ID);
 
         // Assert - with rule
 
     }
 
     @Test
-    public void testFindExperimentDTOById_idIsNull_throwsException() {
+    public void testRetrieveExperimentDTOById_idIsNull_throwsException() {
 
         // Arrange
         expectedEx.expect(NullPointerException.class);
         expectedEx.expectMessage("id is marked non-null but is null");
 
         // Act
-        ExperimentDTO actual = subject.findExperimentDTOById(null);
+        ExperimentDTO actual = subject.retrieveExperimentDTOById(null);
 
         // Assert - with rule
 

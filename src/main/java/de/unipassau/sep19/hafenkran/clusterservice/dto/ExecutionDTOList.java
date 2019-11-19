@@ -46,7 +46,7 @@ public class ExecutionDTOList {
         }
 
         return executionDetailsList.stream()
-                .map(ExecutionDTO::new).collect(Collectors.toList());
+                .map(ExecutionDTO::fromExecutionDetails).collect(Collectors.toList());
     }
 
 }

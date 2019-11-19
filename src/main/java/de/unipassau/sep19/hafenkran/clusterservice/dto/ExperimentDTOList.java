@@ -47,6 +47,6 @@ public class ExperimentDTOList {
             @NonNull @NotEmpty List<ExperimentDetails> experimentDetailsList) {
 
         return experimentDetailsList.stream()
-                .map(ExperimentDTO::new).collect(Collectors.toList());
+                .map(ExperimentDTO::fromExperimentDetails).collect(Collectors.toList());
     }
 }

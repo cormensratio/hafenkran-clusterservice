@@ -2,7 +2,6 @@ package de.unipassau.sep19.hafenkran.clusterservice.controller;
 
 import de.unipassau.sep19.hafenkran.clusterservice.dto.*;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
-import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
 import de.unipassau.sep19.hafenkran.clusterservice.service.UploadService;
@@ -44,7 +43,7 @@ public class ExperimentController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public ExperimentDTO getExperimentDTOById(@NonNull @PathVariable UUID experimentId) {
-        return experimentService.findExperimentDTOById(experimentId);
+        return experimentService.retrieveExperimentDTOById(experimentId);
     }
 
     /**
@@ -56,7 +55,7 @@ public class ExperimentController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public List<ExperimentDTO> getExperimentDTOListOfCurrentUser() {
-        return experimentService.findExperimentsDTOListOfUserId(SecurityContextUtil.getCurrentUserDTO().getId());
+        return experimentService.retrieveExperimentsDTOListOfUserId(SecurityContextUtil.getCurrentUserDTO().getId());
     }
 
     /**
@@ -72,11 +71,8 @@ public class ExperimentController {
         if (StringUtils.isEmpty(experimentName)) {
             experimentName = file.getOriginalFilename();
         }
-        ExperimentDetails experimentDetails = new ExperimentDetails(SecurityContextUtil.getCurrentUserDTO().getId(),
-                experimentName, file.getSize());
-        ExperimentDetails experiment = experimentService.createExperiment(experimentDetails);
 
-        return uploadService.storeFile(file, experiment);
+        return uploadService.storeFile(file, experimentName);
     }
 
     /**
@@ -88,7 +84,7 @@ public class ExperimentController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public List<ExecutionDTO> getExecutionDTOListForExperimentId(@PathVariable UUID experimentId) {
-        return executionService.findExecutionsDTOListOfExperimentId(experimentId);
+        return executionService.retrieveExecutionsDTOListOfExperimentId(experimentId);
     }
 
     /**

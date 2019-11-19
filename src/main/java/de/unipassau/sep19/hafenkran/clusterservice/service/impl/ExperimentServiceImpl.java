@@ -38,37 +38,26 @@ public class ExperimentServiceImpl implements ExperimentService {
      */
     public ExperimentDetails createExperiment(@Valid @NonNull ExperimentDetails experimentDetails) {
         final ExperimentDetails savedExperimentDetails = experimentRepository.save(experimentDetails);
-
         log.info(String.format("Experiment with id %s created", savedExperimentDetails.getId()));
-
         return savedExperimentDetails;
     }
 
     /**
      * {@inheritDoc}
      */
-    public ExperimentDetails findExperimentById(@NonNull UUID id) {
+    public ExperimentDTO retrieveExperimentDTOById(@NonNull UUID id) {
         final Optional<ExperimentDetails> experimentDetailsOptional = experimentRepository.findById(id);
         ExperimentDetails experimentDetails = experimentDetailsOptional.orElseThrow(
                 () -> new ResourceNotFoundException(ExperimentDetails.class, "id",
                         id.toString()));
-
         experimentDetails.validatePermissions();
-        return experimentDetails;
+        return ExperimentDTO.fromExperimentDetails(experimentDetails);
     }
 
     /**
      * {@inheritDoc}
      */
-    public ExperimentDTO findExperimentDTOById(@NonNull UUID id) {
-        ExperimentDetails experimentDetails = findExperimentById(id);
-        return new ExperimentDTO(experimentDetails);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public List<ExperimentDTO> findExperimentsDTOListOfUserId(@NonNull UUID userId) {
+    public List<ExperimentDTO> retrieveExperimentsDTOListOfUserId(@NonNull UUID userId) {
         return ExperimentDTOList.convertExperimentListToDTOList(findExperimentsListOfUserId(userId));
     }
 }
