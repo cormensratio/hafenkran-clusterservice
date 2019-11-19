@@ -1,5 +1,6 @@
 package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
@@ -14,6 +15,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -22,7 +24,7 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class ExecutionServiceImplTest {
 
-    private static final UUID USER_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
+    private static final UUID MOCK_USER_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
 
     private static UUID MOCK_EXPERIMENT_ID;
 
@@ -34,9 +36,18 @@ public class ExecutionServiceImplTest {
     @Mock
     private ExecutionRepository executionRepository;
 
+    @Mock
     private ExperimentRepository experimentRepository;
 
+    private ExperimentDetails mockExperimentDetails;
+
     private ExecutionDetails mockExecutionDetails;
+
+    private ExecutionCreateDTO mockExecutionCreateDTOAllSet;
+
+    private ExecutionCreateDTO mockExecutionCreateDTOAllUnset;
+
+    private LocalDateTime mockLocalDateTime;
 
     private List<ExecutionDetails> mockExecutionDetailsList;
 
@@ -48,13 +59,22 @@ public class ExecutionServiceImplTest {
     public void setUp() {
         this.subject = new ExecutionServiceImpl(executionRepository, experimentRepository);
 
-        ExperimentDetails experimentDetails = new ExperimentDetails(USER_ID, "testExperiment", 500);
+        ExperimentDetails experimentDetails = new ExperimentDetails(MOCK_USER_ID, "testExperiment", 500);
         MOCK_EXPERIMENT_ID = experimentDetails.getId();
+
+        this.mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "ExpTest", 1L);
 
         this.mockExecutionDetails = new ExecutionDetails(experimentDetails, "Test1", 1L, 1L, 1L);
         MOCK_EXECUTION_ID = mockExecutionDetails.getId();
 
+        this.mockExecutionCreateDTOAllSet = new ExecutionCreateDTO(MOCK_EXPERIMENT_ID, Optional.of("Test1"), Optional.of(1L), Optional.of(1L), Optional.of(1L));
+
+        this.mockExecutionCreateDTOAllUnset = new ExecutionCreateDTO(MOCK_EXPERIMENT_ID, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+
+        this.mockLocalDateTime = LocalDateTime.now();
+
         this.mockExecutionDTOS = new ArrayList<>();
+
         this.mockExecutionDetailsList = new ArrayList<>();
     }
 
@@ -248,13 +268,13 @@ public class ExecutionServiceImplTest {
                 mockExecutionDetails.getStartedAt(), mockExecutionDetails.getTerminatedAt(),
                 mockExecutionDetails.getStatus(), mockExecutionDetails.getRam(), mockExecutionDetails.getCpu(), mockExecutionDetails.getBookedTime()));
         mockExecutionDetailsList.add(mockExecutionDetails);
-        when(executionRepository.findAllByExperimentDetails_UserId(USER_ID)).thenReturn(mockExecutionDetailsList);
+        when(executionRepository.findAllByExperimentDetails_UserId(MOCK_USER_ID)).thenReturn(mockExecutionDetailsList);
 
         // Act
-        List<ExecutionDTO> actual = subject.findExecutionsDTOListForUserId(USER_ID);
+        List<ExecutionDTO> actual = subject.findExecutionsDTOListForUserId(MOCK_USER_ID);
 
         // Assert
-        verify(executionRepository, times(1)).findAllByExperimentDetails_UserId(USER_ID);
+        verify(executionRepository, times(1)).findAllByExperimentDetails_UserId(MOCK_USER_ID);
         assertEquals(mockExecutionDTOS, actual);
         verifyNoMoreInteractions(executionRepository);
     }
@@ -266,7 +286,7 @@ public class ExecutionServiceImplTest {
         expectedEx.expect(ResourceNotFoundException.class);
 
         // Act
-        List<ExecutionDTO> actual = subject.findExecutionsDTOListForUserId(USER_ID);
+        List<ExecutionDTO> actual = subject.findExecutionsDTOListForUserId(MOCK_USER_ID);
 
         // Assert - with rule
 
@@ -286,4 +306,64 @@ public class ExecutionServiceImplTest {
 
     }
 
+    @Test
+    public void testCreateExecution_invalidIdOfExecutionCreateDTO_throwsException(){
+
+        // Arrange
+        expectedEx.expect(ResourceNotFoundException.class);
+        when(experimentRepository.findById(mockExecutionCreateDTOAllSet.getExperimentId())).thenReturn(Optional.empty());
+
+        // Act
+        ExecutionDTO actual = subject.createExecution(mockExecutionCreateDTOAllSet);
+
+        // Assert - with rule
+
+    }
+
+    @Test
+    public void testCreateExecution_validExecutionCreateDTOWithAllOptionalFieldsEmpty_validExecutionDTOWithDefaultValues(){
+
+        // Arrange
+        ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_EXECUTION_ID, MOCK_EXPERIMENT_ID, "Test1", mockLocalDateTime, null, null, ExecutionDetails.Status.WAITING, 1L, 1L, 1L);
+        mockExecutionDetails.setId(MOCK_EXECUTION_ID);
+        when(experimentRepository.findById(mockExecutionCreateDTOAllUnset.getExperimentId())).thenReturn(Optional.of(mockExperimentDetails));
+        when(executionRepository.save(any(ExecutionDetails.class))).thenReturn(mockExecutionDetails);
+
+        // Act
+        ExecutionDTO actualExecutionDTO = subject.createExecution(mockExecutionCreateDTOAllUnset);
+
+        // Assert
+        verify(experimentRepository, times(1)).findById(MOCK_EXPERIMENT_ID);
+        verify(executionRepository, times(1)).save(any(ExecutionDetails.class));
+        assertEquals(mockExecutionDTO.getRam(), actualExecutionDTO.getRam());
+        assertEquals(mockExecutionDTO.getCpu(), actualExecutionDTO.getCpu());
+        assertEquals(mockExecutionDTO.getExecutionName(), actualExecutionDTO.getExecutionName());
+        assertEquals(mockExecutionDTO.getBookedTime(), actualExecutionDTO.getBookedTime());
+        assertEquals(mockExecutionDTO.getStatus(), actualExecutionDTO.getStatus());
+        verifyNoMoreInteractions(experimentRepository, executionRepository);
+    }
+
+    @Test
+    public void testCreateExecution_validExecutionCreateDTOWithAllOptionalFieldsSet_validExecutionDTOWithSetValues(){
+
+        // Arrange
+        ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_EXECUTION_ID, MOCK_EXPERIMENT_ID, "Test1", mockLocalDateTime, null, null, ExecutionDetails.Status.WAITING, 1L, 1L, 1L);
+        mockExecutionDetails.setId(MOCK_EXECUTION_ID);
+        when(experimentRepository.findById(mockExecutionCreateDTOAllSet.getExperimentId())).thenReturn(Optional.of(mockExperimentDetails));
+        when(executionRepository.save(any(ExecutionDetails.class))).thenReturn(mockExecutionDetails);
+
+        // Act
+        ExecutionDTO actualExecutionDTO = subject.createExecution(mockExecutionCreateDTOAllSet);
+
+        // Assert
+        verify(experimentRepository, times(1)).findById(MOCK_EXPERIMENT_ID);
+        verify(executionRepository, times(1)).save(any(ExecutionDetails.class));
+        assertEquals(mockExecutionDTO.getRam(), actualExecutionDTO.getRam());
+        assertEquals(mockExecutionDTO.getCpu(), actualExecutionDTO.getCpu());
+        assertEquals(mockExecutionDTO.getExecutionName(), actualExecutionDTO.getExecutionName());
+        assertEquals(mockExecutionDTO.getBookedTime(), actualExecutionDTO.getBookedTime());
+        assertEquals(mockExecutionDTO.getStatus(), actualExecutionDTO.getStatus());
+        verifyNoMoreInteractions(experimentRepository, executionRepository);
+
+    }
 }

@@ -134,7 +134,7 @@ public class ExecutionServiceImpl implements ExecutionService {
                 experimentRepository.findById(execCreateDTO.getExperimentId());
 
         final ExperimentDetails experiment = experimentDetailsbyId.orElseThrow(
-                () -> new ResourceNotFoundException(ExperimentDetails.class, "id", experimentDetailsbyId.get().getId().toString()));
+                () -> new ResourceNotFoundException(ExperimentDetails.class, "id", execCreateDTO.getExperimentId().toString()));
         final String name;
         final long ram;
         final long cpu;
