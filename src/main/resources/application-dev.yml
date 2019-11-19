@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8082
 
 spring:
   datasource:
@@ -9,9 +9,21 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+  servlet:
+    multipart:
+      max-file-size: -1
+      max-request-size: -1
 
 experimentsFileUploadLocation: /tmp/hafenkran-clusterservice
 
 mockdata: true
+
+kubernetes:
+  deployment:
+    defaults:
+      ram: 1000
+      cpu: 10
+      bookedTime: 3600
+
 jwt:
   secret: MCgCIQCAS7IFlSvaBOPXwSBHo+7+6C4RbkvYj3fgI5+Abe4pRwIDAQAB

@@ -8,6 +8,8 @@ import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -21,6 +23,9 @@ public class ExperimentDetails {
 
     @Id
     private UUID id;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "experimentDetails")
+    private List<ExecutionDetails> executionDetailsList;
 
     @Valid
     @NonNull
@@ -36,15 +41,13 @@ public class ExperimentDetails {
 
     private long size;
 
-    public ExperimentDetails(@NonNull UUID userId, @NonNull String experimentName, long size) {
+    public ExperimentDetails(@NonNull UUID userId,
+                             @NonNull String experimentName, long size) {
         this.userId = userId;
         this.experimentName = experimentName;
         this.size = size;
         this.createdAt = LocalDateTime.now();
-    }
-
-    @PrePersist
-    private void prePersist() {
+        this.executionDetailsList = Collections.emptyList();
         this.id = UUID.randomUUID();
     }
 
