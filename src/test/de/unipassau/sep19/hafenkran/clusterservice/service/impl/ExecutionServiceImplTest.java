@@ -180,9 +180,9 @@ public class ExecutionServiceImplTest {
 
         // Arrange
         mockExecutionDTOS.add(new ExecutionDTO(mockExecutionDetails.getId(),
-                mockExecutionDetails.getExperimentDetails().getId(), mockExecutionDetails.getCreatedAt(),
+                mockExecutionDetails.getExperimentDetails().getId(), mockExecutionDetails.getExecutionName(), mockExecutionDetails.getCreatedAt(),
                 mockExecutionDetails.getStartedAt(), mockExecutionDetails.getTerminatedAt(),
-                mockExecutionDetails.getStatus()));
+                mockExecutionDetails.getStatus(), mockExecutionDetails.getRam(), mockExecutionDetails.getCpu(), mockExecutionDetails.getBookedTime()));
         mockExecutionDetailsList.add(mockExecutionDetails);
         when(executionRepository.findAllByExperimentDetails_Id(MOCK_EXPERIMENT_ID)).thenReturn(mockExecutionDetailsList);
 
@@ -244,9 +244,9 @@ public class ExecutionServiceImplTest {
 
         // Arrange
         mockExecutionDTOS.add(new ExecutionDTO(mockExecutionDetails.getId(),
-                mockExecutionDetails.getExperimentDetails().getId(), mockExecutionDetails.getCreatedAt(),
+                mockExecutionDetails.getExperimentDetails().getId(), mockExecutionDetails.getExecutionName(), mockExecutionDetails.getCreatedAt(),
                 mockExecutionDetails.getStartedAt(), mockExecutionDetails.getTerminatedAt(),
-                mockExecutionDetails.getStatus()));
+                mockExecutionDetails.getStatus(), mockExecutionDetails.getRam(), mockExecutionDetails.getCpu(), mockExecutionDetails.getBookedTime()));
         mockExecutionDetailsList.add(mockExecutionDetails);
         when(executionRepository.findAllByExperimentDetails_UserId(USER_ID)).thenReturn(mockExecutionDetailsList);
 
