@@ -29,6 +29,11 @@
       "name": "jwt.secret",
       "type": "java.lang.String",
       "description": "The secret used for signing JWTs."
+    },
+    {
+      "name": "mockKubernetesClient",
+      "type": "java.lang.String",
+      "description": "Set to false if you want to use Kubernetes Client."
     }
   ]
 }
