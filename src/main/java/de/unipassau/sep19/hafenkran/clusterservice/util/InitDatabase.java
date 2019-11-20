@@ -38,17 +38,16 @@ public class InitDatabase implements CommandLineRunner {
         final ExperimentDetails experimentDetails1 =
                 new ExperimentDetails(UUID.fromString("00000000-0000-0000-0000-000000000001"), "ColdFusionAlgorithm",
                         300);
+        experimentDetails1.setId(UUID.fromString("00000000-0000-0000-0000-000000000001"));
         experimentService.createExperiment(experimentDetails1);
 
         final ExperimentDetails experimentDetails2 =
                 new ExperimentDetails(UUID.fromString("00000000-0000-0000-0000-000000000001"), "CompletePI", 1024);
+        experimentDetails2.setId(UUID.fromString("00000000-0000-0000-0000-000000000002"));
         experimentService.createExperiment(experimentDetails2);
 
-        final ExecutionCreateDTO executionCreateDTO
-                = new ExecutionCreateDTO(Optional.of(experimentDetails1.getExperimentName()),
-                experimentDetails1.getId(),
-                Optional.of((long) 100), Optional.of((long) 10), Optional.of((long) 60));
         final ExecutionDetails executionDetails = new ExecutionDetails(UUID.fromString("00000000-0000-0000-0000-000000000001"), experimentDetails1, experimentDetails1.getExperimentName(), 100, 10, 60);
+        executionDetails.setId(UUID.fromString("00000000-0000-0000-0000-000000000001"));
         executionService.createExecution(executionDetails);
 
         log.info("Database initialized!");
