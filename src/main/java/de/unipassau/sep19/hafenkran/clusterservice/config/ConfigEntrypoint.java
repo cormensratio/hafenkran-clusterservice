@@ -35,9 +35,7 @@ public class ConfigEntrypoint {
             matchIfMissing = true
     )
     public KubernetesClient kubernetesMockClient() throws IOException {
-        KubernetesClientMockImpl kubernetesClientMock = new KubernetesClientMockImpl();
-        kubernetesClientMock.initKubeClient();
-        return kubernetesClientMock;
+        return new KubernetesClientMockImpl();
     }
 
     @Bean
@@ -46,9 +44,7 @@ public class ConfigEntrypoint {
             havingValue = "false"
     )
     public KubernetesClient kubernetesClient() throws IOException {
-        KubernetesClientImpl kubernetesClient = new KubernetesClientImpl();
-        kubernetesClient.initKubeClient();
-        return kubernetesClient;
+        return new KubernetesClientImpl();
     }
 
 }
