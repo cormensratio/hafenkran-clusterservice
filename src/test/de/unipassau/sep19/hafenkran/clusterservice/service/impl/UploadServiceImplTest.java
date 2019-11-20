@@ -13,13 +13,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.UUID;
-
 
 @RunWith(MockitoJUnitRunner.class)
 public class UploadServiceImplTest {
-
-    private static final UUID USER_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
 
     private static final byte[] bytearray = new byte[]{(byte) 0xe0, 0x4f, (byte) 0xd0,
             0x20, (byte) 0xea, 0x3a, 0x69, 0x10, (byte) 0xa2, (byte) 0xd8, 0x08, 0x00, 0x2b,
@@ -30,7 +26,7 @@ public class UploadServiceImplTest {
 
     private UploadService subject;
 
-    private MultipartFile mockFile;
+    private MultipartFile testFile;
 
     @Mock
     ExperimentService experimentService;
@@ -38,7 +34,7 @@ public class UploadServiceImplTest {
     @Before
     public void setUp() {
         this.subject = new UploadServiceImpl(experimentService);
-        this.mockFile = new MockMultipartFile("testExperiment", "testfile", "text/txt", bytearray);
+        this.testFile = new MockMultipartFile("testExperiment", "testfile", "text/txt", bytearray);
     }
 
     @Test
@@ -63,7 +59,7 @@ public class UploadServiceImplTest {
         expectedEx.expectMessage("experimentName is marked non-null but is null");
 
         // Act
-        ExperimentDTO actual = subject.storeFile(mockFile, null);
+        ExperimentDTO actual = subject.storeFile(testFile, null);
 
         // Assert - with rule
 

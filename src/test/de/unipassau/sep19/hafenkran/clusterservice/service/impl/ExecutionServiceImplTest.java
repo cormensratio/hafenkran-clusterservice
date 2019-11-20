@@ -33,8 +33,9 @@ public class ExecutionServiceImplTest {
     private static final UUID MOCK_USER_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
     private static final UserDTO MOCK_USER = new UserDTO(MOCK_USER_ID, "Rick", "", false);
     private static final JwtAuthentication MOCK_AUTH = new JwtAuthentication(MOCK_USER);
-    private static UUID MOCK_EXPERIMENT_ID;
-    private static UUID MOCK_EXECUTION_ID;
+    private static final UUID MOCK_EXPERIMENT_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
+    private static final UUID MOCK_EXECUTION_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
+
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
 
@@ -47,13 +48,13 @@ public class ExecutionServiceImplTest {
     @Mock
     private SecurityContext mockContext;
 
-    private ExperimentDetails mockExperimentDetails;
+    private ExperimentDetails testExperimentDetails;
 
-    private ExecutionDetails mockExecutionDetails;
+    private ExecutionDetails testExecutionDetails;
 
-    private List<ExecutionDetails> mockExecutionDetailsList;
+    private List<ExecutionDetails> testExecutionDetailsList;
 
-    private List<ExecutionDTO> mockExecutionDTOS;
+    private List<ExecutionDTO> testExecutionDTOS;
 
     private ExecutionServiceImpl subject;
 
@@ -64,24 +65,23 @@ public class ExecutionServiceImplTest {
         this.subject = new ExecutionServiceImpl(mockExecutionRepository, mockExperimentRepository);
 
         ExperimentDetails experimentDetails = new ExperimentDetails(MOCK_USER_ID, "testExperiment", 500);
-        experimentDetails.setId(UUID.fromString("00000000-0000-0000-0000-000000000001"));
-        MOCK_EXPERIMENT_ID = experimentDetails.getId();
+        experimentDetails.setId(MOCK_EXPERIMENT_ID);
 
-        this.mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "ExpTest", 1L);
+        this.testExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "ExpTest", 1L);
+        testExperimentDetails.setId(MOCK_EXPERIMENT_ID);
+        this.testExecutionDetails = new ExecutionDetails(MOCK_USER_ID, experimentDetails, "Test1", 1L, 1L, 1L);
+        testExecutionDetails.setId(MOCK_EXECUTION_ID);
 
-        this.mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, experimentDetails, "Test1", 1L, 1L, 1L);
-        MOCK_EXECUTION_ID = mockExecutionDetails.getId();
-
-        this.mockExecutionDetailsList = new ArrayList<>();
-        this.mockExecutionDTOS = new ArrayList<>();
+        this.testExecutionDetailsList = new ArrayList<>();
+        this.testExecutionDTOS = new ArrayList<>();
     }
 
     @Test
     public void testRetrieveExecutionDTOById_existingId_validExecutionDTO() {
 
         // Arrange
-        ExecutionDTO mockExecutionDTO = ExecutionDTO.fromExecutionDetails(mockExecutionDetails);
-        when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.ofNullable(mockExecutionDetails));
+        ExecutionDTO mockExecutionDTO = ExecutionDTO.fromExecutionDetails(testExecutionDetails);
+        when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.ofNullable(testExecutionDetails));
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
 
         // Act
@@ -92,6 +92,26 @@ public class ExecutionServiceImplTest {
         verify(mockContext, times(1)).getAuthentication();
         assertEquals(mockExecutionDTO, actual);
         verifyNoMoreInteractions(mockExecutionRepository, mockContext);
+    }
+
+    @Test
+    public void testRetrieveExecutionDTOById_existingIdAndNotOwnerOfExecution_notFoundException() {
+
+        // Arrange
+        expectedEx.expect(ResourceNotFoundException.class);
+
+        UserDTO notOwner = new UserDTO(UUID.fromString("00000000-0000-0000-0000-000000000042"),
+                "Rick", "", false);
+        JwtAuthentication notOwnerAuth = new JwtAuthentication(notOwner);
+        ExecutionDTO mockExecutionDTO = ExecutionDTO.fromExecutionDetails(testExecutionDetails);
+
+        when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.ofNullable(testExecutionDetails));
+        when(mockContext.getAuthentication()).thenReturn(notOwnerAuth);
+
+        // Act
+        ExecutionDTO actual = subject.retrieveExecutionDTOById(MOCK_EXECUTION_ID);
+
+        // Assert -- with rule
     }
 
     @Test
@@ -126,15 +146,15 @@ public class ExecutionServiceImplTest {
     public void testRetrieveExecutionsDTOListOfExperimentId_existingId_validExecutionDTOList() {
 
         // Arrange
-        mockExecutionDTOS.add(new ExecutionDTO(mockExecutionDetails.getId(),
-                mockExecutionDetails.getExperimentDetails().getId(), mockExecutionDetails.getExecutionName(),
-                mockExecutionDetails.getCreatedAt(),
-                mockExecutionDetails.getStartedAt(), mockExecutionDetails.getTerminatedAt(),
-                mockExecutionDetails.getStatus(), mockExecutionDetails.getRam(), mockExecutionDetails.getCpu(),
-                mockExecutionDetails.getBookedTime()));
-        mockExecutionDetailsList.add(mockExecutionDetails);
+        testExecutionDTOS.add(new ExecutionDTO(testExecutionDetails.getId(),
+                testExecutionDetails.getExperimentDetails().getId(), testExecutionDetails.getExecutionName(),
+                testExecutionDetails.getCreatedAt(),
+                testExecutionDetails.getStartedAt(), testExecutionDetails.getTerminatedAt(),
+                testExecutionDetails.getStatus(), testExecutionDetails.getRam(), testExecutionDetails.getCpu(),
+                testExecutionDetails.getBookedTime()));
+        testExecutionDetailsList.add(testExecutionDetails);
         when(mockExecutionRepository.findAllByExperimentDetails_Id(MOCK_EXPERIMENT_ID)).thenReturn(
-                mockExecutionDetailsList);
+                testExecutionDetailsList);
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
 
         // Act
@@ -143,7 +163,7 @@ public class ExecutionServiceImplTest {
         // Assert
         verify(mockExecutionRepository, times(1)).findAllByExperimentDetails_Id(MOCK_EXPERIMENT_ID);
         verify(mockContext, times(1)).getAuthentication();
-        assertEquals(mockExecutionDTOS, actual);
+        assertEquals(testExecutionDTOS, actual);
         verifyNoMoreInteractions(mockExecutionRepository, mockContext);
     }
 
@@ -152,14 +172,14 @@ public class ExecutionServiceImplTest {
 
         // Arrange
         when(mockExecutionRepository.findAllByExperimentDetails_Id(MOCK_EXPERIMENT_ID)).thenReturn(
-                mockExecutionDetailsList);
+                testExecutionDetailsList);
 
         // Act
         List<ExecutionDTO> actual = subject.retrieveExecutionsDTOListOfExperimentId(MOCK_EXPERIMENT_ID);
 
         // Assert
         verify(mockExecutionRepository, times(1)).findAllByExperimentDetails_Id(MOCK_EXPERIMENT_ID);
-        assertEquals(mockExecutionDTOS, actual);
+        assertEquals(testExecutionDTOS, actual);
         verifyNoMoreInteractions(mockExecutionRepository);
     }
 
@@ -189,7 +209,7 @@ public class ExecutionServiceImplTest {
 
         // Assert
         verify(mockExecutionRepository, times(1)).findAllByExperimentDetails_Id(MOCK_EXPERIMENT_ID);
-        assertEquals(mockExecutionDTOS, actual);
+        assertEquals(testExecutionDTOS, actual);
         verifyNoMoreInteractions(mockExecutionRepository);
     }
 
@@ -197,15 +217,15 @@ public class ExecutionServiceImplTest {
     public void testRetrieveExecutionsDTOListForUserId_existingUserId_validExecutionDTOList() {
 
         // Arrange
-        mockExecutionDTOS.add(new ExecutionDTO(mockExecutionDetails.getId(),
-                mockExecutionDetails.getExperimentDetails().getId(), mockExecutionDetails.getExecutionName(),
-                mockExecutionDetails.getCreatedAt(),
-                mockExecutionDetails.getStartedAt(), mockExecutionDetails.getTerminatedAt(),
-                mockExecutionDetails.getStatus(), mockExecutionDetails.getRam(), mockExecutionDetails.getCpu(),
-                mockExecutionDetails.getBookedTime()));
-        mockExecutionDetailsList.add(mockExecutionDetails);
+        testExecutionDTOS.add(new ExecutionDTO(testExecutionDetails.getId(),
+                testExecutionDetails.getExperimentDetails().getId(), testExecutionDetails.getExecutionName(),
+                testExecutionDetails.getCreatedAt(),
+                testExecutionDetails.getStartedAt(), testExecutionDetails.getTerminatedAt(),
+                testExecutionDetails.getStatus(), testExecutionDetails.getRam(), testExecutionDetails.getCpu(),
+                testExecutionDetails.getBookedTime()));
+        testExecutionDetailsList.add(testExecutionDetails);
         when(mockExecutionRepository.findAllByExperimentDetails_UserId(MOCK_USER_ID)).thenReturn(
-                mockExecutionDetailsList);
+                testExecutionDetailsList);
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
 
         // Act
@@ -214,7 +234,7 @@ public class ExecutionServiceImplTest {
         // Assert
         verify(mockExecutionRepository, times(1)).findAllByExperimentDetails_UserId(MOCK_USER_ID);
         verify(mockContext, times(1)).getAuthentication();
-        assertEquals(mockExecutionDTOS, actual);
+        assertEquals(testExecutionDTOS, actual);
         verifyNoMoreInteractions(mockExecutionRepository, mockContext);
     }
 
@@ -229,7 +249,7 @@ public class ExecutionServiceImplTest {
 
         // Assert - with rule
         verify(mockExecutionRepository, times(1)).findAllByExperimentDetails_UserId(MOCK_USER_ID);
-        assertThat(mockExecutionDTOS, empty());
+        assertThat(testExecutionDTOS, empty());
         verifyNoMoreInteractions(mockExecutionRepository);
     }
 
@@ -272,10 +292,10 @@ public class ExecutionServiceImplTest {
                 Optional.empty(), Optional.empty(), Optional.empty());
         ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_EXECUTION_ID, MOCK_EXPERIMENT_ID, "Test1",
                 LocalDateTime.now(), null, null, ExecutionDetails.Status.WAITING, 1L, 1L, 1L);
-        mockExecutionDetails.setId(MOCK_EXECUTION_ID);
+
         when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
-                Optional.of(mockExperimentDetails));
-        when(mockExecutionRepository.save(any(ExecutionDetails.class))).thenReturn(mockExecutionDetails);
+                Optional.of(testExperimentDetails));
+        when(mockExecutionRepository.save(any(ExecutionDetails.class))).thenReturn(testExecutionDetails);
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
 
         // Act
@@ -301,10 +321,10 @@ public class ExecutionServiceImplTest {
                 Optional.of(1L), Optional.of(1L), Optional.of(1L));
         ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_EXECUTION_ID, MOCK_EXPERIMENT_ID, "Test1",
                 LocalDateTime.now(), null, null, ExecutionDetails.Status.WAITING, 1L, 1L, 1L);
-        mockExecutionDetails.setId(MOCK_EXECUTION_ID);
+
         when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
-                Optional.of(mockExperimentDetails));
-        when(mockExecutionRepository.save(any(ExecutionDetails.class))).thenReturn(mockExecutionDetails);
+                Optional.of(testExperimentDetails));
+        when(mockExecutionRepository.save(any(ExecutionDetails.class))).thenReturn(testExecutionDetails);
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
 
         // Act
