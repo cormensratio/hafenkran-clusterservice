@@ -1,6 +1,7 @@
 package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl;
 
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
+import io.kubernetes.client.ApiException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import java.io.IOException;
@@ -14,13 +15,25 @@ import java.io.IOException;
 public class KubernetesClientMockImpl implements KubernetesClient {
 
     /**
+     * Constructor of KubernetesClientMockImpl.
+     *
      * Prints out info that mockKubernetesClient is used.
      *
      * @throws IOException Exception never thrown
      */
-    @Override
-    public void initKubeClient() throws IOException {
+    public KubernetesClientMockImpl() throws IOException {
         log.info("Kubernetes Mock Client. Set mockKubernetesClient to false in application-dev.yml" +
                 " if you want to use Kubernetes.");
+    }
+
+    @Override
+    public String createPod() throws ApiException {
+        log.info("KubernetesClientMockImpl can not create a Pod.");
+        return "No Pod created. KubernetesClientMockImpl.";
+    }
+
+    @Override
+    public void deletePod() throws ApiException {
+        log.info("KubernetesClientMockImpl can not delete a Pod.");
     }
 }
