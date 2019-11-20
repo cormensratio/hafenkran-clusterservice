@@ -13,6 +13,6 @@ public interface ExecutionRepository extends CrudRepository<ExecutionDetails, UU
 
     List<ExecutionDetails> findAllByExperimentDetails_Id(@NonNull UUID experimentId);
 
-    List<ExecutionDetails> findAllByExperimentDetails_UserId(@NonNull UUID userId);
+    List<ExecutionDetails> findAllByExperimentDetails_OwnerId(@NonNull UUID ownerId);
 
 }

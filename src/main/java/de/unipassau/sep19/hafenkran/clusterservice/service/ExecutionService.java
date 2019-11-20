@@ -12,14 +12,6 @@ import java.util.UUID;
 public interface ExecutionService {
 
     /**
-     * Persists an given {@link ExecutionDetails} and saves it in the database.
-     *
-     * @param executionDetails The {@link ExecutionDetails}, which are going to be persisted.
-     * @return The persisted {@link ExecutionDetails}.
-     */
-    ExecutionDetails createExecution(@NonNull ExecutionDetails executionDetails);
-
-    /**
      * Converts an {@link ExecutionCreateDTO} to {@link ExecutionDTO} and saves its {@link ExecutionDetails} in the database.
      *
      * @param executionCreateDTO The {@link ExecutionCreateDTO} to be converted.
@@ -27,12 +19,13 @@ public interface ExecutionService {
      */
     ExecutionDTO createExecution(@NonNull ExecutionCreateDTO executionCreateDTO);
 
-    /** Returns the {@link ExecutionDetails} from the specified {@code id}.
+    /**
+     * Saves a {@link ExecutionDetails} object to the database.
      *
-     * @param id The UUID of the requested {@link ExecutionDetails}.
-     * @return The requested {@link ExecutionDetails} by its {@code id}.
+     * @param executionDetails The {@link ExecutionDetails} to be saved.
+     * @return The saved {@link ExecutionDetails}.s
      */
-    ExecutionDetails findExecutionById(@NonNull UUID id);
+    ExecutionDetails createExecution(@NonNull ExecutionDetails executionDetails);
 
     /**
      * Returns the {@link ExecutionDTO} from the specified {@code id}.
@@ -40,16 +33,7 @@ public interface ExecutionService {
      * @param id The UUID of the requested {@link ExecutionDTO}.
      * @return The requested {@link ExecutionDTO} by its {@code id}.
      */
-    ExecutionDTO findExecutionDTOById(@NonNull UUID id);
-
-    /**
-     * Converts the given {@link ExecutionDetails} to its {@link ExecutionDTO} representation.
-     *
-     * @param execDetails The {@link ExecutionDetails}, which are going to be converted.
-     * @return The converted {@link ExecutionDTO}.
-     */
-    ExecutionDTO convertExecDetailsToExecDTO(ExecutionDetails execDetails);
-
+    ExecutionDTO retrieveExecutionDTOById(@NonNull UUID id);
 
     /**
      * Returns a list of {@link ExecutionDTO}s from the specified {@code experimentId} or an empty list, if there is
@@ -58,7 +42,7 @@ public interface ExecutionService {
      * @param experimentId The {@code experimentId} of the owner's {@link ExecutionDTOList}
      * @return The list of {@link ExecutionDTO}s of the requested {@code experimentId}.
      */
-    List<ExecutionDTO> findExecutionsDTOListOfExperimentId(@NonNull UUID experimentId);
+    List<ExecutionDTO> retrieveExecutionsDTOListOfExperimentId(@NonNull UUID experimentId);
 
     /**
      * Returns a list of {@link ExecutionDTO}s from the specified {@code userId} or an
@@ -68,6 +52,6 @@ public interface ExecutionService {
      * @param userId The {@code userId} of the owner's {@link ExecutionDTOList}
      * @return The list of {@link ExecutionDTO}s of the requested {@code userId}.
      */
-    List<ExecutionDTO> findExecutionsDTOListForUserId(@NonNull UUID userId);
+    List<ExecutionDTO> retrieveExecutionsDTOListForUserId(@NonNull UUID userId);
 
 }

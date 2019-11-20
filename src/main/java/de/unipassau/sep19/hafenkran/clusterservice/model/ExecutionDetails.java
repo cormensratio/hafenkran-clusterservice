@@ -1,6 +1,7 @@
 package de.unipassau.sep19.hafenkran.clusterservice.model;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
@@ -19,14 +20,12 @@ import java.util.UUID;
 @Table(name = "executiondetails")
 @Entity
 @NoArgsConstructor
-public class ExecutionDetails {
-
-    @Id
-    private UUID id;
+@EqualsAndHashCode(callSuper = true)
+public class ExecutionDetails extends Resource {
 
     @NonNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "experimentid", nullable = false)
+    @JoinColumn(name = "experiment_id", nullable = false)
     private ExperimentDetails experimentDetails;
 
     @NonNull
@@ -34,15 +33,12 @@ public class ExecutionDetails {
     private String executionName;
 
     @Basic
-    @NonNull
-    private LocalDateTime createdAt;
-
-    @Basic
     private LocalDateTime startedAt;
 
     @Basic
     private LocalDateTime terminatedAt;
 
+    @NonNull
     @Enumerated(EnumType.STRING)
     private Status status;
 
@@ -52,17 +48,16 @@ public class ExecutionDetails {
 
     private long bookedTime;
 
-    public ExecutionDetails(@NonNull ExperimentDetails experimentDetails,
+    public ExecutionDetails(@NonNull UUID ownerId, @NonNull ExperimentDetails experimentDetails,
                             @NonNull @NotEmpty String executionName, long ram,
                             long cpu, long bookedTime) {
+        super(ownerId);
         this.experimentDetails = experimentDetails;
         this.executionName = executionName;
-        this.createdAt = LocalDateTime.now();
         this.status = Status.WAITING;
         this.ram = ram;
         this.cpu = cpu;
         this.bookedTime = bookedTime;
-        this.id = UUID.randomUUID();
     }
 
     /**

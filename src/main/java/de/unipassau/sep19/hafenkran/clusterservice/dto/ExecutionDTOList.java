@@ -29,11 +29,7 @@ public class ExecutionDTOList {
     @JsonCreator
     public ExecutionDTOList(@NonNull ExperimentDetails experimentDetails) {
         this.experimentId = experimentDetails.getId();
-        this.executionDTOList = convertExecutionListToDTOList(experimentDetails.getExecutionDetailsList());
-    }
-
-    private static ExecutionDTO convertExecutionToDTO(@NonNull ExecutionDetails execution) {
-        return new ExecutionDTO(execution);
+        this.executionDTOList = fromExecutionDetailsList(experimentDetails.getExecutionDetails());
     }
 
     /**
@@ -42,7 +38,7 @@ public class ExecutionDTOList {
      * @param executionDetailsList The list of {@link ExecutionDetails} that is going to be converted.
      * @return The converted {@link ExecutionDTOList}.
      */
-    public static List<ExecutionDTO> convertExecutionListToDTOList(
+    public static List<ExecutionDTO> fromExecutionDetailsList(
             @NonNull List<ExecutionDetails> executionDetailsList) {
 
         if (executionDetailsList.isEmpty()) {
@@ -50,7 +46,7 @@ public class ExecutionDTOList {
         }
 
         return executionDetailsList.stream()
-                .map(ExecutionDTOList::convertExecutionToDTO).collect(Collectors.toList());
+                .map(ExecutionDTO::fromExecutionDetails).collect(Collectors.toList());
     }
 
 }
