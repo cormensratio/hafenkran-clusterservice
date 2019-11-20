@@ -14,12 +14,12 @@ import java.util.UUID;
 public class ExecutionCreateDTO {
 
     @NonNull
-    @JsonProperty("name")
-    private final Optional<String> name;
-
-    @NonNull
     @JsonProperty("experimentId")
     private UUID experimentId;
+
+    @NonNull
+    @JsonProperty("name")
+    private final Optional<String> name;
 
     @NonNull
     @JsonProperty("ram")

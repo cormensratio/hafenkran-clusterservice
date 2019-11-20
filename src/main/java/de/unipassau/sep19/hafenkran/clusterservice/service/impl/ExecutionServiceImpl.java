@@ -9,7 +9,6 @@ import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExecutionRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
-import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,14 +39,12 @@ public class ExecutionServiceImpl implements ExecutionService {
     @Value("${kubernetes.deployment.defaults.bookedTime}")
     private long bookedTimeDefault;
 
-    /**
-     * {@inheritDoc}
-     */
-    public ExecutionDTO createExecution(@NonNull ExecutionCreateDTO executionCreateDTO) {
-        final ExecutionDetails executionDetails =
-                createExecutionFromExecCreateDTO(executionCreateDTO);
+    private List<ExecutionDetails> findExecutionsListOfExperimentId(@NonNull UUID experimentId) {
+        return executionRepository.findAllByExperimentDetails_Id(experimentId);
+    }
 
-        return ExecutionDTO.fromExecutionDetails(createExecution(executionDetails));
+    private List<ExecutionDetails> findExecutionsListForUserId(@NonNull UUID userId) {
+        return executionRepository.findAllByExperimentDetails_UserId(userId);
     }
 
     /**
@@ -66,60 +63,85 @@ public class ExecutionServiceImpl implements ExecutionService {
     /**
      * {@inheritDoc}
      */
-    public ExecutionDTO retrieveExecutionDTOById(@NonNull UUID id) {
+    public ExecutionDTO createExecution(@NonNull ExecutionCreateDTO executionCreateDTO) {
+
+        final ExecutionDetails executionDetails =
+                convertExecCreateDTOtoExecDetails(executionCreateDTO);
+
+        final ExecutionDetails savedExecutionDetails =
+                executionRepository.save(executionDetails);
+
+        final ExecutionDTO executionDTO =
+                convertExecDetailsToExecDTO(savedExecutionDetails);
+
+        log.info(String.format("Execution with id %s created",
+                savedExecutionDetails.getId()));
+
+        return executionDTO;
+    }
+
+    public ExecutionDetails findExecutionById(@NonNull UUID id) {
+        final Optional<ExecutionDetails> executionDetails =
+                executionRepository.findById(id);
+
+        return executionDetails.orElseThrow(() ->
+                new ResourceNotFoundException(ExecutionDetails.class, "id", id.toString()));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public ExecutionDTO convertExecDetailsToExecDTO(@NonNull ExecutionDetails execDetails) {
+        return new ExecutionDTO(execDetails);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public ExecutionDTO findExecutionDTOById(@NonNull UUID id) {
         final Optional<ExecutionDetails> execution = executionRepository.findById(id);
-        ExecutionDetails executionDetails = execution.orElseThrow(
-                () -> new ResourceNotFoundException(ExecutionDetails.class, "id",
-                        id.toString()));
-        executionDetails.validatePermissions();
-        return ExecutionDTO.fromExecutionDetails(executionDetails);
+
+        return new ExecutionDTO(execution.orElseThrow(() -> new ResourceNotFoundException(ExecutionDetails.class, "id",
+                id.toString())));
     }
 
     /**
      * {@inheritDoc}
      */
-    public List<ExecutionDTO> retrieveExecutionsDTOListOfExperimentId(@NonNull UUID experimentId) {
-        List<ExecutionDetails> executionDetailsList = executionRepository.findAllByExperimentDetails_Id(experimentId);
+    public List<ExecutionDTO> findExecutionsDTOListOfExperimentId(@NonNull UUID experimentId) {
+        List<ExecutionDetails> executionDetailsList = findExecutionsListOfExperimentId(experimentId);
 
         if (executionDetailsList.isEmpty()) {
             return Collections.emptyList();
         }
-
-        executionDetailsList.forEach(ExecutionDetails::validatePermissions);
-        return ExecutionDTOList.fromExecutionDetailsList(executionDetailsList);
+        return ExecutionDTOList.convertExecutionListToDTOList(executionDetailsList);
     }
 
     /**
      * {@inheritDoc}
      */
-    public List<ExecutionDTO> retrieveExecutionsDTOListForUserId(@NonNull UUID userId) {
-        List<ExecutionDetails> executionDetailsList = executionRepository.findAllByExperimentDetails_OwnerId(userId);
+    public List<ExecutionDTO> findExecutionsDTOListForUserId(@NonNull UUID userId) {
+        List<ExecutionDetails> executionDetailsList = findExecutionsListForUserId(userId);
 
         if (executionDetailsList.isEmpty()) {
-            return Collections.emptyList();
+            throw new ResourceNotFoundException(ExecutionDetails.class, "userId", userId.toString());
         }
-
-        executionDetailsList.forEach(ExecutionDetails::validatePermissions);
-        return ExecutionDTOList.fromExecutionDetailsList(executionDetailsList);
+        return ExecutionDTOList.convertExecutionListToDTOList(executionDetailsList);
     }
 
-    private ExecutionDetails createExecutionFromExecCreateDTO(@NonNull ExecutionCreateDTO execCreateDTO) {
+    private ExecutionDetails convertExecCreateDTOtoExecDetails(@NonNull ExecutionCreateDTO execCreateDTO) {
         Optional<ExperimentDetails> experimentDetailsbyId =
                 experimentRepository.findById(execCreateDTO.getExperimentId());
 
         final ExperimentDetails experiment = experimentDetailsbyId.orElseThrow(
-                () -> new ResourceNotFoundException(ExperimentDetails.class, "id",
-                        execCreateDTO.getExperimentId().toString()));
-
-        experiment.validatePermissions();
-
+                () -> new ResourceNotFoundException(ExperimentDetails.class, "id", execCreateDTO.getExperimentId().toString()));
         final String name;
         final long ram;
         final long cpu;
         final long bookedTime;
 
         if (!execCreateDTO.getName().isPresent()) {
-            name = experiment.getExperimentName() + " #" + (experiment.getExecutionDetails().size() + 1);
+            name = experiment.getExperimentName() + " #" + (experiment.getExecutionDetailsList().size() + 1);
         } else {
             name = execCreateDTO.getName().get();
         }
@@ -142,7 +164,6 @@ public class ExecutionServiceImpl implements ExecutionService {
             bookedTime = execCreateDTO.getBookedTime().get();
         }
 
-        return new ExecutionDetails(SecurityContextUtil.getCurrentUserDTO().getId(), experiment, name, ram, cpu,
-                bookedTime);
+        return new ExecutionDetails(experiment, name, ram, cpu, bookedTime);
     }
 }

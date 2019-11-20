@@ -1,7 +1,12 @@
 package de.unipassau.sep19.hafenkran.clusterservice.controller;
 
-import de.unipassau.sep19.hafenkran.clusterservice.dto.*;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
+import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
 import de.unipassau.sep19.hafenkran.clusterservice.service.UploadService;
@@ -43,7 +48,7 @@ public class ExperimentController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public ExperimentDTO getExperimentDTOById(@NonNull @PathVariable UUID experimentId) {
-        return experimentService.retrieveExperimentDTOById(experimentId);
+        return experimentService.findExperimentDTOById(experimentId);
     }
 
     /**
@@ -55,7 +60,7 @@ public class ExperimentController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public List<ExperimentDTO> getExperimentDTOListOfCurrentUser() {
-        return experimentService.retrieveExperimentsDTOListOfUserId(SecurityContextUtil.getCurrentUserDTO().getId());
+        return experimentService.findExperimentsDTOListOfUserId(SecurityContextUtil.getCurrentUserDTO().getId());
     }
 
     /**
@@ -71,8 +76,11 @@ public class ExperimentController {
         if (StringUtils.isEmpty(experimentName)) {
             experimentName = file.getOriginalFilename();
         }
+        ExperimentDetails experimentDetails = new ExperimentDetails(SecurityContextUtil.getCurrentUserDTO().getId(),
+                experimentName, file.getSize());
+        ExperimentDetails experiment = experimentService.createExperiment(experimentDetails);
 
-        return uploadService.storeFile(file, experimentName);
+        return uploadService.storeFile(file, experiment);
     }
 
     /**
@@ -84,19 +92,18 @@ public class ExperimentController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public List<ExecutionDTO> getExecutionDTOListForExperimentId(@PathVariable UUID experimentId) {
-        return executionService.retrieveExecutionsDTOListOfExperimentId(experimentId);
+        return executionService.findExecutionsDTOListOfExperimentId(experimentId);
     }
 
     /**
      * POST-Endpoint for creating an {@link ExecutionDetails} and receiving its corresponding {@link ExecutionDTO}.
-     *
      * @param executionCreateDTO The DTO representation of the execution that is going to be created.
      * @return The corresponding {@link ExecutionDTO}.
      */
     @PostMapping("/{experimentId}/execute")
     public @ResponseBody
-    ExecutionDTO startExecution(@PathVariable UUID experimentId,
-                                @NonNull @RequestBody ExecutionCreateDTO executionCreateDTO) {
+    ExecutionDTO startExecution(
+            @NonNull @RequestBody ExecutionCreateDTO executionCreateDTO) {
 
         return executionService.createExecution(executionCreateDTO);
     }

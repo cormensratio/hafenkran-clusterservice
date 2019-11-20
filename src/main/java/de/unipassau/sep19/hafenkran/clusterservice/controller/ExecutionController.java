@@ -35,7 +35,7 @@ public class ExecutionController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public ExecutionDTO getExecutionDTOById(@NonNull @PathVariable UUID executionId) {
-        return executionService.retrieveExecutionDTOById(executionId);
+        return executionService.findExecutionDTOById(executionId);
     }
 
     /**
@@ -47,7 +47,7 @@ public class ExecutionController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public List<ExecutionDTO> getExecutionDTOListForCurrentId() {
-        return executionService.retrieveExecutionsDTOListForUserId(SecurityContextUtil.getCurrentUserDTO().getId());
+        return executionService.findExecutionsDTOListForUserId(SecurityContextUtil.getCurrentUserDTO().getId());
     }
 
 }
