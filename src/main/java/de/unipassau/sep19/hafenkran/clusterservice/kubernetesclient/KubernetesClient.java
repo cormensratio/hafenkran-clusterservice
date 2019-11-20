@@ -3,7 +3,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient;
 import java.io.IOException;
 
 /**
- * Interface for possible KubernetesClient Implementations.
+ * Interface providing methods for interacting with a KubernetesClient.
  */
 public interface KubernetesClient {
 
