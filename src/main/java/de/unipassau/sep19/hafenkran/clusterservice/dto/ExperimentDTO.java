@@ -23,7 +23,7 @@ public class ExperimentDTO {
 
     @NonNull
     @JsonProperty("name")
-    private final String name;
+    private final String experimentName;
 
     @NonNull
     @JsonProperty("userId")
@@ -39,7 +39,7 @@ public class ExperimentDTO {
 
     public ExperimentDTO(@NonNull final ExperimentDetails experimentDetails) {
         this.id = experimentDetails.getId();
-        this.name = experimentDetails.getExperimentName();
+        this.experimentName = experimentDetails.getExperimentName();
         this.userId = experimentDetails.getUserId();
         this.createdAt = experimentDetails.getCreatedAt();
         this.size = experimentDetails.getSize();
