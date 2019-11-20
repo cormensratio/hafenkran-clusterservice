@@ -29,7 +29,7 @@ public class ExecutionDTOList {
     @JsonCreator
     public ExecutionDTOList(@NonNull ExperimentDetails experimentDetails) {
         this.experimentId = experimentDetails.getId();
-        this.executionDTOList = fromExecutionDetailsList(experimentDetails.getExecutionDetailsList());
+        this.executionDTOList = fromExecutionDetailsList(experimentDetails.getExecutionDetails());
     }
 
     /**

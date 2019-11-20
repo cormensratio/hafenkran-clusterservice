@@ -152,7 +152,7 @@ public class ExperimentServiceImplTest {
     public void testRetrieveExperimentsDTOListOfUserId_validId_listReturned() {
         // Arrange
         ExperimentDTO mockExperimentDTO = ExperimentDTO.fromExperimentDetails(testExperimentDetails);
-        when(mockExperimentRepository.findExperimentDetailsByUserId(MOCK_ID)).thenReturn(
+        when(mockExperimentRepository.findExperimentDetailsByOwnerId(MOCK_ID)).thenReturn(
                 Collections.singletonList(testExperimentDetails));
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
 
@@ -160,7 +160,7 @@ public class ExperimentServiceImplTest {
         List<ExperimentDTO> actual = subject.retrieveExperimentsDTOListOfUserId(MOCK_ID);
 
         // Assert
-        verify(mockExperimentRepository, times(1)).findExperimentDetailsByUserId(MOCK_ID);
+        verify(mockExperimentRepository, times(1)).findExperimentDetailsByOwnerId(MOCK_ID);
         verify(mockContext, times(1)).getAuthentication();
         assertThat(actual, containsInAnyOrder(mockExperimentDTO));
         verifyNoMoreInteractions(mockExperimentRepository, mockContext);

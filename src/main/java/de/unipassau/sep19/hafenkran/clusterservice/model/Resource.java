@@ -18,14 +18,15 @@ import java.util.UUID;
  * Provides a superclass for all resources.
  */
 @Slf4j
-@Entity
+@MappedSuperclass
 @Data
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @NoArgsConstructor
 @EqualsAndHashCode
 public class Resource {
 
     @Id
+    @NonNull
+    @Column(nullable = false)
     private UUID id;
 
     @Basic

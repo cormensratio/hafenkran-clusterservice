@@ -224,7 +224,7 @@ public class ExecutionServiceImplTest {
                 testExecutionDetails.getStatus(), testExecutionDetails.getRam(), testExecutionDetails.getCpu(),
                 testExecutionDetails.getBookedTime()));
         testExecutionDetailsList.add(testExecutionDetails);
-        when(mockExecutionRepository.findAllByExperimentDetails_UserId(MOCK_USER_ID)).thenReturn(
+        when(mockExecutionRepository.findAllByExperimentDetails_OwnerId(MOCK_USER_ID)).thenReturn(
                 testExecutionDetailsList);
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
 
@@ -232,7 +232,7 @@ public class ExecutionServiceImplTest {
         List<ExecutionDTO> actual = subject.retrieveExecutionsDTOListForUserId(MOCK_USER_ID);
 
         // Assert
-        verify(mockExecutionRepository, times(1)).findAllByExperimentDetails_UserId(MOCK_USER_ID);
+        verify(mockExecutionRepository, times(1)).findAllByExperimentDetails_OwnerId(MOCK_USER_ID);
         verify(mockContext, times(1)).getAuthentication();
         assertEquals(testExecutionDTOS, actual);
         verifyNoMoreInteractions(mockExecutionRepository, mockContext);
@@ -248,7 +248,7 @@ public class ExecutionServiceImplTest {
         List<ExecutionDTO> executionDTOS = subject.retrieveExecutionsDTOListForUserId(MOCK_USER_ID);
 
         // Assert - with rule
-        verify(mockExecutionRepository, times(1)).findAllByExperimentDetails_UserId(MOCK_USER_ID);
+        verify(mockExecutionRepository, times(1)).findAllByExperimentDetails_OwnerId(MOCK_USER_ID);
         assertThat(testExecutionDTOS, empty());
         verifyNoMoreInteractions(mockExecutionRepository);
     }

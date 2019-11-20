@@ -44,19 +44,23 @@ public class ExecutionServiceImpl implements ExecutionService {
      * {@inheritDoc}
      */
     public ExecutionDTO createExecution(@NonNull ExecutionCreateDTO executionCreateDTO) {
-
         final ExecutionDetails executionDetails =
                 createExecutionFromExecCreateDTO(executionCreateDTO);
 
+        return ExecutionDTO.fromExecutionDetails(createExecution(executionDetails));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public ExecutionDetails createExecution(@NonNull ExecutionDetails executionDetails) {
         final ExecutionDetails savedExecutionDetails =
                 executionRepository.save(executionDetails);
-
-        final ExecutionDTO executionDTO = ExecutionDTO.fromExecutionDetails(savedExecutionDetails);
 
         log.info(String.format("Execution with id %s created",
                 savedExecutionDetails.getId()));
 
-        return executionDTO;
+        return savedExecutionDetails;
     }
 
     /**
@@ -89,7 +93,7 @@ public class ExecutionServiceImpl implements ExecutionService {
      * {@inheritDoc}
      */
     public List<ExecutionDTO> retrieveExecutionsDTOListForUserId(@NonNull UUID userId) {
-        List<ExecutionDetails> executionDetailsList = executionRepository.findAllByExperimentDetails_UserId(userId);
+        List<ExecutionDetails> executionDetailsList = executionRepository.findAllByExperimentDetails_OwnerId(userId);
 
         if (executionDetailsList.isEmpty()) {
             return Collections.emptyList();
@@ -115,7 +119,7 @@ public class ExecutionServiceImpl implements ExecutionService {
         final long bookedTime;
 
         if (!execCreateDTO.getName().isPresent()) {
-            name = experiment.getExperimentName() + " #" + (experiment.getExecutionDetailsList().size() + 1);
+            name = experiment.getExperimentName() + " #" + (experiment.getExecutionDetails().size() + 1);
         } else {
             name = execCreateDTO.getName().get();
         }

@@ -28,7 +28,7 @@ public class ExperimentDTOList {
 
     @JsonCreator
     public ExperimentDTOList(@NonNull List<ExperimentDetails> experimentDetailsList) {
-        this.ownerId = experimentDetailsList.get(0).getUserId();
+        this.ownerId = experimentDetailsList.get(0).getOwnerId();
 
         if (experimentDetailsList.isEmpty()) {
             this.experimentDTOList = Collections.emptyList();

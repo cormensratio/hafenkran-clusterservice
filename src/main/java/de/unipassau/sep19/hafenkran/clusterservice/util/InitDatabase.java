@@ -1,6 +1,7 @@
 package de.unipassau.sep19.hafenkran.clusterservice.util;
 
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import javax.swing.text.html.Option;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -46,8 +48,8 @@ public class InitDatabase implements CommandLineRunner {
                 = new ExecutionCreateDTO(Optional.of(experimentDetails1.getExperimentName()),
                 experimentDetails1.getId(),
                 Optional.of((long) 100), Optional.of((long) 10), Optional.of((long) 60));
-
-        executionService.createExecution(executionCreateDTO);
+        final ExecutionDetails executionDetails = new ExecutionDetails(UUID.fromString("00000000-0000-0000-0000-000000000001"), experimentDetails1, experimentDetails1.getExperimentName(), 100, 10, 60);
+        executionService.createExecution(executionDetails);
 
         log.info("Database initialized!");
     }

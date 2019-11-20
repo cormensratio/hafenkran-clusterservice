@@ -25,7 +25,7 @@ public class ExecutionDetails extends Resource {
 
     @NonNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "experimentid", nullable = false)
+    @JoinColumn(name = "experiment_id", nullable = false)
     private ExperimentDetails experimentDetails;
 
     @NonNull
@@ -33,15 +33,12 @@ public class ExecutionDetails extends Resource {
     private String executionName;
 
     @Basic
-    @NonNull
-    private LocalDateTime createdAt;
-
-    @Basic
     private LocalDateTime startedAt;
 
     @Basic
     private LocalDateTime terminatedAt;
 
+    @NonNull
     @Enumerated(EnumType.STRING)
     private Status status;
 
@@ -57,7 +54,6 @@ public class ExecutionDetails extends Resource {
         super(ownerId);
         this.experimentDetails = experimentDetails;
         this.executionName = executionName;
-        this.createdAt = LocalDateTime.now();
         this.status = Status.WAITING;
         this.ram = ram;
         this.cpu = cpu;

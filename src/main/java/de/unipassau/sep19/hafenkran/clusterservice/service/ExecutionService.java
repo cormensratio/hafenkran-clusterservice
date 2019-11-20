@@ -20,6 +20,14 @@ public interface ExecutionService {
     ExecutionDTO createExecution(@NonNull ExecutionCreateDTO executionCreateDTO);
 
     /**
+     * Saves a {@link ExecutionDetails} object to the database.
+     *
+     * @param executionDetails The {@link ExecutionDetails} to be saved.
+     * @return The saved {@link ExecutionDetails}.s
+     */
+    ExecutionDetails createExecution(@NonNull ExecutionDetails executionDetails);
+
+    /**
      * Returns the {@link ExecutionDTO} from the specified {@code id}.
      *
      * @param id The UUID of the requested {@link ExecutionDTO}.
