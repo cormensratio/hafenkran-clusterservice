@@ -20,7 +20,7 @@ public class ExperimentDTOList {
 
     @NonNull
     @JsonProperty
-    private final UUID ownerId;
+    private final UUID userId;
 
     @NonNull
     @JsonProperty
@@ -28,13 +28,17 @@ public class ExperimentDTOList {
 
     @JsonCreator
     public ExperimentDTOList(@NonNull List<ExperimentDetails> experimentDetailsList) {
-        this.ownerId = experimentDetailsList.get(0).getOwnerId();
+        this.userId = experimentDetailsList.get(0).getUserId();
 
         if (experimentDetailsList.isEmpty()) {
             this.experimentDTOList = Collections.emptyList();
         } else {
             this.experimentDTOList = convertExperimentListToDTOList(experimentDetailsList);
         }
+    }
+
+    private static ExperimentDTO convertExperimentToDTO(@NonNull ExperimentDetails experiment) {
+        return new ExperimentDTO(experiment);
     }
 
     /**
@@ -47,6 +51,6 @@ public class ExperimentDTOList {
             @NonNull @NotEmpty List<ExperimentDetails> experimentDetailsList) {
 
         return experimentDetailsList.stream()
-                .map(ExperimentDTO::fromExperimentDetails).collect(Collectors.toList());
+                .map(ExperimentDTOList::convertExperimentToDTO).collect(Collectors.toList());
     }
 }

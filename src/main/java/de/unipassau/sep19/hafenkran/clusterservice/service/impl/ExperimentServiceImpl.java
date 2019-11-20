@@ -28,9 +28,7 @@ public class ExperimentServiceImpl implements ExperimentService {
     private final ExperimentRepository experimentRepository;
 
     private List<ExperimentDetails> findExperimentsListOfUserId(@NonNull UUID userId) {
-        List<ExperimentDetails> experimentDetailsByUserId = experimentRepository.findExperimentDetailsByOwnerId(userId);
-        experimentDetailsByUserId.forEach(ExperimentDetails::validatePermissions);
-        return experimentDetailsByUserId;
+        return experimentRepository.findExperimentDetailsByUserId(userId);
     }
 
     /**
@@ -38,26 +36,36 @@ public class ExperimentServiceImpl implements ExperimentService {
      */
     public ExperimentDetails createExperiment(@Valid @NonNull ExperimentDetails experimentDetails) {
         final ExperimentDetails savedExperimentDetails = experimentRepository.save(experimentDetails);
+
         log.info(String.format("Experiment with id %s created", savedExperimentDetails.getId()));
+
         return savedExperimentDetails;
     }
 
     /**
      * {@inheritDoc}
      */
-    public ExperimentDTO retrieveExperimentDTOById(@NonNull UUID id) {
-        final Optional<ExperimentDetails> experimentDetailsOptional = experimentRepository.findById(id);
-        ExperimentDetails experimentDetails = experimentDetailsOptional.orElseThrow(
-                () -> new ResourceNotFoundException(ExperimentDetails.class, "id",
-                        id.toString()));
-        experimentDetails.validatePermissions();
-        return ExperimentDTO.fromExperimentDetails(experimentDetails);
+    public ExperimentDetails findExperimentById(@NonNull UUID id) {
+        final Optional<ExperimentDetails> experimentDetails = experimentRepository.findById(id);
+
+        return experimentDetails.orElseThrow(() -> new ResourceNotFoundException(ExperimentDetails.class, "id",
+                id.toString()));
     }
 
     /**
      * {@inheritDoc}
      */
-    public List<ExperimentDTO> retrieveExperimentsDTOListOfUserId(@NonNull UUID userId) {
+    public ExperimentDTO findExperimentDTOById(@NonNull UUID id) {
+        final Optional<ExperimentDetails> experiment = experimentRepository.findById(id);
+
+        return new ExperimentDTO(experiment.orElseThrow(() -> new ResourceNotFoundException(ExperimentDetails.class, "id",
+                id.toString())));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public List<ExperimentDTO> findExperimentsDTOListOfUserId(@NonNull UUID userId) {
         return ExperimentDTOList.convertExperimentListToDTOList(findExperimentsListOfUserId(userId));
     }
 }

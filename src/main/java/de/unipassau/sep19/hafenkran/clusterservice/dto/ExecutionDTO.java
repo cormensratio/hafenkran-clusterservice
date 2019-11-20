@@ -49,18 +49,16 @@ public class ExecutionDTO {
     @JsonProperty("bookedTime")
     private long bookedTime;
 
-    public static ExecutionDTO fromExecutionDetails(@NonNull final ExecutionDetails executionDetails) {
-        return new ExecutionDTO(
-                executionDetails.getId(),
-                executionDetails.getExperimentDetails().getId(),
-                executionDetails.getExecutionName(),
-                executionDetails.getCreatedAt(),
-                executionDetails.getStartedAt(),
-                executionDetails.getTerminatedAt(),
-                executionDetails.getStatus(),
-                executionDetails.getRam(),
-                executionDetails.getCpu(),
-                executionDetails.getBookedTime()
-        );
+    public ExecutionDTO(@NonNull final ExecutionDetails executionDetails) {
+        this.id = executionDetails.getId();
+        this.experimentId = executionDetails.getExperimentDetails().getId();
+        this.executionName = executionDetails.getExecutionName();
+        this.createdAt = executionDetails.getCreatedAt();
+        this.startedAt = executionDetails.getStartedAt();
+        this.terminatedAt = executionDetails.getTerminatedAt();
+        this.status = executionDetails.getStatus();
+        this.ram = executionDetails.getRam();
+        this.cpu = executionDetails.getCpu();
+        this.bookedTime = executionDetails.getBookedTime();
     }
 }
