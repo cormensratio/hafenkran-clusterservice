@@ -2,6 +2,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl;
 
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import io.kubernetes.client.ApiClient;
+import io.kubernetes.client.ApiException;
 import io.kubernetes.client.Configuration;
 import io.kubernetes.client.apis.CoreV1Api;
 import io.kubernetes.client.util.Config;
@@ -17,17 +18,17 @@ import java.io.IOException;
 @Component
 public class KubernetesClientImpl implements KubernetesClient {
 
-    @Getter
     private CoreV1Api api;
 
     /**
+     * Constructor of KubernetesClientImpl.
+     *
      * Auto detects kubernetes config files to connect to the client and sets
      * up the api to access the cluster.
      *
      * @throws IOException if the config file can't be found
      */
-    @Override
-    public void initKubeClient() throws IOException {
+    public KubernetesClientImpl() throws IOException {
         log.info("Kubernetes Client ready!");
         //auto detect kubernetes config file
         ApiClient client = Config.defaultClient();
@@ -35,5 +36,14 @@ public class KubernetesClientImpl implements KubernetesClient {
         Configuration.setDefaultApiClient(client);
         //the CoreV1Api loads default api-client from global configuration
         api = new CoreV1Api(client);
+    }
+
+    @Override
+    public String createPod() throws ApiException {
+        return null;
+    }
+
+    @Override
+    public void deletePod() throws ApiException {
     }
 }
