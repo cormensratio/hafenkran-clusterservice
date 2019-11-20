@@ -21,6 +21,7 @@
         <junit.jupiter.version>5.5.2</junit.jupiter.version>
         <jackson.version>2.10.0</jackson.version>
         <jjwt.version>0.9.1</jjwt.version>
+        <kubernetes-client.version>5.0.0</kubernetes-client.version>
     </properties>
 
     <dependencies>
@@ -63,7 +64,7 @@
         <dependency>
             <groupId>io.kubernetes</groupId>
             <artifactId>client-java</artifactId>
-            <version>5.0.0</version>
+            <version>${kubernetes-client.version}</version>
         </dependency>
 
         <!-- Development -->
