@@ -1,6 +1,6 @@
 package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient;
 
-import java.io.IOException;
+import io.kubernetes.client.ApiException;
 
 /**
  * Interface providing methods for interacting with a KubernetesClient.
@@ -8,11 +8,18 @@ import java.io.IOException;
 public interface KubernetesClient {
 
     /**
-     * Initialise the KubernetesClient depending on the
-     * property condition mockKubernetesClient.
+     * Creates the Pod in Kubernetes.
      *
-     * @throws IOException if the config file can't be found
+     * @throws ApiException if the pod can't be created
+     * @return the name of the pod.
      */
-    void initKubeClient() throws IOException;
+    String createPod() throws ApiException;
+
+    /**
+     * Deletes the Pod in Kubernetes.
+     *
+     * @throws ApiException if the pod can't be deleted
+     */
+    void deletePod() throws ApiException;
 
 }
