@@ -33,7 +33,7 @@
     {
       "name": "mockKubernetesClient",
       "type": "java.lang.String",
-      "description": "Set to false if you want to use Kubernetes Client."
+      "description": "Set false if you want to use the KubernetesClient."
     }
   ]
 }
