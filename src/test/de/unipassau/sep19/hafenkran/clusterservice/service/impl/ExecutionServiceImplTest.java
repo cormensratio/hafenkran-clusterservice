@@ -5,10 +5,12 @@ import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.UserDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
+import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExecutionRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
+import io.kubernetes.client.ApiException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -46,6 +48,9 @@ public class ExecutionServiceImplTest {
     private ExperimentRepository mockExperimentRepository;
 
     @Mock
+    private KubernetesClient kubernetesClient;
+
+    @Mock
     private SecurityContext mockContext;
 
     private ExperimentDetails testExperimentDetails;
@@ -62,7 +67,7 @@ public class ExecutionServiceImplTest {
     public void setUp() {
         SecurityContextHolder.setContext(mockContext);
 
-        this.subject = new ExecutionServiceImpl(mockExecutionRepository, mockExperimentRepository);
+        this.subject = new ExecutionServiceImpl(mockExecutionRepository, mockExperimentRepository, kubernetesClient);
 
         ExperimentDetails experimentDetails = new ExperimentDetails(MOCK_USER_ID, "testExperiment", 500);
         experimentDetails.setId(MOCK_EXPERIMENT_ID);
@@ -268,7 +273,7 @@ public class ExecutionServiceImplTest {
     }
 
     @Test
-    public void testCreateExecution_invalidIdOfExecutionCreateDTO_throwsException() {
+    public void testCreateExecution_invalidIdOfExecutionCreateDTO_throwsException() throws ApiException {
 
         // Arrange
         expectedEx.expect(ResourceNotFoundException.class);
@@ -285,7 +290,7 @@ public class ExecutionServiceImplTest {
     }
 
     @Test
-    public void testCreateExecution_validExecutionCreateDTOWithAllOptionalFieldsEmpty_validExecutionDTOWithDefaultValues() {
+    public void testCreateExecution_validExecutionCreateDTOWithAllOptionalFieldsEmpty_validExecutionDTOWithDefaultValues() throws ApiException {
 
         // Arrange
         ExecutionCreateDTO executionCreateDTO = new ExecutionCreateDTO(Optional.empty(), MOCK_EXPERIMENT_ID,
@@ -314,7 +319,7 @@ public class ExecutionServiceImplTest {
     }
 
     @Test
-    public void testCreateExecution_validExecutionCreateDTOWithAllOptionalFieldsSet_validExecutionDTOWithSetValues() {
+    public void testCreateExecution_validExecutionCreateDTOWithAllOptionalFieldsSet_validExecutionDTOWithSetValues() throws ApiException {
 
         // Arrange
         ExecutionCreateDTO executionCreateDTO = new ExecutionCreateDTO(Optional.of("Test1"), MOCK_EXPERIMENT_ID,
