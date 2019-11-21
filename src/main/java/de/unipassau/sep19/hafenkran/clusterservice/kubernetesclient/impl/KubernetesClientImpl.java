@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.UUID;
 
 /**
  * Implementation of Kubernetes Java Client to communicate with the cluster via api.
@@ -39,11 +40,11 @@ public class KubernetesClientImpl implements KubernetesClient {
     }
 
     @Override
-    public String createPod() throws ApiException {
+    public String createPod(UUID experimentId, String executionName) throws ApiException {
         return null;
     }
 
     @Override
-    public void deletePod() throws ApiException {
+    public void deletePod(UUID experimentId, String executionName) throws ApiException {
     }
 }

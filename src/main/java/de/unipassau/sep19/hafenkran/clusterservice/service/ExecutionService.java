@@ -12,12 +12,13 @@ import java.util.UUID;
 public interface ExecutionService {
 
     /**
-     * Converts an {@link ExecutionCreateDTO} to {@link ExecutionDTO} and saves its {@link ExecutionDetails} in the database.
+     * Converts an {@link ExecutionCreateDTO} to {@link ExecutionDTO}, saves its {@link ExecutionDetails} in the database
+     * and starts the execution.
      *
      * @param executionCreateDTO The {@link ExecutionCreateDTO} to be converted.
      * @return The conversion result as a {@link ExecutionDTO}.
      */
-    ExecutionDTO createExecution(@NonNull ExecutionCreateDTO executionCreateDTO);
+    ExecutionDTO createAndStartExecution(@NonNull ExecutionCreateDTO executionCreateDTO);
 
     /**
      * Saves a {@link ExecutionDetails} object to the database.
@@ -26,6 +27,14 @@ public interface ExecutionService {
      * @return The saved {@link ExecutionDetails}.s
      */
     ExecutionDetails createExecution(@NonNull ExecutionDetails executionDetails);
+
+    /**
+     * Terminates the execution with the specified {@code executionId}.
+     *
+     * @param executionId The execution to be terminated.
+     * @return An {@link ExecutionDTO} with the new changed status and the termination time.
+     */
+    ExecutionDTO terminateExecution(@NonNull UUID executionId);
 
     /**
      * Returns the {@link ExecutionDTO} from the specified {@code id}.

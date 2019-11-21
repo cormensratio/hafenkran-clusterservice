@@ -4,19 +4,24 @@ import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
+import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExecutionRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
+import io.kubernetes.client.ApiException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +36,8 @@ public class ExecutionServiceImpl implements ExecutionService {
 
     private final ExperimentRepository experimentRepository;
 
+    private final KubernetesClient kubernetesClient;
+
     @Value("${kubernetes.deployment.defaults.ram}")
     private long ramDefault;
 
@@ -43,11 +50,15 @@ public class ExecutionServiceImpl implements ExecutionService {
     /**
      * {@inheritDoc}
      */
-    public ExecutionDTO createExecution(@NonNull ExecutionCreateDTO executionCreateDTO) {
+    public ExecutionDTO createAndStartExecution(@NonNull ExecutionCreateDTO executionCreateDTO) {
         final ExecutionDetails executionDetails =
                 createExecutionFromExecCreateDTO(executionCreateDTO);
 
-        return ExecutionDTO.fromExecutionDetails(createExecution(executionDetails));
+        final ExecutionDetails createdExecutionDetails = createExecution(executionDetails);
+
+        final ExecutionDetails startedExecutionDetails = startExecution(createdExecutionDetails);
+
+        return ExecutionDTO.fromExecutionDetails(startedExecutionDetails);
     }
 
     /**
@@ -61,6 +72,36 @@ public class ExecutionServiceImpl implements ExecutionService {
                 savedExecutionDetails.getId()));
 
         return savedExecutionDetails;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public ExecutionDTO terminateExecution(@NonNull UUID executionId) {
+
+        ExecutionDetails executionDetails = getExecutionDetails(executionId);
+
+        String podName = "";
+
+        try {
+            kubernetesClient.deletePod(executionDetails.getExperimentDetails().getId(),
+                    executionDetails.getName());
+        } catch (ApiException e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
+                    "communicating with the cluster.");
+        }
+
+        executionDetails.setPodName(podName);
+        executionDetails.setStatus(ExecutionDetails.Status.CANCELED);
+        executionDetails.setTerminatedAt(LocalDateTime.now());
+
+        executionRepository.save(executionDetails);
+
+        ExecutionDTO terminatedExecutionDTO = ExecutionDTO.fromExecutionDetails(executionDetails);
+
+        log.info(String.format("Execution with id %S terminated", executionId));
+
+        return terminatedExecutionDTO;
     }
 
     /**
@@ -103,11 +144,43 @@ public class ExecutionServiceImpl implements ExecutionService {
         return ExecutionDTOList.fromExecutionDetailsList(executionDetailsList);
     }
 
+    private ExecutionDetails startExecution(@NonNull ExecutionDetails executionDetails) {
+        String podName;
+
+        try {
+            podName = kubernetesClient.createPod(executionDetails.getExperimentDetails().getId(),
+                    executionDetails.getName());
+        } catch (ApiException e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
+                    "communicating with the cluster.");
+        }
+
+        executionDetails.setPodName(podName);
+        executionDetails.setStatus(ExecutionDetails.Status.RUNNING);
+        executionDetails.setStartedAt(LocalDateTime.now());
+
+        executionRepository.save(executionDetails);
+
+        return executionDetails;
+    }
+
+    private ExecutionDetails getExecutionDetails(@NonNull UUID executionId) {
+        Optional<ExecutionDetails> executionDetailsById =
+                executionRepository.findById(executionId);
+
+        final ExecutionDetails execution = executionDetailsById.orElseThrow(
+                () -> new ResourceNotFoundException(ExperimentDetails.class, "id",
+                        executionId.toString()));
+
+        execution.validatePermissions();
+        return execution;
+    }
+
     private ExecutionDetails createExecutionFromExecCreateDTO(@NonNull ExecutionCreateDTO execCreateDTO) {
-        Optional<ExperimentDetails> experimentDetailsbyId =
+        Optional<ExperimentDetails> experimentDetailsById =
                 experimentRepository.findById(execCreateDTO.getExperimentId());
 
-        final ExperimentDetails experiment = experimentDetailsbyId.orElseThrow(
+        final ExperimentDetails experiment = experimentDetailsById.orElseThrow(
                 () -> new ResourceNotFoundException(ExperimentDetails.class, "id",
                         execCreateDTO.getExperimentId().toString()));
 
