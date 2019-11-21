@@ -1,13 +1,13 @@
 package de.unipassau.sep19.hafenkran.clusterservice.exception;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.server.ResponseStatusException;
 
-@ResponseStatus(HttpStatus.NOT_FOUND)
-public class InvalidJwtException extends RuntimeException {
+public class InvalidJwtException extends ResponseStatusException {
 
     public InvalidJwtException(Class resourceType, String claim, Throwable err) {
-        super(String.format("Error: The given token does not contain a claim of type %s with name %s.", resourceType,
+        super(HttpStatus.UNAUTHORIZED,
+                String.format("Error: The given token does not contain a claim of type %s with name %s.", resourceType,
                 claim), err);
     }
 
