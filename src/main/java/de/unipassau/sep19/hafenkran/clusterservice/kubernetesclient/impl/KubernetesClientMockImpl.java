@@ -29,13 +29,13 @@ public class KubernetesClientMockImpl implements KubernetesClient {
     }
 
     @Override
-    public String createPod(UUID experimentId, String executionName) throws ApiException {
+    public String createPod(UUID experimentId, String executionName) throws ApiException, RuntimeException {
         log.info("KubernetesClientMockImpl can not create a Pod.");
         return "No Pod created. KubernetesClientMockImpl.";
     }
 
     @Override
-    public void deletePod(UUID experimentId, String executionName) throws ApiException {
+    public void deletePod(UUID experimentId, String executionName) throws ApiException, RuntimeException {
         log.info("KubernetesClientMockImpl can not delete a Pod.");
     }
 }
