@@ -23,7 +23,7 @@ public class KubernetesClientImpl implements KubernetesClient {
 
     /**
      * Constructor of KubernetesClientImpl.
-     *
+     * <p>
      * Auto detects kubernetes config files to connect to the client and sets
      * up the api to access the cluster.
      *

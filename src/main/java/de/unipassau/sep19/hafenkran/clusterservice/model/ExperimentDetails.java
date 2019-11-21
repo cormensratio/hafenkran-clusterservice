@@ -5,7 +5,10 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.util.Collections;
@@ -29,13 +32,13 @@ public class ExperimentDetails extends Resource {
     @Valid
     @NonNull
     @NotEmpty
-    private String experimentName;
+    private String name;
 
     private long size;
 
-    public ExperimentDetails(@NonNull UUID ownerId, @NonNull String experimentName, long size) {
+    public ExperimentDetails(@NonNull UUID ownerId, @NonNull String name, long size) {
         super(ownerId);
-        this.experimentName = experimentName;
+        this.name = name;
         this.size = size;
         this.executionDetails = Collections.emptyList();
     }
