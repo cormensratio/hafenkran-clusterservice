@@ -81,6 +81,8 @@ public class ExecutionServiceImpl implements ExecutionService {
 
         ExecutionDetails executionDetails = getExecutionDetailsFromDTO(executionId);
 
+        String podName = "";
+
         try {
             kubernetesClient.deletePod(executionDetails.getExperimentDetails().getId(),
                     executionDetails.getName());
@@ -89,7 +91,7 @@ public class ExecutionServiceImpl implements ExecutionService {
                     "communicating with the cluster.");
         }
 
-        executionDetails.setPodName("");
+        executionDetails.setPodName(podName);
         executionDetails.setStatus(ExecutionDetails.Status.CANCELED);
         executionDetails.setTerminatedAt(LocalDateTime.now());
 
