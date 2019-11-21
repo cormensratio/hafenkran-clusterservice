@@ -15,13 +15,13 @@ public interface KubernetesClient {
      * @return the name of the pod.
      * @throws ApiException if the pod can't be created
      */
-    String createPod(UUID experimentId, String executionName) throws ApiException;
+    String createPod(UUID experimentId, String executionName) throws ApiException, RuntimeException;
 
     /**
      * Deletes the Pod in Kubernetes.
      *
      * @throws ApiException if the pod can't be deleted
      */
-    void deletePod(UUID experimentId, String executionName) throws ApiException;
+    void deletePod(UUID experimentId, String executionName) throws ApiException, RuntimeException;
 
 }
