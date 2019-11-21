@@ -18,7 +18,7 @@ public class KubernetesClientMockImpl implements KubernetesClient {
 
     /**
      * Constructor of KubernetesClientMockImpl.
-     *
+     * <p>
      * Prints out info that mockKubernetesClient is used.
      *
      * @throws IOException Exception never thrown

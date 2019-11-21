@@ -26,8 +26,8 @@ public class ExperimentDTO {
     private final String name;
 
     @NonNull
-    @JsonProperty("ownerId")
-    private final UUID ownerId;
+    @JsonProperty("userId")
+    private final UUID userId;
 
     @NonNull
     @JsonProperty("createdAt")
@@ -40,7 +40,7 @@ public class ExperimentDTO {
     public static ExperimentDTO fromExperimentDetails(@NonNull final ExperimentDetails experimentDetails) {
         return new ExperimentDTO(
                 experimentDetails.getId(),
-                experimentDetails.getExperimentName(),
+                experimentDetails.getName(),
                 experimentDetails.getOwnerId(),
                 experimentDetails.getCreatedAt(),
                 experimentDetails.getSize()

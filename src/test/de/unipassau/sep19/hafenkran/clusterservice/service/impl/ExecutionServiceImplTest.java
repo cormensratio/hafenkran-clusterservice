@@ -152,7 +152,7 @@ public class ExecutionServiceImplTest {
 
         // Arrange
         testExecutionDTOS.add(new ExecutionDTO(testExecutionDetails.getId(),
-                testExecutionDetails.getExperimentDetails().getId(), testExecutionDetails.getExecutionName(),
+                testExecutionDetails.getExperimentDetails().getId(), testExecutionDetails.getName(),
                 testExecutionDetails.getCreatedAt(),
                 testExecutionDetails.getStartedAt(), testExecutionDetails.getTerminatedAt(),
                 testExecutionDetails.getStatus(), testExecutionDetails.getRam(), testExecutionDetails.getCpu(),
@@ -223,7 +223,7 @@ public class ExecutionServiceImplTest {
 
         // Arrange
         testExecutionDTOS.add(new ExecutionDTO(testExecutionDetails.getId(),
-                testExecutionDetails.getExperimentDetails().getId(), testExecutionDetails.getExecutionName(),
+                testExecutionDetails.getExperimentDetails().getId(), testExecutionDetails.getName(),
                 testExecutionDetails.getCreatedAt(),
                 testExecutionDetails.getStartedAt(), testExecutionDetails.getTerminatedAt(),
                 testExecutionDetails.getStatus(), testExecutionDetails.getRam(), testExecutionDetails.getCpu(),
@@ -312,7 +312,7 @@ public class ExecutionServiceImplTest {
         verify(mockContext, times(2)).getAuthentication();
         assertEquals(mockExecutionDTO.getRam(), actualExecutionDTO.getRam());
         assertEquals(mockExecutionDTO.getCpu(), actualExecutionDTO.getCpu());
-        assertEquals(mockExecutionDTO.getExecutionName(), actualExecutionDTO.getExecutionName());
+        assertEquals(mockExecutionDTO.getName(), actualExecutionDTO.getName());
         assertEquals(mockExecutionDTO.getBookedTime(), actualExecutionDTO.getBookedTime());
         assertEquals(mockExecutionDTO.getStatus(), actualExecutionDTO.getStatus());
         verifyNoMoreInteractions(mockExperimentRepository, mockExecutionRepository, mockContext);
@@ -341,7 +341,7 @@ public class ExecutionServiceImplTest {
         verify(mockContext, times(2)).getAuthentication();
         assertEquals(mockExecutionDTO.getRam(), actualExecutionDTO.getRam());
         assertEquals(mockExecutionDTO.getCpu(), actualExecutionDTO.getCpu());
-        assertEquals(mockExecutionDTO.getExecutionName(), actualExecutionDTO.getExecutionName());
+        assertEquals(mockExecutionDTO.getName(), actualExecutionDTO.getName());
         assertEquals(mockExecutionDTO.getBookedTime(), actualExecutionDTO.getBookedTime());
         assertEquals(mockExecutionDTO.getStatus(), actualExecutionDTO.getStatus());
         verifyNoMoreInteractions(mockExperimentRepository, mockExecutionRepository, mockContext);
