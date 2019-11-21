@@ -81,6 +81,47 @@ public class ExecutionServiceImplTest {
     }
 
     @Test
+    public void testTerminateExecution_validExecutionDTO_validExecutionDTO() {
+
+        // Arrange
+        ExecutionDTO executionDTO = new ExecutionDTO(MOCK_EXECUTION_ID, MOCK_EXPERIMENT_ID, "Test1",
+                LocalDateTime.now(), null, null, ExecutionDetails.Status.RUNNING, 1L, 1L, 1L);
+        ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_EXECUTION_ID, MOCK_EXPERIMENT_ID, "Test1",
+                LocalDateTime.now(), null, null, ExecutionDetails.Status.CANCELED, 1L, 1L, 1L);
+        when(mockExecutionRepository.findById(executionDTO.getId())).thenReturn(
+                Optional.of(testExecutionDetails));
+        when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
+
+        // Act
+        ExecutionDTO actualExecutionDTO = subject.terminateExecution(executionDTO.getId());
+
+        // Assert
+        verify(mockExecutionRepository, times(1)).findById(MOCK_EXECUTION_ID);
+        verify(mockContext, times(2)).getAuthentication();
+        assertEquals(mockExecutionDTO.getName(), actualExecutionDTO.getName());
+        assertEquals(mockExecutionDTO.getStatus(), actualExecutionDTO.getStatus());
+        assertEquals(mockExecutionDTO.getTerminatedAt(), actualExecutionDTO.getTerminatedAt());
+        verifyNoMoreInteractions(mockExecutionRepository, mockContext);
+    }
+
+    @Test
+    public void testTerminateExecution_invalidExecutionDTO_throwsException() {
+
+        // Arrange
+        expectedEx.expect(ResourceNotFoundException.class);
+        ExecutionDTO executionDTO = new ExecutionDTO(MOCK_EXECUTION_ID, MOCK_EXPERIMENT_ID, "Test1",
+                LocalDateTime.now(), null, null, ExecutionDetails.Status.WAITING,
+                1L, 1L, 1L);
+        when(mockExecutionRepository.findById(executionDTO.getId())).thenReturn(
+                Optional.empty());
+
+        // Act
+        ExecutionDTO actual = subject.terminateExecution(executionDTO.getId());
+
+        // Assert - with rule
+    }
+
+    @Test
     public void testRetrieveExecutionDTOById_existingId_validExecutionDTO() {
 
         // Arrange
@@ -269,47 +310,6 @@ public class ExecutionServiceImplTest {
 
         // Assert - with rule
 
-    }
-
-    @Test
-    public void testTerminateExecution_validExecutionDTO_validExecutionDTO() {
-
-        // Arrange
-        ExecutionDTO executionDTO = new ExecutionDTO(MOCK_EXECUTION_ID, MOCK_EXPERIMENT_ID, "Test1",
-                LocalDateTime.now(), null, null, ExecutionDetails.Status.RUNNING, 1L, 1L, 1L);
-        ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_EXECUTION_ID, MOCK_EXPERIMENT_ID, "Test1",
-                LocalDateTime.now(), null, null, ExecutionDetails.Status.CANCELED, 1L, 1L, 1L);
-        when(mockExecutionRepository.findById(executionDTO.getId())).thenReturn(
-                Optional.of(testExecutionDetails));
-        when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
-
-        // Act
-        ExecutionDTO actualExecutionDTO = subject.terminateExecution(executionDTO.getId());
-
-        // Assert
-        verify(mockExecutionRepository, times(1)).findById(MOCK_EXECUTION_ID);
-        verify(mockContext, times(2)).getAuthentication();
-        assertEquals(mockExecutionDTO.getName(), actualExecutionDTO.getName());
-        assertEquals(mockExecutionDTO.getStatus(), actualExecutionDTO.getStatus());
-        assertEquals(mockExecutionDTO.getTerminatedAt(), actualExecutionDTO.getTerminatedAt());
-        verifyNoMoreInteractions(mockExecutionRepository, mockContext);
-    }
-
-    @Test
-    public void testTerminateExecution_invalidExecutionDTO_throwsException() {
-
-        // Arrange
-        expectedEx.expect(ResourceNotFoundException.class);
-        ExecutionDTO executionDTO = new ExecutionDTO(MOCK_EXECUTION_ID, MOCK_EXPERIMENT_ID, "Test1",
-                LocalDateTime.now(), null, null, ExecutionDetails.Status.WAITING,
-                1L, 1L, 1L);
-        when(mockExecutionRepository.findById(executionDTO.getId())).thenReturn(
-                Optional.empty());
-
-        // Act
-        ExecutionDTO actual = subject.terminateExecution(executionDTO.getId());
-
-        // Assert - with rule
     }
 
     @Test
