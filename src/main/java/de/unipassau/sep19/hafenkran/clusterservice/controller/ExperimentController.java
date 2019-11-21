@@ -98,6 +98,6 @@ public class ExperimentController {
     ExecutionDTO startExecution(@PathVariable UUID experimentId,
                                 @NonNull @RequestBody ExecutionCreateDTO executionCreateDTO) {
 
-        return executionService.createExecution(executionCreateDTO);
+        return executionService.createAndStartExecution(executionCreateDTO);
     }
 }

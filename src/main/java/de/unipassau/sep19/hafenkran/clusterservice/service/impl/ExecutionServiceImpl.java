@@ -50,13 +50,15 @@ public class ExecutionServiceImpl implements ExecutionService {
     /**
      * {@inheritDoc}
      */
-    public ExecutionDTO createExecution(@NonNull ExecutionCreateDTO executionCreateDTO) {
+    public ExecutionDTO createAndStartExecution(@NonNull ExecutionCreateDTO executionCreateDTO) {
         final ExecutionDetails executionDetails =
                 createExecutionFromExecCreateDTO(executionCreateDTO);
 
-        final ExecutionDetails startedExecutionDetails = startExecution(executionDetails);
+        final ExecutionDetails createdExecutionDetails = createExecution(executionDetails);
 
-        return ExecutionDTO.fromExecutionDetails(createExecution(startedExecutionDetails));
+        final ExecutionDetails startedExecutionDetails = startExecution(createdExecutionDetails);
+
+        return ExecutionDTO.fromExecutionDetails(startedExecutionDetails);
     }
 
     /**
@@ -77,9 +79,7 @@ public class ExecutionServiceImpl implements ExecutionService {
      */
     public ExecutionDTO terminateExecution(@NonNull UUID executionId) {
 
-        ExecutionDTO executionDTO = retrieveExecutionDTOById(executionId);
-
-        ExecutionDetails executionDetails = getExecutionDetailsFromDTO(executionDTO);
+        ExecutionDetails executionDetails = getExecutionDetailsFromDTO(executionId);
 
         try {
             kubernetesClient.deletePod(executionDetails.getExperimentDetails().getId(),
@@ -158,13 +158,13 @@ public class ExecutionServiceImpl implements ExecutionService {
         return executionDetails;
     }
 
-    private ExecutionDetails getExecutionDetailsFromDTO(@NonNull ExecutionDTO executionDTO) {
+    private ExecutionDetails getExecutionDetailsFromDTO(@NonNull UUID executionId) {
         Optional<ExecutionDetails> executionDetailsById =
-                executionRepository.findById(executionDTO.getId());
+                executionRepository.findById(executionId);
 
         final ExecutionDetails execution = executionDetailsById.orElseThrow(
                 () -> new ResourceNotFoundException(ExperimentDetails.class, "id",
-                        executionDTO.getExperimentId().toString()));
+                        executionId.toString()));
 
         execution.validatePermissions();
         return execution;
