@@ -72,24 +72,9 @@ public class ExecutionServiceImpl implements ExecutionService {
         return savedExecutionDetails;
     }
 
-    private ExecutionDetails startExecution(@NonNull ExecutionDetails executionDetails) {
-        String podName;
-
-        try {
-            podName = kubernetesClient.createPod(executionDetails.getExperimentDetails().getId(),
-                    executionDetails.getExecutionName());
-        } catch (ApiException e) {
-            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
-                    "communicating with the cluster.");
-        }
-
-        executionDetails.setPodName(podName);
-        executionDetails.setStatus(ExecutionDetails.Status.RUNNING);
-        executionDetails.setStartedAt(LocalDateTime.now());
-
-        return executionDetails;
-    }
-
+    /**
+     * {@inheritDoc}
+     */
     public ExecutionDTO terminateExecution(@NonNull UUID executionId) {
 
         ExecutionDTO executionDTO = retrieveExecutionDTOById(executionId);
@@ -153,6 +138,24 @@ public class ExecutionServiceImpl implements ExecutionService {
 
         executionDetailsList.forEach(ExecutionDetails::validatePermissions);
         return ExecutionDTOList.fromExecutionDetailsList(executionDetailsList);
+    }
+
+    private ExecutionDetails startExecution(@NonNull ExecutionDetails executionDetails) {
+        String podName;
+
+        try {
+            podName = kubernetesClient.createPod(executionDetails.getExperimentDetails().getId(),
+                    executionDetails.getExecutionName());
+        } catch (ApiException e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
+                    "communicating with the cluster.");
+        }
+
+        executionDetails.setPodName(podName);
+        executionDetails.setStatus(ExecutionDetails.Status.RUNNING);
+        executionDetails.setStartedAt(LocalDateTime.now());
+
+        return executionDetails;
     }
 
     private ExecutionDetails getExecutionDetailsFromDTO(@NonNull ExecutionDTO executionDTO) {

@@ -19,8 +19,6 @@ public interface ExecutionService {
      */
     ExecutionDTO createExecution(@NonNull ExecutionCreateDTO executionCreateDTO);
 
-    ExecutionDTO terminateExecution(@NonNull UUID executionId);
-
     /**
      * Saves a {@link ExecutionDetails} object to the database.
      *
@@ -28,6 +26,14 @@ public interface ExecutionService {
      * @return The saved {@link ExecutionDetails}.s
      */
     ExecutionDetails createExecution(@NonNull ExecutionDetails executionDetails);
+
+    /**
+     * Terminates the execution with the specified {@code executionId}.
+     *
+     * @param executionId The execution to be terminated.
+     * @return An {@link ExecutionDTO} with the new changed status and the termination time.
+     */
+    ExecutionDTO terminateExecution(@NonNull UUID executionId);
 
     /**
      * Returns the {@link ExecutionDTO} from the specified {@code id}.
