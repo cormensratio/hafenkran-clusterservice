@@ -23,8 +23,8 @@ public class ExecutionDTO {
     private UUID experimentId;
 
     @NonNull
-    @JsonProperty("executionName")
-    private String executionName;
+    @JsonProperty("name")
+    private String name;
 
     @NonNull
     @JsonProperty("createdAt")
@@ -53,7 +53,7 @@ public class ExecutionDTO {
         return new ExecutionDTO(
                 executionDetails.getId(),
                 executionDetails.getExperimentDetails().getId(),
-                executionDetails.getExecutionName(),
+                executionDetails.getName(),
                 executionDetails.getCreatedAt(),
                 executionDetails.getStartedAt(),
                 executionDetails.getTerminatedAt(),

@@ -26,3 +26,4 @@ experimentsFileUploadLocation:
 mockdata: false
 jwt:
   secret:
+mockKubernetesClient: false

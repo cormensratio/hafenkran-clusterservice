@@ -1,6 +1,5 @@
 package de.unipassau.sep19.hafenkran.clusterservice.util;
 
-import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
@@ -12,8 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import javax.swing.text.html.Option;
-import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -46,7 +43,9 @@ public class InitDatabase implements CommandLineRunner {
         experimentDetails2.setId(UUID.fromString("00000000-0000-0000-0000-000000000002"));
         experimentService.createExperiment(experimentDetails2);
 
-        final ExecutionDetails executionDetails = new ExecutionDetails(UUID.fromString("00000000-0000-0000-0000-000000000001"), experimentDetails1, experimentDetails1.getExperimentName(), 100, 10, 60);
+        final ExecutionDetails executionDetails = new ExecutionDetails(
+                UUID.fromString("00000000-0000-0000-0000-000000000001"), experimentDetails1,
+                experimentDetails1.getName(), 100, 10, 60);
         executionDetails.setId(UUID.fromString("00000000-0000-0000-0000-000000000001"));
         executionService.createExecution(executionDetails);
 

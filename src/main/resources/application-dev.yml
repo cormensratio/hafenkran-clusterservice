@@ -18,6 +18,7 @@ spring:
 experimentsFileUploadLocation: /tmp/hafenkran-clusterservice
 
 mockdata: true
+mockKubernetesClient: true
 
 kubernetes:
   deployment:

@@ -30,7 +30,7 @@ public class ExecutionDetails extends Resource {
 
     @NonNull
     @NotEmpty
-    private String executionName;
+    private String name;
 
     @Basic
     private LocalDateTime startedAt;
@@ -49,11 +49,11 @@ public class ExecutionDetails extends Resource {
     private long bookedTime;
 
     public ExecutionDetails(@NonNull UUID ownerId, @NonNull ExperimentDetails experimentDetails,
-                            @NonNull @NotEmpty String executionName, long ram,
+                            @NonNull @NotEmpty String name, long ram,
                             long cpu, long bookedTime) {
         super(ownerId);
         this.experimentDetails = experimentDetails;
-        this.executionName = executionName;
+        this.name = name;
         this.status = Status.WAITING;
         this.ram = ram;
         this.cpu = cpu;
