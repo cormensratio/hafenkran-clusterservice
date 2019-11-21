@@ -75,7 +75,7 @@ public class ExecutionServiceImpl implements ExecutionService {
 
         try {
             podName = kubernetesClient.createPod(executionDetails.getExperimentDetails().getId(),
-                    executionDetails.getExecutionName());
+                    executionDetails.getName());
         } catch (ApiException e) {
             throw new ApiException();
         }
@@ -95,7 +95,7 @@ public class ExecutionServiceImpl implements ExecutionService {
 
         try {
             kubernetesClient.deletePod(executionDetails.getExperimentDetails().getId(),
-                    executionDetails.getExecutionName());
+                    executionDetails.getName());
         } catch (ApiException e) {
             throw new ApiException();
         }
