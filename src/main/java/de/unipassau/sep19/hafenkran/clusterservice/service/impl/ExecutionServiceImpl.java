@@ -89,6 +89,8 @@ public class ExecutionServiceImpl implements ExecutionService {
         } catch (ApiException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
                     "communicating with the cluster.");
+        } catch (RuntimeException e) {
+            throw new RuntimeException("Executionname or experimentname are missing.");
         }
 
         executionDetails.setPodName(podName);
@@ -151,6 +153,8 @@ public class ExecutionServiceImpl implements ExecutionService {
         } catch (ApiException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
                     "communicating with the cluster.");
+        } catch (RuntimeException e) {
+            throw new RuntimeException("Executionname or experimentname are missing.");
         }
 
         executionDetails.setPodName(podName);
