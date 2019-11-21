@@ -1,11 +1,10 @@
 package de.unipassau.sep19.hafenkran.clusterservice.controller;
 
-import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
-import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
+import io.kubernetes.client.ApiException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,24 +51,10 @@ public class ExecutionController {
         return executionService.retrieveExecutionsDTOListForUserId(SecurityContextUtil.getCurrentUserDTO().getId());
     }
 
-    /**
-     * POST-Endpoint for creating an {@link ExecutionDetails} and receiving its corresponding {@link ExecutionDTO}.
-     *
-     * @param executionCreateDTO The DTO representation of the execution that is going to be created.
-     * @return The corresponding {@link ExecutionDTO}.
-     */
-    @PostMapping("/{executionId}/execute")
-    public @ResponseBody
-    ExecutionDTO startExecution(@PathVariable UUID executionId,
-                                @NonNull @RequestBody ExecutionCreateDTO executionCreateDTO) {
-
-        return executionService.createExecution(executionCreateDTO);
-    }
-
     @PostMapping("/{executionId}/cancel")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public ExecutionDTO terminateExecution(@NonNull @PathVariable UUID executionId) {
+    public ExecutionDTO terminateExecution(@NonNull @PathVariable UUID executionId) throws ApiException {
         return executionService.terminateExecution(executionId);
     }
 
