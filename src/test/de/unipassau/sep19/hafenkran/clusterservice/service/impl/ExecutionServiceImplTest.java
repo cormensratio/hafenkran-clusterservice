@@ -200,7 +200,7 @@ public class ExecutionServiceImplTest {
 
         // Arrange
         mockExecutionDTOS.add(new ExecutionDTO(mockExecutionDetails.getId(),
-                mockExecutionDetails.getExperimentDetails().getId(), mockExecutionDetails.getExecutionName(), mockExecutionDetails.getCreatedAt(),
+                mockExecutionDetails.getExperimentDetails().getId(), mockExecutionDetails.getName(), mockExecutionDetails.getCreatedAt(),
                 mockExecutionDetails.getStartedAt(), mockExecutionDetails.getTerminatedAt(),
                 mockExecutionDetails.getStatus(), mockExecutionDetails.getRam(), mockExecutionDetails.getCpu(), mockExecutionDetails.getBookedTime()));
         mockExecutionDetailsList.add(mockExecutionDetails);
@@ -264,7 +264,7 @@ public class ExecutionServiceImplTest {
 
         // Arrange
         mockExecutionDTOS.add(new ExecutionDTO(mockExecutionDetails.getId(),
-                mockExecutionDetails.getExperimentDetails().getId(), mockExecutionDetails.getExecutionName(), mockExecutionDetails.getCreatedAt(),
+                mockExecutionDetails.getExperimentDetails().getId(), mockExecutionDetails.getName(), mockExecutionDetails.getCreatedAt(),
                 mockExecutionDetails.getStartedAt(), mockExecutionDetails.getTerminatedAt(),
                 mockExecutionDetails.getStatus(), mockExecutionDetails.getRam(), mockExecutionDetails.getCpu(), mockExecutionDetails.getBookedTime()));
         mockExecutionDetailsList.add(mockExecutionDetails);
@@ -337,7 +337,7 @@ public class ExecutionServiceImplTest {
         verify(executionRepository, times(1)).save(any(ExecutionDetails.class));
         assertEquals(mockExecutionDTO.getRam(), actualExecutionDTO.getRam());
         assertEquals(mockExecutionDTO.getCpu(), actualExecutionDTO.getCpu());
-        assertEquals(mockExecutionDTO.getExecutionName(), actualExecutionDTO.getExecutionName());
+        assertEquals(mockExecutionDTO.getName(), actualExecutionDTO.getName());
         assertEquals(mockExecutionDTO.getBookedTime(), actualExecutionDTO.getBookedTime());
         assertEquals(mockExecutionDTO.getStatus(), actualExecutionDTO.getStatus());
         verifyNoMoreInteractions(experimentRepository, executionRepository);
@@ -360,7 +360,7 @@ public class ExecutionServiceImplTest {
         verify(executionRepository, times(1)).save(any(ExecutionDetails.class));
         assertEquals(mockExecutionDTO.getRam(), actualExecutionDTO.getRam());
         assertEquals(mockExecutionDTO.getCpu(), actualExecutionDTO.getCpu());
-        assertEquals(mockExecutionDTO.getExecutionName(), actualExecutionDTO.getExecutionName());
+        assertEquals(mockExecutionDTO.getName(), actualExecutionDTO.getName());
         assertEquals(mockExecutionDTO.getBookedTime(), actualExecutionDTO.getBookedTime());
         assertEquals(mockExecutionDTO.getStatus(), actualExecutionDTO.getStatus());
         verifyNoMoreInteractions(experimentRepository, executionRepository);

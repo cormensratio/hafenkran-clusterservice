@@ -23,13 +23,13 @@ public class ExecutionDTOList {
     private final UUID experimentId;
 
     @NonNull
-    @JsonProperty("executionDTOList")
-    private final List<ExecutionDTO> executionDTOList;
+    @JsonProperty("executions")
+    private final List<ExecutionDTO> executions;
 
     @JsonCreator
     public ExecutionDTOList(@NonNull ExperimentDetails experimentDetails) {
         this.experimentId = experimentDetails.getId();
-        this.executionDTOList = convertExecutionListToDTOList(experimentDetails.getExecutionDetailsList());
+        this.executions = convertExecutionListToDTOList(experimentDetails.getExecutionDetailsList());
     }
 
     private static ExecutionDTO convertExecutionToDTO(@NonNull ExecutionDetails execution) {

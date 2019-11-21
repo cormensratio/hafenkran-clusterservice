@@ -30,7 +30,7 @@ public class ExperimentDetails {
     @Valid
     @NonNull
     @NotEmpty
-    private String experimentName;
+    private String name;
 
     @Basic
     @NonNull
@@ -42,9 +42,9 @@ public class ExperimentDetails {
     private long size;
 
     public ExperimentDetails(@NonNull UUID userId,
-                             @NonNull String experimentName, long size) {
+                             @NonNull String name, long size) {
         this.userId = userId;
-        this.experimentName = experimentName;
+        this.name = name;
         this.size = size;
         this.createdAt = LocalDateTime.now();
         this.executionDetailsList = Collections.emptyList();
