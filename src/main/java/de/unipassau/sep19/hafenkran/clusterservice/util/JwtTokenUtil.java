@@ -52,7 +52,7 @@ public class JwtTokenUtil implements Serializable {
             LinkedHashMap userInformation = claims.get("user", LinkedHashMap.class);
             userDTO = new UserDTO(
                     UUID.fromString(userInformation.get("id").toString()),
-                    userInformation.get("username").toString(),
+                    userInformation.get("name").toString(),
                     userInformation.get("email").toString(),
                     userInformation.get("isAdmin").toString().equals("true")
             );
