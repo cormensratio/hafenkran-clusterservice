@@ -52,7 +52,7 @@ public class KubernetesClientImpl implements KubernetesClient {
      * @throws ApiException if the communication with the api results in an error
      */
     @Override
-    public String createPod(@NonNull UUID experimentId, @NonNull String executionName) throws ApiException {
+    public String createPod(@NonNull UUID experimentId, @NonNull String executionName) throws ApiException, RuntimeException {
         String experimentIdString = experimentId.toString();
         String image = "martinjl/examples:1.0";
         String executionNameLowerCase = executionName.toLowerCase();
@@ -76,7 +76,7 @@ public class KubernetesClientImpl implements KubernetesClient {
     }
 
     @Override
-    public void deletePod(@NonNull UUID experimentId, @NonNull String executionName) throws ApiException {
+    public void deletePod(@NonNull UUID experimentId, @NonNull String executionName) throws ApiException, RuntimeException {
         String experimentIdString = experimentId.toString();
         String executionNameLowerCase = executionName.toLowerCase();
         if (checkIfNamespaceEmpty(experimentIdString)) {
