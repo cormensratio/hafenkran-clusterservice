@@ -19,6 +19,8 @@ public interface ExecutionService {
      */
     ExecutionDTO createExecution(@NonNull ExecutionCreateDTO executionCreateDTO);
 
+    ExecutionDTO terminateExecution(@NonNull UUID executionId);
+
     /**
      * Saves a {@link ExecutionDetails} object to the database.
      *

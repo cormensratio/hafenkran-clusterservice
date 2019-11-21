@@ -4,6 +4,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
+import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExecutionRepository;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +32,8 @@ public class ExecutionServiceImpl implements ExecutionService {
     private final ExecutionRepository executionRepository;
 
     private final ExperimentRepository experimentRepository;
+
+    private final KubernetesClient kubernetesClient;
 
     @Value("${kubernetes.deployment.defaults.ram}")
     private long ramDefault;
@@ -47,6 +51,19 @@ public class ExecutionServiceImpl implements ExecutionService {
         final ExecutionDetails executionDetails =
                 createExecutionFromExecCreateDTO(executionCreateDTO);
 
+        String podName;
+
+        try {
+            podName = kubernetesClient.createPod(executionDetails.getExperimentDetails().getId(),
+                    executionDetails.getExecutionName());
+        } catch (APIException e) {
+            throw new APIException();
+        }
+
+        executionDetails.setPodName(podName);
+        executionDetails.setStatus(ExecutionDetails.Status.RUNNING);
+        executionDetails.setStartedAt(LocalDateTime.now());
+
         return ExecutionDTO.fromExecutionDetails(createExecution(executionDetails));
     }
 
@@ -61,6 +78,32 @@ public class ExecutionServiceImpl implements ExecutionService {
                 savedExecutionDetails.getId()));
 
         return savedExecutionDetails;
+    }
+
+    public ExecutionDTO terminateExecution(@NonNull UUID executionId) {
+
+        ExecutionDTO executionDTO = retrieveExecutionDTOById(executionId);
+
+        ExecutionDetails executionDetails = getExecutionDetailsFromDTO(executionDTO);
+
+        String podName;
+
+        try {
+            podName = kubernetesClient.deletePod(executionDetails.getExperimentDetails().getId(),
+                    executionDetails.getExecutionName());
+        } catch (APIException e) {
+            throw new APIException();
+        }
+
+        executionDetails.setPodName("");
+        executionDetails.setStatus(ExecutionDetails.Status.CANCELED);
+        executionDetails.setTerminatedAt(LocalDateTime.now());
+
+        ExecutionDTO terminatedExecutionDTO = ExecutionDTO.fromExecutionDetails(executionDetails);
+
+        log.info(String.format("Execution with id %S terminated", executionId));
+
+        return terminatedExecutionDTO;
     }
 
     /**
@@ -103,11 +146,23 @@ public class ExecutionServiceImpl implements ExecutionService {
         return ExecutionDTOList.fromExecutionDetailsList(executionDetailsList);
     }
 
+    private ExecutionDetails getExecutionDetailsFromDTO(@NonNull ExecutionDTO executionDTO) {
+        Optional<ExecutionDetails> executionDetailsById =
+                executionRepository.findById(executionDTO.getId());
+
+        final ExecutionDetails execution = executionDetailsById.orElseThrow(
+                () -> new ResourceNotFoundException(ExperimentDetails.class, "id",
+                        executionDTO.getExperimentId().toString()));
+
+        execution.validatePermissions();
+        return execution;
+    }
+
     private ExecutionDetails createExecutionFromExecCreateDTO(@NonNull ExecutionCreateDTO execCreateDTO) {
-        Optional<ExperimentDetails> experimentDetailsbyId =
+        Optional<ExperimentDetails> experimentDetailsById =
                 experimentRepository.findById(execCreateDTO.getExperimentId());
 
-        final ExperimentDetails experiment = experimentDetailsbyId.orElseThrow(
+        final ExperimentDetails experiment = experimentDetailsById.orElseThrow(
                 () -> new ResourceNotFoundException(ExperimentDetails.class, "id",
                         execCreateDTO.getExperimentId().toString()));
 

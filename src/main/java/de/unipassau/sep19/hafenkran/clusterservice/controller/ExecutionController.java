@@ -1,7 +1,9 @@
 package de.unipassau.sep19.hafenkran.clusterservice.controller;
 
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
+import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
 import lombok.NonNull;
@@ -48,6 +50,27 @@ public class ExecutionController {
     @ResponseStatus(HttpStatus.OK)
     public List<ExecutionDTO> getExecutionDTOListForCurrentId() {
         return executionService.retrieveExecutionsDTOListForUserId(SecurityContextUtil.getCurrentUserDTO().getId());
+    }
+
+    /**
+     * POST-Endpoint for creating an {@link ExecutionDetails} and receiving its corresponding {@link ExecutionDTO}.
+     *
+     * @param executionCreateDTO The DTO representation of the execution that is going to be created.
+     * @return The corresponding {@link ExecutionDTO}.
+     */
+    @PostMapping("/{executionId}/execute")
+    public @ResponseBody
+    ExecutionDTO startExecution(@PathVariable UUID executionId,
+                                @NonNull @RequestBody ExecutionCreateDTO executionCreateDTO) {
+
+        return executionService.createExecution(executionCreateDTO);
+    }
+
+    @PostMapping("/{executionId}/cancel")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public ExecutionDTO terminateExecution(@NonNull @PathVariable UUID executionId) {
+        return executionService.terminateExecution(executionId);
     }
 
 }
