@@ -26,10 +26,9 @@ public class UploadServiceImplTest {
 
     private UploadService subject;
 
-    private MultipartFile testFile;
-
     @Mock
     ExperimentService experimentService;
+    private MultipartFile testFile;
 
     @Before
     public void setUp() {

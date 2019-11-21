@@ -49,7 +49,7 @@ public class ExecutionDetails extends Resource {
     private long bookedTime;
 
     public ExecutionDetails(@NonNull UUID ownerId, @NonNull ExperimentDetails experimentDetails,
-                            @NonNull @NotEmpty String name, long ram,
+                            @NonNull String name, long ram,
                             long cpu, long bookedTime) {
         super(ownerId);
         this.experimentDetails = experimentDetails;
@@ -61,7 +61,7 @@ public class ExecutionDetails extends Resource {
     }
 
     public ExecutionDetails(@NonNull ExperimentDetails experimentDetails,
-                            @NonNull @NotEmpty String name, long ram,
+                            @NonNull String name, long ram,
                             long cpu, long bookedTime) {
         this(experimentDetails.getId(), experimentDetails, name, ram, cpu, bookedTime);
     }

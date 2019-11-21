@@ -15,7 +15,7 @@ public class ResourceNotFoundException extends ResponseStatusException {
         this(resourceType, attribute, identifier, null);
     }
 
-    public ResourceNotFoundException(Class resourceType){
+    public ResourceNotFoundException(Class resourceType) {
         super(HttpStatus.NOT_FOUND, String.format("Error: Resource of type %s not found!", resourceType.getName()));
     }
 

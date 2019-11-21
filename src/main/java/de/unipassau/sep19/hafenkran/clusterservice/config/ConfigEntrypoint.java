@@ -10,6 +10,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 
@@ -45,6 +49,12 @@ public class ConfigEntrypoint {
     )
     public KubernetesClient kubernetesClient() throws IOException {
         return new KubernetesClientImpl();
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public void handleValidationExceptions(
+            MethodArgumentNotValidException ex) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid parameters.", ex);
     }
 
 }

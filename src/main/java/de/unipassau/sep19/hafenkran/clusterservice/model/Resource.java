@@ -10,7 +10,10 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContext;
 
-import javax.persistence.*;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Id;
+import javax.persistence.MappedSuperclass;
 import java.time.LocalDateTime;
 import java.util.UUID;
 

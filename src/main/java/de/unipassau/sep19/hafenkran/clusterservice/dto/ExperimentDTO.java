@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NonNull;
 
+import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -22,6 +23,7 @@ public class ExperimentDTO {
     private final UUID id;
 
     @NonNull
+    @NotBlank
     @JsonProperty("name")
     private final String name;
 

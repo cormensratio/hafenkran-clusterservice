@@ -5,7 +5,6 @@ import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import lombok.NonNull;
 
-import javax.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,7 +16,7 @@ public interface ExperimentService {
      * @param experimentDetails The {@link ExperimentDetails}, which are going to be persisted in the database.
      * @return The persisted {@link ExperimentDetails}.
      */
-    ExperimentDetails createExperiment(@Valid ExperimentDetails experimentDetails);
+    ExperimentDetails createExperiment(@NonNull ExperimentDetails experimentDetails);
 
     /**
      * Returns the {@link ExperimentDTO} for the specified {@code id}.
