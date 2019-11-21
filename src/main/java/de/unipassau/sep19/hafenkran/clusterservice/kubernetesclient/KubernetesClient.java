@@ -2,6 +2,8 @@ package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient;
 
 import io.kubernetes.client.ApiException;
 
+import java.util.UUID;
+
 /**
  * Interface providing methods for interacting with a KubernetesClient.
  */
@@ -13,13 +15,13 @@ public interface KubernetesClient {
      * @throws ApiException if the pod can't be created
      * @return the name of the pod.
      */
-    String createPod() throws ApiException;
+    String createPod(UUID experimentId, String executionName) throws ApiException;
 
     /**
      * Deletes the Pod in Kubernetes.
      *
      * @throws ApiException if the pod can't be deleted
      */
-    void deletePod() throws ApiException;
+    void deletePod(UUID experimentId, String executionName) throws ApiException;
 
 }

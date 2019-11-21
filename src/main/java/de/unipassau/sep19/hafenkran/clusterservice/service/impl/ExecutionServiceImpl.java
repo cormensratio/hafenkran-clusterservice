@@ -11,6 +11,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.repository.ExecutionRepositor
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
+import io.kubernetes.client.ApiException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,24 +48,13 @@ public class ExecutionServiceImpl implements ExecutionService {
     /**
      * {@inheritDoc}
      */
-    public ExecutionDTO createExecution(@NonNull ExecutionCreateDTO executionCreateDTO) {
+    public ExecutionDTO createExecution(@NonNull ExecutionCreateDTO executionCreateDTO) throws ApiException {
         final ExecutionDetails executionDetails =
                 createExecutionFromExecCreateDTO(executionCreateDTO);
 
-        String podName;
+        final ExecutionDetails startedExecutionDetails = startExecution(executionDetails);
 
-        try {
-            podName = kubernetesClient.createPod(executionDetails.getExperimentDetails().getId(),
-                    executionDetails.getExecutionName());
-        } catch (APIException e) {
-            throw new APIException();
-        }
-
-        executionDetails.setPodName(podName);
-        executionDetails.setStatus(ExecutionDetails.Status.RUNNING);
-        executionDetails.setStartedAt(LocalDateTime.now());
-
-        return ExecutionDTO.fromExecutionDetails(createExecution(executionDetails));
+        return ExecutionDTO.fromExecutionDetails(createExecution(startedExecutionDetails));
     }
 
     /**
@@ -80,19 +70,34 @@ public class ExecutionServiceImpl implements ExecutionService {
         return savedExecutionDetails;
     }
 
-    public ExecutionDTO terminateExecution(@NonNull UUID executionId) {
+    private ExecutionDetails startExecution(@NonNull ExecutionDetails executionDetails) throws ApiException {
+        String podName;
+
+        try {
+            podName = kubernetesClient.createPod(executionDetails.getExperimentDetails().getId(),
+                    executionDetails.getExecutionName());
+        } catch (ApiException e) {
+            throw new ApiException();
+        }
+
+        executionDetails.setPodName(podName);
+        executionDetails.setStatus(ExecutionDetails.Status.RUNNING);
+        executionDetails.setStartedAt(LocalDateTime.now());
+
+        return executionDetails;
+    }
+
+    public ExecutionDTO terminateExecution(@NonNull UUID executionId) throws ApiException {
 
         ExecutionDTO executionDTO = retrieveExecutionDTOById(executionId);
 
         ExecutionDetails executionDetails = getExecutionDetailsFromDTO(executionDTO);
 
-        String podName;
-
         try {
-            podName = kubernetesClient.deletePod(executionDetails.getExperimentDetails().getId(),
+            kubernetesClient.deletePod(executionDetails.getExperimentDetails().getId(),
                     executionDetails.getExecutionName());
-        } catch (APIException e) {
-            throw new APIException();
+        } catch (ApiException e) {
+            throw new ApiException();
         }
 
         executionDetails.setPodName("");
