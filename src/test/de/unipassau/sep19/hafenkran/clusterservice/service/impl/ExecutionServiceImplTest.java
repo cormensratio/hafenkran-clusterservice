@@ -289,7 +289,7 @@ public class ExecutionServiceImplTest {
         // Assert
         verify(mockExecutionRepository, times(1)).findById(MOCK_EXECUTION_ID);
         verify(mockContext, times(2)).getAuthentication();
-        assertEquals(mockExecutionDTO.getExecutionName(), actualExecutionDTO.getExecutionName());
+        assertEquals(mockExecutionDTO.getName(), actualExecutionDTO.getName());
         assertEquals(mockExecutionDTO.getStatus(), actualExecutionDTO.getStatus());
         assertEquals(mockExecutionDTO.getTerminatedAt(), actualExecutionDTO.getTerminatedAt());
         verifyNoMoreInteractions(mockExecutionRepository, mockContext);

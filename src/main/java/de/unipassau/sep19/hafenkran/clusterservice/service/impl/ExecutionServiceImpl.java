@@ -83,7 +83,7 @@ public class ExecutionServiceImpl implements ExecutionService {
 
         try {
             kubernetesClient.deletePod(executionDetails.getExperimentDetails().getId(),
-                    executionDetails.getExecutionName());
+                    executionDetails.getName());
         } catch (ApiException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
                     "communicating with the cluster.");
@@ -145,7 +145,7 @@ public class ExecutionServiceImpl implements ExecutionService {
 
         try {
             podName = kubernetesClient.createPod(executionDetails.getExperimentDetails().getId(),
-                    executionDetails.getExecutionName());
+                    executionDetails.getName());
         } catch (ApiException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
                     "communicating with the cluster.");
@@ -186,7 +186,7 @@ public class ExecutionServiceImpl implements ExecutionService {
         final long bookedTime;
 
         if (!execCreateDTO.getName().isPresent()) {
-            name = experiment.getExperimentName() + " #" + (experiment.getExecutionDetails().size() + 1);
+            name = experiment.getName() + " #" + (experiment.getExecutionDetails().size() + 1);
         } else {
             name = execCreateDTO.getName().get();
         }
