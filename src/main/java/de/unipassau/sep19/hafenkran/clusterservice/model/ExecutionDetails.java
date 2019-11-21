@@ -60,6 +60,12 @@ public class ExecutionDetails extends Resource {
         this.bookedTime = bookedTime;
     }
 
+    public ExecutionDetails(@NonNull ExperimentDetails experimentDetails,
+                            @NonNull @NotEmpty String name, long ram,
+                            long cpu, long bookedTime) {
+        this(experimentDetails.getId(), experimentDetails, name, ram, cpu, bookedTime);
+    }
+
     /**
      * Where {@code RUNNING} means that the execution is currently running.
      * {@code FINISHED} means that the execution finished successfully. {@code
