@@ -4,6 +4,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesCl
 import io.kubernetes.client.ApiException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
 import java.io.IOException;
 
 /**
@@ -16,7 +17,7 @@ public class KubernetesClientMockImpl implements KubernetesClient {
 
     /**
      * Constructor of KubernetesClientMockImpl.
-     *
+     * <p>
      * Prints out info that mockKubernetesClient is used.
      *
      * @throws IOException Exception never thrown

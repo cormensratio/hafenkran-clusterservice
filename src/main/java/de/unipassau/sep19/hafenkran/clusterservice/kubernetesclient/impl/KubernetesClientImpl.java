@@ -6,9 +6,9 @@ import io.kubernetes.client.ApiException;
 import io.kubernetes.client.Configuration;
 import io.kubernetes.client.apis.CoreV1Api;
 import io.kubernetes.client.util.Config;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
 import java.io.IOException;
 
 /**
@@ -22,7 +22,7 @@ public class KubernetesClientImpl implements KubernetesClient {
 
     /**
      * Constructor of KubernetesClientImpl.
-     *
+     * <p>
      * Auto detects kubernetes config files to connect to the client and sets
      * up the api to access the cluster.
      *

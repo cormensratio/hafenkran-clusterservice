@@ -8,7 +8,8 @@ spring:
     password: test
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: create
+    show-sql: true
   servlet:
     multipart:
       max-file-size: -1

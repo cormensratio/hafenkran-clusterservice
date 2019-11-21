@@ -1,13 +1,16 @@
 package de.unipassau.sep19.hafenkran.clusterservice.model;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -19,36 +22,25 @@ import java.util.UUID;
 @Table(name = "experimentdetails")
 @Entity
 @NoArgsConstructor
-public class ExperimentDetails {
+@EqualsAndHashCode(callSuper = true)
+public class ExperimentDetails extends Resource {
 
-    @Id
-    private UUID id;
-
+    @NonNull
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "experimentDetails")
-    private List<ExecutionDetails> executionDetailsList;
+    private List<ExecutionDetails> executionDetails;
 
     @Valid
     @NonNull
     @NotEmpty
     private String name;
 
-    @Basic
-    @NonNull
-    private LocalDateTime createdAt;
-
-    @NonNull
-    private UUID userId;
-
     private long size;
 
-    public ExperimentDetails(@NonNull UUID userId,
-                             @NonNull String name, long size) {
-        this.userId = userId;
+    public ExperimentDetails(@NonNull UUID ownerId, @NonNull String name, long size) {
+        super(ownerId);
         this.name = name;
         this.size = size;
-        this.createdAt = LocalDateTime.now();
-        this.executionDetailsList = Collections.emptyList();
-        this.id = UUID.randomUUID();
+        this.executionDetails = Collections.emptyList();
     }
 
 }
