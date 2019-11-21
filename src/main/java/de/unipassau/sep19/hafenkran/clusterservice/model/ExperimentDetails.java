@@ -10,7 +10,7 @@ import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotBlank;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -31,7 +31,7 @@ public class ExperimentDetails extends Resource {
 
     @Valid
     @NonNull
-    @NotEmpty
+    @NotBlank
     private String name;
 
     private long size;

@@ -15,6 +15,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 
@@ -96,7 +97,7 @@ public class ExperimentController {
     @PostMapping("/{experimentId}/execute")
     public @ResponseBody
     ExecutionDTO startExecution(@PathVariable UUID experimentId,
-                                @NonNull @RequestBody ExecutionCreateDTO executionCreateDTO) {
+                                @NonNull @RequestBody @Valid ExecutionCreateDTO executionCreateDTO) {
 
         return executionService.createExecution(executionCreateDTO);
     }
