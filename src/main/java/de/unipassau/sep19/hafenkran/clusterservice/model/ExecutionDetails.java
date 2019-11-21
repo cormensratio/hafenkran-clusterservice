@@ -33,6 +33,9 @@ public class ExecutionDetails extends Resource {
     private String executionName;
 
     @Basic
+    private String podName;
+
+    @Basic
     private LocalDateTime startedAt;
 
     @Basic
