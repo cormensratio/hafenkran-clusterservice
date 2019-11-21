@@ -292,7 +292,7 @@ public class ExecutionServiceImplTest {
 
         // Assert
         verify(mockExperimentRepository, times(1)).findById(MOCK_EXPERIMENT_ID);
-        verify(mockExecutionRepository, times(1)).save(any(ExecutionDetails.class));
+        verify(mockExecutionRepository, times(2)).save(any(ExecutionDetails.class));
         verify(mockContext, times(2)).getAuthentication();
         assertEquals(mockExecutionDTO.getRam(), actualExecutionDTO.getRam());
         assertEquals(mockExecutionDTO.getCpu(), actualExecutionDTO.getCpu());
@@ -321,7 +321,7 @@ public class ExecutionServiceImplTest {
 
         // Assert
         verify(mockExperimentRepository, times(1)).findById(MOCK_EXPERIMENT_ID);
-        verify(mockExecutionRepository, times(1)).save(any(ExecutionDetails.class));
+        verify(mockExecutionRepository, times(2)).save(any(ExecutionDetails.class));
         verify(mockContext, times(2)).getAuthentication();
         assertEquals(mockExecutionDTO.getRam(), actualExecutionDTO.getRam());
         assertEquals(mockExecutionDTO.getCpu(), actualExecutionDTO.getCpu());
@@ -371,6 +371,78 @@ public class ExecutionServiceImplTest {
     }
 
     @Test
+    public void getTestCreateAndStartExecution_experimentNameAndExecutionNameAreEmpty_throwsException() throws RuntimeException, ApiException {
+
+        // Arrange
+        expectedEx.expect(RuntimeException.class);
+        expectedEx.expectMessage("Experimentname and executionname are empty");
+        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "", 1L);
+        mockExperimentDetails.setId(MOCK_EXPERIMENT_ID);
+        ExecutionCreateDTO executionCreateDTO = new ExecutionCreateDTO(Optional.of("Test1"), MOCK_EXPERIMENT_ID,
+                Optional.of(1L), Optional.of(1L), Optional.of(1L));
+        ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, "",
+                1L, 1L, 1L);
+        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(Optional.of(mockExperimentDetails));
+        when(mockExecutionRepository.save(any(ExecutionDetails.class))).thenReturn(mockExecutionDetails);
+        when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
+        when(mockKubernetesClient.createPod(MOCK_EXPERIMENT_ID, mockExecutionDetails.getName())).thenThrow(RuntimeException.class);
+
+        // Act
+        ExecutionDTO actual = subject.createAndStartExecution(executionCreateDTO);
+
+        // Assert - with rule
+
+    }
+
+    @Test
+    public void getTestCreateAndStartExecution_experimentNameIsEmpty_throwsException() throws RuntimeException, ApiException {
+
+        // Arrange
+        expectedEx.expect(RuntimeException.class);
+        expectedEx.expectMessage("Experimentname is empty");
+        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "", 1L);
+        mockExperimentDetails.setId(MOCK_EXPERIMENT_ID);
+        ExecutionCreateDTO executionCreateDTO = new ExecutionCreateDTO(Optional.of("Test1"), MOCK_EXPERIMENT_ID,
+                Optional.of(1L), Optional.of(1L), Optional.of(1L));
+        ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, "Test1",
+                1L, 1L, 1L);
+        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(Optional.of(mockExperimentDetails));
+        when(mockExecutionRepository.save(any(ExecutionDetails.class))).thenReturn(mockExecutionDetails);
+        when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
+        when(mockKubernetesClient.createPod(MOCK_EXPERIMENT_ID, mockExecutionDetails.getName())).thenThrow(RuntimeException.class);
+
+        // Act
+        ExecutionDTO actual = subject.createAndStartExecution(executionCreateDTO);
+
+        // Assert - with rule
+
+    }
+
+    @Test
+    public void getTestCreateAndStartExecution_executionNameIsEmpty_throwsException() throws RuntimeException, ApiException {
+
+        // Arrange
+        expectedEx.expect(RuntimeException.class);
+        expectedEx.expectMessage("Executionname is empty");
+        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "Test1", 1L);
+        mockExperimentDetails.setId(MOCK_EXPERIMENT_ID);
+        ExecutionCreateDTO executionCreateDTO = new ExecutionCreateDTO(Optional.of("Test1"), MOCK_EXPERIMENT_ID,
+                Optional.of(1L), Optional.of(1L), Optional.of(1L));
+        ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, "",
+                1L, 1L, 1L);
+        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(Optional.of(mockExperimentDetails));
+        when(mockExecutionRepository.save(any(ExecutionDetails.class))).thenReturn(mockExecutionDetails);
+        when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
+        when(mockKubernetesClient.createPod(MOCK_EXPERIMENT_ID, mockExecutionDetails.getName())).thenThrow(RuntimeException.class);
+
+        // Act
+        ExecutionDTO actual = subject.createAndStartExecution(executionCreateDTO);
+
+        // Assert - with rule
+
+    }
+
+    @Test
     public void testTerminateExecution_validExecutionDTO_validExecutionDTO() {
 
         // Arrange
@@ -388,8 +460,8 @@ public class ExecutionServiceImplTest {
         verify(mockContext, times(1)).getAuthentication();
         assertEquals("", testExecutionDetails.getPodName());
         assertEquals(mockExecutionDTO.getStatus(), actualExecutionDTO.getStatus());
-        //assertEquals(mockExecutionDTO.getTerminatedAt(), actualExecutionDTO.getTerminatedAt());
-        verifyNoMoreInteractions(mockExecutionRepository, mockContext);
+        assertEquals((mockExecutionDTO.getTerminatedAt().getSecond()), actualExecutionDTO.getTerminatedAt().getSecond());
+        verifyNoMoreInteractions(mockContext);
     }
 
     @Test
@@ -409,7 +481,7 @@ public class ExecutionServiceImplTest {
         // Assert - with rule
     }
 
-    /*@Test
+    @Test
     public void testTerminateExecution_unavailableCluster_throwsException() throws ApiException {
 
         // Arrange
@@ -418,15 +490,79 @@ public class ExecutionServiceImplTest {
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, testExperimentDetails, "Test1",
                 1L, 1L, 1L);
         mockExecutionDetails.setPodName("TestPod");
-        when(mockExperimentRepository.findById(mockExecutionDetails.getExperimentDetails().getId())).thenReturn(Optional.of(testExperimentDetails));
         when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.of(mockExecutionDetails));
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
-        when(mockKubernetesClient.deletePod(MOCK_EXPERIMENT_ID, mockExecutionDetails.getName())).thenThrow(ApiException.class);
+        doThrow(new ApiException()).when(mockKubernetesClient).deletePod(MOCK_EXPERIMENT_ID, mockExecutionDetails.getName());
 
         // Act
         ExecutionDTO actual = subject.terminateExecution(MOCK_EXECUTION_ID);
 
         // Assert - with rule
 
-    }*/
+    }
+
+    @Test
+    public void testTerminateExecution_experimentNameAndExecutionNameAreEmpty_throwsException() throws RuntimeException, ApiException {
+
+        // Arrange
+        expectedEx.expect(RuntimeException.class);
+        expectedEx.expectMessage("Experimentname and executionname are empty");
+        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "", 1L);
+        mockExperimentDetails.setId(MOCK_EXPERIMENT_ID);
+        ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, "",
+                1L, 1L, 1L);
+        mockExecutionDetails.setId(MOCK_EXECUTION_ID);
+        when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.of(mockExecutionDetails));
+        when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
+        doThrow(new RuntimeException()).when(mockKubernetesClient).deletePod(MOCK_EXPERIMENT_ID, mockExecutionDetails.getName());
+
+        // Act
+        ExecutionDTO actual = subject.terminateExecution(MOCK_EXECUTION_ID);
+
+        // Assert - with rule
+
+    }
+
+    @Test
+    public void testTerminateExecution_experimentNameIsEmpty_throwsException() throws RuntimeException, ApiException {
+
+        // Arrange
+        expectedEx.expect(RuntimeException.class);
+        expectedEx.expectMessage("Experimentname is empty");
+        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "", 1L);
+        mockExperimentDetails.setId(MOCK_EXPERIMENT_ID);
+        ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, "Test1",
+                1L, 1L, 1L);
+        mockExecutionDetails.setId(MOCK_EXECUTION_ID);
+        when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.of(mockExecutionDetails));
+        when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
+        doThrow(new RuntimeException()).when(mockKubernetesClient).deletePod(MOCK_EXPERIMENT_ID, mockExecutionDetails.getName());
+
+        // Act
+        ExecutionDTO actual = subject.terminateExecution(MOCK_EXECUTION_ID);
+
+        // Assert - with rule
+
+    }
+
+    @Test
+    public void testTerminateExecution_executionNameIsEmpty_throwsException() throws RuntimeException, ApiException {
+
+        // Arrange
+        expectedEx.expect(RuntimeException.class);
+        expectedEx.expectMessage("Executionname is empty");
+        ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, testExperimentDetails, "",
+                1L, 1L, 1L);
+        mockExecutionDetails.setId(MOCK_EXECUTION_ID);
+        mockExecutionDetails.setPodName("TestPod");
+        when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.of(mockExecutionDetails));
+        when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
+        doThrow(new RuntimeException()).when(mockKubernetesClient).deletePod(MOCK_EXPERIMENT_ID, mockExecutionDetails.getName());
+
+        // Act
+        ExecutionDTO actual = subject.terminateExecution(MOCK_EXECUTION_ID);
+
+        // Assert - with rule
+
+    }
 }
