@@ -50,4 +50,17 @@ public class ExecutionController {
         return executionService.retrieveExecutionsDTOListForUserId(SecurityContextUtil.getCurrentUserDTO().getId());
     }
 
+    /**
+     * POST-Endpoint for terminating an execution from an experiment.
+     *
+     * @param executionId The id from the execution, which should be terminated.
+     * @return An {@link ExecutionDTO} from the changed execution.
+     */
+    @PostMapping("/{executionId}/cancel")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public ExecutionDTO terminateExecution(@NonNull @PathVariable UUID executionId) {
+        return executionService.terminateExecution(executionId);
+    }
+
 }

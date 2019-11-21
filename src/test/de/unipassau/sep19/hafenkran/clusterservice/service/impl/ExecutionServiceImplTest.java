@@ -5,10 +5,12 @@ import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.UserDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
+import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExecutionRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
+import io.kubernetes.client.ApiException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -18,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -46,6 +49,9 @@ public class ExecutionServiceImplTest {
     private ExperimentRepository mockExperimentRepository;
 
     @Mock
+    private KubernetesClient mockKubernetesClient;
+
+    @Mock
     private SecurityContext mockContext;
 
     private ExperimentDetails testExperimentDetails;
@@ -62,7 +68,7 @@ public class ExecutionServiceImplTest {
     public void setUp() {
         SecurityContextHolder.setContext(mockContext);
 
-        this.subject = new ExecutionServiceImpl(mockExecutionRepository, mockExperimentRepository);
+        this.subject = new ExecutionServiceImpl(mockExecutionRepository, mockExperimentRepository, mockKubernetesClient);
 
         ExperimentDetails experimentDetails = new ExperimentDetails(MOCK_USER_ID, "testExperiment", 500);
         experimentDetails.setId(MOCK_EXPERIMENT_ID);
@@ -268,7 +274,65 @@ public class ExecutionServiceImplTest {
     }
 
     @Test
-    public void testCreateExecution_invalidIdOfExecutionCreateDTO_throwsException() {
+    public void testCreateAndStartExecution_validExecutionCreateDTOWithAllOptionalFieldsEmpty_validExecutionDTOWithDefaultValues() {
+
+        // Arrange
+        ExecutionCreateDTO executionCreateDTO = new ExecutionCreateDTO(Optional.empty(), MOCK_EXPERIMENT_ID,
+                Optional.empty(), Optional.empty(), Optional.empty());
+        ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_EXECUTION_ID, MOCK_EXPERIMENT_ID, "Test1",
+                LocalDateTime.now(), null, null, ExecutionDetails.Status.RUNNING, 1L, 1L, 1L);
+
+        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
+                Optional.of(testExperimentDetails));
+        when(mockExecutionRepository.save(any(ExecutionDetails.class))).thenReturn(testExecutionDetails);
+        when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
+
+        // Act
+        ExecutionDTO actualExecutionDTO = subject.createAndStartExecution(executionCreateDTO);
+
+        // Assert
+        verify(mockExperimentRepository, times(1)).findById(MOCK_EXPERIMENT_ID);
+        verify(mockExecutionRepository, times(1)).save(any(ExecutionDetails.class));
+        verify(mockContext, times(2)).getAuthentication();
+        assertEquals(mockExecutionDTO.getRam(), actualExecutionDTO.getRam());
+        assertEquals(mockExecutionDTO.getCpu(), actualExecutionDTO.getCpu());
+        assertEquals(mockExecutionDTO.getName(), actualExecutionDTO.getName());
+        assertEquals(mockExecutionDTO.getBookedTime(), actualExecutionDTO.getBookedTime());
+        assertEquals(mockExecutionDTO.getStatus(), actualExecutionDTO.getStatus());
+        verifyNoMoreInteractions(mockExperimentRepository, mockExecutionRepository, mockContext);
+    }
+
+    @Test
+    public void testCreateAndStartExecution_validExecutionCreateDTOWithAllOptionalFieldsSet_validExecutionDTOWithSetValues() {
+
+        // Arrange
+        ExecutionCreateDTO executionCreateDTO = new ExecutionCreateDTO(Optional.of("Test1"), MOCK_EXPERIMENT_ID,
+                Optional.of(1L), Optional.of(1L), Optional.of(1L));
+        ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_EXECUTION_ID, MOCK_EXPERIMENT_ID, "Test1",
+                LocalDateTime.now(), null, null, ExecutionDetails.Status.RUNNING, 1L, 1L, 1L);
+
+        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
+                Optional.of(testExperimentDetails));
+        when(mockExecutionRepository.save(any(ExecutionDetails.class))).thenReturn(testExecutionDetails);
+        when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
+
+        // Act
+        ExecutionDTO actualExecutionDTO = subject.createAndStartExecution(executionCreateDTO);
+
+        // Assert
+        verify(mockExperimentRepository, times(1)).findById(MOCK_EXPERIMENT_ID);
+        verify(mockExecutionRepository, times(1)).save(any(ExecutionDetails.class));
+        verify(mockContext, times(2)).getAuthentication();
+        assertEquals(mockExecutionDTO.getRam(), actualExecutionDTO.getRam());
+        assertEquals(mockExecutionDTO.getCpu(), actualExecutionDTO.getCpu());
+        assertEquals(mockExecutionDTO.getName(), actualExecutionDTO.getName());
+        assertEquals(mockExecutionDTO.getBookedTime(), actualExecutionDTO.getBookedTime());
+        assertEquals(mockExecutionDTO.getStatus(), actualExecutionDTO.getStatus());
+        verifyNoMoreInteractions(mockExperimentRepository, mockExecutionRepository, mockContext);
+    }
+
+    @Test
+    public void testCreateAndStartExecution_invalidIdOfExecutionCreateDTO_throwsException() {
 
         // Arrange
         expectedEx.expect(ResourceNotFoundException.class);
@@ -278,68 +342,91 @@ public class ExecutionServiceImplTest {
                 Optional.empty());
 
         // Act
-        ExecutionDTO actual = subject.createExecution(executionCreateDTO);
+        ExecutionDTO actual = subject.createAndStartExecution(executionCreateDTO);
 
         // Assert - with rule
 
     }
 
     @Test
-    public void testCreateExecution_validExecutionCreateDTOWithAllOptionalFieldsEmpty_validExecutionDTOWithDefaultValues() {
+    public void testCreateAndStartExecution_unavailableCluster_throwsException() throws ApiException {
 
         // Arrange
-        ExecutionCreateDTO executionCreateDTO = new ExecutionCreateDTO(Optional.empty(), MOCK_EXPERIMENT_ID,
-                Optional.empty(), Optional.empty(), Optional.empty());
-        ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_EXECUTION_ID, MOCK_EXPERIMENT_ID, "Test1",
-                LocalDateTime.now(), null, null, ExecutionDetails.Status.WAITING, 1L, 1L, 1L);
-
-        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
-                Optional.of(testExperimentDetails));
+        expectedEx.expect(ResponseStatusException.class);
+        expectedEx.expectMessage("There was an error while communicating with the cluster");
+        ExecutionCreateDTO executionCreateDTO = new ExecutionCreateDTO(Optional.of("Test1"), MOCK_EXPERIMENT_ID,
+                Optional.of(1L), Optional.of(1L), Optional.of(1L));
+        ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, testExperimentDetails, "Test1",
+                1L, 1L, 1L);
+        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(Optional.of(testExperimentDetails));
         when(mockExecutionRepository.save(any(ExecutionDetails.class))).thenReturn(testExecutionDetails);
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
+        when(mockKubernetesClient.createPod(MOCK_EXPERIMENT_ID, mockExecutionDetails.getName())).thenThrow(ApiException.class);
 
         // Act
-        ExecutionDTO actualExecutionDTO = subject.createExecution(executionCreateDTO);
+        ExecutionDTO actual = subject.createAndStartExecution(executionCreateDTO);
 
-        // Assert
-        verify(mockExperimentRepository, times(1)).findById(MOCK_EXPERIMENT_ID);
-        verify(mockExecutionRepository, times(1)).save(any(ExecutionDetails.class));
-        verify(mockContext, times(2)).getAuthentication();
-        assertEquals(mockExecutionDTO.getRam(), actualExecutionDTO.getRam());
-        assertEquals(mockExecutionDTO.getCpu(), actualExecutionDTO.getCpu());
-        assertEquals(mockExecutionDTO.getName(), actualExecutionDTO.getName());
-        assertEquals(mockExecutionDTO.getBookedTime(), actualExecutionDTO.getBookedTime());
-        assertEquals(mockExecutionDTO.getStatus(), actualExecutionDTO.getStatus());
-        verifyNoMoreInteractions(mockExperimentRepository, mockExecutionRepository, mockContext);
+        // Assert - with rule
+
     }
 
     @Test
-    public void testCreateExecution_validExecutionCreateDTOWithAllOptionalFieldsSet_validExecutionDTOWithSetValues() {
+    public void testTerminateExecution_validExecutionDTO_validExecutionDTO() {
 
         // Arrange
-        ExecutionCreateDTO executionCreateDTO = new ExecutionCreateDTO(Optional.of("Test1"), MOCK_EXPERIMENT_ID,
-                Optional.of(1L), Optional.of(1L), Optional.of(1L));
         ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_EXECUTION_ID, MOCK_EXPERIMENT_ID, "Test1",
-                LocalDateTime.now(), null, null, ExecutionDetails.Status.WAITING, 1L, 1L, 1L);
-
-        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
-                Optional.of(testExperimentDetails));
-        when(mockExecutionRepository.save(any(ExecutionDetails.class))).thenReturn(testExecutionDetails);
+                LocalDateTime.now(), null, LocalDateTime.now(), ExecutionDetails.Status.CANCELED, 1L, 1L, 1L);
+        testExecutionDetails.setPodName("Test1");
+        when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.of(testExecutionDetails));
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
 
         // Act
-        ExecutionDTO actualExecutionDTO = subject.createExecution(executionCreateDTO);
+        ExecutionDTO actualExecutionDTO = subject.terminateExecution(MOCK_EXECUTION_ID);
 
         // Assert
-        verify(mockExperimentRepository, times(1)).findById(MOCK_EXPERIMENT_ID);
-        verify(mockExecutionRepository, times(1)).save(any(ExecutionDetails.class));
-        verify(mockContext, times(2)).getAuthentication();
-        assertEquals(mockExecutionDTO.getRam(), actualExecutionDTO.getRam());
-        assertEquals(mockExecutionDTO.getCpu(), actualExecutionDTO.getCpu());
-        assertEquals(mockExecutionDTO.getName(), actualExecutionDTO.getName());
-        assertEquals(mockExecutionDTO.getBookedTime(), actualExecutionDTO.getBookedTime());
+        verify(mockExecutionRepository, times(1)).findById(MOCK_EXECUTION_ID);
+        verify(mockContext, times(1)).getAuthentication();
+        assertEquals("", testExecutionDetails.getPodName());
         assertEquals(mockExecutionDTO.getStatus(), actualExecutionDTO.getStatus());
-        verifyNoMoreInteractions(mockExperimentRepository, mockExecutionRepository, mockContext);
-
+        //assertEquals(mockExecutionDTO.getTerminatedAt(), actualExecutionDTO.getTerminatedAt());
+        verifyNoMoreInteractions(mockExecutionRepository, mockContext);
     }
+
+    @Test
+    public void testTerminateExecution_invalidExecutionDTO_throwsException() {
+
+        // Arrange
+        expectedEx.expect(ResourceNotFoundException.class);
+        ExecutionDTO executionDTO = new ExecutionDTO(MOCK_EXECUTION_ID, MOCK_EXPERIMENT_ID, "Test1",
+                LocalDateTime.now(), null, null, ExecutionDetails.Status.WAITING,
+                1L, 1L, 1L);
+        when(mockExecutionRepository.findById(executionDTO.getId())).thenReturn(
+                Optional.empty());
+
+        // Act
+        ExecutionDTO actual = subject.terminateExecution(MOCK_EXECUTION_ID);
+
+        // Assert - with rule
+    }
+
+    /*@Test
+    public void testTerminateExecution_unavailableCluster_throwsException() throws ApiException {
+
+        // Arrange
+        expectedEx.expect(ResponseStatusException.class);
+        expectedEx.expectMessage("There was an error while communicating with the cluster");
+        ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, testExperimentDetails, "Test1",
+                1L, 1L, 1L);
+        mockExecutionDetails.setPodName("TestPod");
+        when(mockExperimentRepository.findById(mockExecutionDetails.getExperimentDetails().getId())).thenReturn(Optional.of(testExperimentDetails));
+        when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.of(mockExecutionDetails));
+        when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
+        when(mockKubernetesClient.deletePod(MOCK_EXPERIMENT_ID, mockExecutionDetails.getName())).thenThrow(ApiException.class);
+
+        // Act
+        ExecutionDTO actual = subject.terminateExecution(MOCK_EXECUTION_ID);
+
+        // Assert - with rule
+
+    }*/
 }
