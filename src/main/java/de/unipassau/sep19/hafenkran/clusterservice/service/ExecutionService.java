@@ -4,7 +4,6 @@ import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
-import io.kubernetes.client.ApiException;
 import lombok.NonNull;
 
 import java.util.List;
@@ -18,9 +17,9 @@ public interface ExecutionService {
      * @param executionCreateDTO The {@link ExecutionCreateDTO} to be converted.
      * @return The conversion result as a {@link ExecutionDTO}.
      */
-    ExecutionDTO createExecution(@NonNull ExecutionCreateDTO executionCreateDTO) throws ApiException;
+    ExecutionDTO createExecution(@NonNull ExecutionCreateDTO executionCreateDTO);
 
-    ExecutionDTO terminateExecution(@NonNull UUID executionId) throws ApiException;
+    ExecutionDTO terminateExecution(@NonNull UUID executionId);
 
     /**
      * Saves a {@link ExecutionDetails} object to the database.

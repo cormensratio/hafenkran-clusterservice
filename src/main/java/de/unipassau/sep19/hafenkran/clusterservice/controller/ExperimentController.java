@@ -6,7 +6,6 @@ import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
 import de.unipassau.sep19.hafenkran.clusterservice.service.UploadService;
 import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
-import io.kubernetes.client.ApiException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -97,7 +96,7 @@ public class ExperimentController {
     @PostMapping("/{experimentId}/execute")
     public @ResponseBody
     ExecutionDTO startExecution(@PathVariable UUID experimentId,
-                                @NonNull @RequestBody ExecutionCreateDTO executionCreateDTO) throws ApiException {
+                                @NonNull @RequestBody ExecutionCreateDTO executionCreateDTO) {
 
         return executionService.createExecution(executionCreateDTO);
     }

@@ -17,7 +17,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -48,7 +50,7 @@ public class ExecutionServiceImpl implements ExecutionService {
     /**
      * {@inheritDoc}
      */
-    public ExecutionDTO createExecution(@NonNull ExecutionCreateDTO executionCreateDTO) throws ApiException {
+    public ExecutionDTO createExecution(@NonNull ExecutionCreateDTO executionCreateDTO) {
         final ExecutionDetails executionDetails =
                 createExecutionFromExecCreateDTO(executionCreateDTO);
 
@@ -70,14 +72,14 @@ public class ExecutionServiceImpl implements ExecutionService {
         return savedExecutionDetails;
     }
 
-    private ExecutionDetails startExecution(@NonNull ExecutionDetails executionDetails) throws ApiException {
+    private ExecutionDetails startExecution(@NonNull ExecutionDetails executionDetails) {
         String podName;
 
         try {
             podName = kubernetesClient.createPod(executionDetails.getExperimentDetails().getId(),
                     executionDetails.getExecutionName());
         } catch (ApiException e) {
-            throw new ApiException();
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE);
         }
 
         executionDetails.setPodName(podName);
@@ -87,7 +89,7 @@ public class ExecutionServiceImpl implements ExecutionService {
         return executionDetails;
     }
 
-    public ExecutionDTO terminateExecution(@NonNull UUID executionId) throws ApiException {
+    public ExecutionDTO terminateExecution(@NonNull UUID executionId) {
 
         ExecutionDTO executionDTO = retrieveExecutionDTOById(executionId);
 
@@ -97,7 +99,7 @@ public class ExecutionServiceImpl implements ExecutionService {
             kubernetesClient.deletePod(executionDetails.getExperimentDetails().getId(),
                     executionDetails.getExecutionName());
         } catch (ApiException e) {
-            throw new ApiException();
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE);
         }
 
         executionDetails.setPodName("");

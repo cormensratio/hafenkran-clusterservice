@@ -4,7 +4,6 @@ import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
-import io.kubernetes.client.ApiException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +53,7 @@ public class ExecutionController {
     @PostMapping("/{executionId}/cancel")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public ExecutionDTO terminateExecution(@NonNull @PathVariable UUID executionId) throws ApiException {
+    public ExecutionDTO terminateExecution(@NonNull @PathVariable UUID executionId) {
         return executionService.terminateExecution(executionId);
     }
 
