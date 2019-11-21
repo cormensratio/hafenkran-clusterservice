@@ -79,7 +79,8 @@ public class ExecutionServiceImpl implements ExecutionService {
             podName = kubernetesClient.createPod(executionDetails.getExperimentDetails().getId(),
                     executionDetails.getExecutionName());
         } catch (ApiException e) {
-            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE);
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
+                    "communicating with the cluster.");
         }
 
         executionDetails.setPodName(podName);
@@ -99,7 +100,8 @@ public class ExecutionServiceImpl implements ExecutionService {
             kubernetesClient.deletePod(executionDetails.getExperimentDetails().getId(),
                     executionDetails.getExecutionName());
         } catch (ApiException e) {
-            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE);
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
+                    "communicating with the cluster.");
         }
 
         executionDetails.setPodName("");
