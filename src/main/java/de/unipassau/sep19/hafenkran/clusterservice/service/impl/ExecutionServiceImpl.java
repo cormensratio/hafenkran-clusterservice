@@ -90,12 +90,14 @@ public class ExecutionServiceImpl implements ExecutionService {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
                     "communicating with the cluster.");
         } catch (RuntimeException e) {
-            throw new RuntimeException("Executionname or experimentname are missing.");
+            catchRuntimeException(executionDetails);
         }
 
         executionDetails.setPodName(podName);
         executionDetails.setStatus(ExecutionDetails.Status.CANCELED);
         executionDetails.setTerminatedAt(LocalDateTime.now());
+
+        executionRepository.save(executionDetails);
 
         ExecutionDTO terminatedExecutionDTO = ExecutionDTO.fromExecutionDetails(executionDetails);
 
@@ -145,7 +147,7 @@ public class ExecutionServiceImpl implements ExecutionService {
     }
 
     private ExecutionDetails startExecution(@NonNull ExecutionDetails executionDetails) {
-        String podName;
+        String podName = "";
 
         try {
             podName = kubernetesClient.createPod(executionDetails.getExperimentDetails().getId(),
@@ -154,14 +156,26 @@ public class ExecutionServiceImpl implements ExecutionService {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
                     "communicating with the cluster.");
         } catch (RuntimeException e) {
-            throw new RuntimeException("Executionname or experimentname are missing.");
+            catchRuntimeException(executionDetails);
         }
 
         executionDetails.setPodName(podName);
         executionDetails.setStatus(ExecutionDetails.Status.RUNNING);
         executionDetails.setStartedAt(LocalDateTime.now());
 
+        executionRepository.save(executionDetails);
+
         return executionDetails;
+    }
+
+    private void catchRuntimeException(ExecutionDetails executionDetails) {
+        if (executionDetails.getExperimentDetails().getName().equals("") && executionDetails.getName().equals("")) {
+            throw new RuntimeException("Experimentname and executionname are empty.");
+        } else if (executionDetails.getExperimentDetails().getName().equals("")) {
+            throw new RuntimeException("Experimentname is empty.");
+        } else if (executionDetails.getName().equals("")) {
+            throw new RuntimeException("Executionname is empty.");
+        }
     }
 
     private ExecutionDetails getExecutionDetailsFromDTO(@NonNull UUID executionId) {
