@@ -39,7 +39,7 @@ public class ExperimentDTO {
 
     public ExperimentDTO(@NonNull final ExperimentDetails experimentDetails) {
         this.id = experimentDetails.getId();
-        this.name = experimentDetails.getExperimentName();
+        this.name = experimentDetails.getName();
         this.userId = experimentDetails.getUserId();
         this.createdAt = experimentDetails.getCreatedAt();
         this.size = experimentDetails.getSize();

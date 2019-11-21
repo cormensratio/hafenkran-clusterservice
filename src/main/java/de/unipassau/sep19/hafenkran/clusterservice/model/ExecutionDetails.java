@@ -31,7 +31,7 @@ public class ExecutionDetails {
 
     @NonNull
     @NotEmpty
-    private String executionName;
+    private String name;
 
     @Basic
     @NonNull
@@ -53,10 +53,10 @@ public class ExecutionDetails {
     private long bookedTime;
 
     public ExecutionDetails(@NonNull ExperimentDetails experimentDetails,
-                            @NonNull @NotEmpty String executionName, long ram,
+                            @NonNull @NotEmpty String name, long ram,
                             long cpu, long bookedTime) {
         this.experimentDetails = experimentDetails;
-        this.executionName = executionName;
+        this.name = name;
         this.createdAt = LocalDateTime.now();
         this.status = Status.WAITING;
         this.ram = ram;

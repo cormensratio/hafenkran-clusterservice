@@ -23,17 +23,17 @@ public class ExperimentDTOList {
     private final UUID userId;
 
     @NonNull
-    @JsonProperty
-    private final List<ExperimentDTO> experimentDTOList;
+    @JsonProperty("experiments")
+    private final List<ExperimentDTO> experiments;
 
     @JsonCreator
     public ExperimentDTOList(@NonNull List<ExperimentDetails> experimentDetailsList) {
         this.userId = experimentDetailsList.get(0).getUserId();
 
         if (experimentDetailsList.isEmpty()) {
-            this.experimentDTOList = Collections.emptyList();
+            this.experiments = Collections.emptyList();
         } else {
-            this.experimentDTOList = convertExperimentListToDTOList(experimentDetailsList);
+            this.experiments = convertExperimentListToDTOList(experimentDetailsList);
         }
     }
 

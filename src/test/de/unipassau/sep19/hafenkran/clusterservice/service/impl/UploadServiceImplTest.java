@@ -37,7 +37,7 @@ public class UploadServiceImplTest {
     public void setUp() {
         this.subject = new UploadServiceImpl();
         this.mockExperimentDetails = new ExperimentDetails(USER_ID, "testExperiment", 500);
-        this.mockFile = new MockMultipartFile(mockExperimentDetails.getExperimentName(), "testfile", "text/txt", bytearray);
+        this.mockFile = new MockMultipartFile(mockExperimentDetails.getName(), "testfile", "text/txt", bytearray);
     }
 
     @Test
