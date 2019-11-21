@@ -89,8 +89,6 @@ public class ExecutionServiceImpl implements ExecutionService {
         } catch (ApiException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
                     "communicating with the cluster.");
-        } catch (RuntimeException e) {
-            throwRuntimeExceptions(executionDetails);
         }
 
         executionDetails.setPodName(podName);
@@ -147,7 +145,7 @@ public class ExecutionServiceImpl implements ExecutionService {
     }
 
     private ExecutionDetails startExecution(@NonNull ExecutionDetails executionDetails) {
-        String podName = "";
+        String podName;
 
         try {
             podName = kubernetesClient.createPod(executionDetails.getExperimentDetails().getId(),
@@ -155,8 +153,6 @@ public class ExecutionServiceImpl implements ExecutionService {
         } catch (ApiException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
                     "communicating with the cluster.");
-        } catch (RuntimeException e) {
-            throwRuntimeExceptions(executionDetails);
         }
 
         executionDetails.setPodName(podName);
@@ -166,16 +162,6 @@ public class ExecutionServiceImpl implements ExecutionService {
         executionRepository.save(executionDetails);
 
         return executionDetails;
-    }
-
-    private void throwRuntimeExceptions(ExecutionDetails executionDetails) {
-        if (executionDetails.getExperimentDetails().getName().isEmpty() && executionDetails.getName().isEmpty()) {
-            throw new RuntimeException("Experimentname and executionname are empty.");
-        } else if (executionDetails.getExperimentDetails().getName().isEmpty()) {
-            throw new RuntimeException("Experimentname is empty.");
-        } else if (executionDetails.getName().isEmpty()) {
-            throw new RuntimeException("Executionname is empty.");
-        }
     }
 
     private ExecutionDetails getExecutionDetails(@NonNull UUID executionId) {

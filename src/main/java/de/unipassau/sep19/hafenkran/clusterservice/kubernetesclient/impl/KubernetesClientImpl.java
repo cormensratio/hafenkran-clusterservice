@@ -40,11 +40,11 @@ public class KubernetesClientImpl implements KubernetesClient {
     }
 
     @Override
-    public String createPod(UUID experimentId, String executionName) throws ApiException, RuntimeException {
+    public String createPod(UUID experimentId, String executionName) throws ApiException {
         return null;
     }
 
     @Override
-    public void deletePod(UUID experimentId, String executionName) throws ApiException, RuntimeException {
+    public void deletePod(UUID experimentId, String executionName) throws ApiException {
     }
 }
