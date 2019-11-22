@@ -54,25 +54,25 @@ public class KubernetesClientImpl implements KubernetesClient {
      */
     @Override
     public String createPod(@NonNull UUID experimentId, @NonNull String executionName) throws ApiException {
-        String experimentIdString = experimentId.toString();
+        String namespaceString = experimentId.toString();
         String image = "martinjl/examples:1.0";
-        String executionNameLowerCase = executionName.toLowerCase();
+        String podName = executionName.toLowerCase();
         boolean foundNamespace;
 
-        if (checkIfNamespaceEmpty(experimentIdString)) {
+        if (checkIfNamespaceEmpty(namespaceString)) {
             throw new RuntimeException("Experimentname is empty");
         } else if (checkIfExecutionNameEmpty(executionName)) {
             throw new RuntimeException("Executionname is empty");
         } else {
             List<String> allNamespaces = getAllNamespaces();
-            foundNamespace = checkIfNamespaceThere(allNamespaces, experimentIdString);
+            foundNamespace = checkIfNamespaceThere(allNamespaces, namespaceString);
             if (!foundNamespace) {
-                createNamespace(experimentIdString);
+                createNamespace(namespaceString);
             }
             Map<String, String> labels = new HashMap<>();
-            labels.put("run", executionNameLowerCase);
-            createKubernetesPod(experimentIdString, executionNameLowerCase, image, labels);
-            return api.readNamespacedPod(executionNameLowerCase, experimentIdString, "pretty", false, false).getMetadata().getName();
+            labels.put("run", podName);
+            createKubernetesPod(namespaceString, podName, image, labels);
+            return api.readNamespacedPod(podName, namespaceString, "pretty", false, false).getMetadata().getName();
         }
     }
 
@@ -112,29 +112,29 @@ public class KubernetesClientImpl implements KubernetesClient {
                 .collect(Collectors.toList());
     }
 
-    private boolean checkIfNamespaceThere(@NonNull List<String> allNamespaces, @NonNull String experimentIdString) {
+    private boolean checkIfNamespaceThere(@NonNull List<String> allNamespaces, @NonNull String namespaceString) {
         for (String namespace : allNamespaces) {
-            if (namespace.equals(experimentIdString)) {
+            if (namespace.equals(namespaceString)) {
                 return true;
             }
         }
         return false;
     }
 
-    private void createNamespace(@NonNull String experimentIdString) throws ApiException {
+    private void createNamespace(@NonNull String namespaceString) throws ApiException {
         V1Namespace experimentNamespace = new V1NamespaceBuilder()
                 .withNewMetadata()
-                .withName(experimentIdString)
+                .withName(namespaceString)
                 .endMetadata()
                 .build();
         api.createNamespace(experimentNamespace, true, "pretty", null);
     }
 
-    private void createKubernetesPod(@NonNull String experimentIdString, @NonNull String executionNameLowerCase, @NonNull String image, @NonNull Map<String, String> labels) throws ApiException {
+    private void createKubernetesPod(@NonNull String namespaceString, @NonNull String podName, @NonNull String image, @NonNull Map<String, String> labels) throws ApiException {
         V1ContainerPort containerPort = new V1ContainerPort();
         containerPort.containerPort(5000);
         V1Container container = new V1ContainerBuilder()
-                .withName(executionNameLowerCase)
+                .withName(podName)
                 .withImage(image)
                 .withImagePullPolicy("IfNotPresent")
                 .withPorts(containerPort)
@@ -143,14 +143,14 @@ public class KubernetesClientImpl implements KubernetesClient {
                 .withApiVersion("v1")
                 .withKind("Pod")
                 .withNewMetadata()
-                .withName(executionNameLowerCase)
+                .withName(podName)
                 .withLabels(labels)
                 .endMetadata()
                 .withNewSpec()
                 .withContainers(container)
                 .endSpec()
                 .build();
-        api.createNamespacedPod(experimentIdString, pod, true, "pretty", null);
+        api.createNamespacedPod(namespaceString, pod, true, "pretty", null);
     }
 
     private boolean checkIfNamespaceEmpty(String namespace) {
