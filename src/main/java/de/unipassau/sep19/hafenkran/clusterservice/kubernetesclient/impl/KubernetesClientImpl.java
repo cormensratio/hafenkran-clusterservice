@@ -76,6 +76,13 @@ public class KubernetesClientImpl implements KubernetesClient {
         }
     }
 
+    /**
+     * Deletes Kubernetes Pod.
+     *
+     * @param experimentId id of the experiment where the execution is stored
+     * @param executionName the name of the execution which pod should be deleted from kubernetes.
+     * @throws ApiException if the communication with the api results in an error
+     */
     @Override
     public void deletePod(@NonNull UUID experimentId, @NonNull String executionName) throws ApiException {
         String namespaceString = experimentId.toString();
