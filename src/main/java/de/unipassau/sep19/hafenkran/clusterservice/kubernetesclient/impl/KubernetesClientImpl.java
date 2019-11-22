@@ -107,8 +107,10 @@ public class KubernetesClientImpl implements KubernetesClient {
             } catch (JsonSyntaxException e) {
                 if (e.getCause() instanceof IllegalStateException) {
                     IllegalStateException ise = (IllegalStateException) e.getCause();
-                    if (ise.getMessage() != null && ise.getMessage().contains("Expected a string but was BEGIN_OBJECT"))
-                        log.debug("Catching exception because of issue https://github.com/kubernetes-client/java/issues/86", e);
+                    if (ise.getMessage() != null && ise.getMessage().contains("Expected a string but" +
+                            " was BEGIN_OBJECT"))
+                        log.debug("Catching exception because of issue " +
+                                "https://github.com/kubernetes-client/java/issues/86", e);
                     else throw e;
                 } else throw e;
             }
@@ -143,7 +145,8 @@ public class KubernetesClientImpl implements KubernetesClient {
         api.createNamespace(experimentNamespace, true, "pretty", null);
     }
 
-    private void createKubernetesPod(@NonNull String namespaceString, @NonNull String podName, @NonNull String image, @NonNull Map<String, String> labels) throws ApiException {
+    private void createKubernetesPod(@NonNull String namespaceString, @NonNull String podName, @NonNull String image,
+                                     @NonNull Map<String, String> labels) throws ApiException {
         V1ContainerPort containerPort = new V1ContainerPort();
         containerPort.containerPort(5000);
         V1Container container = new V1ContainerBuilder()
