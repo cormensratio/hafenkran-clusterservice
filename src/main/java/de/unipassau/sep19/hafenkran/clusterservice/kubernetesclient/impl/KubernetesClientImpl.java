@@ -87,7 +87,7 @@ public class KubernetesClientImpl implements KubernetesClient {
     /**
      * Deletes Kubernetes Pod.
      *
-     * @param experimentId id of the experiment where the execution is stored
+     * @param experimentId  id of the experiment where the execution is stored
      * @param executionName the name of the execution which pod should be deleted from kubernetes.
      * @throws ApiException if the communication with the api results in an error
      */
@@ -104,15 +104,13 @@ public class KubernetesClientImpl implements KubernetesClient {
                 V1DeleteOptions deleteOptions = new V1DeleteOptions();
                 api.deleteNamespacedPod(podName, namespaceString, "pretty", deleteOptions, null, null, null, null);
                 log.debug("Deleted namespace {}", namespaceString);
-            }
-            catch (JsonSyntaxException e) {
+            } catch (JsonSyntaxException e) {
                 if (e.getCause() instanceof IllegalStateException) {
                     IllegalStateException ise = (IllegalStateException) e.getCause();
                     if (ise.getMessage() != null && ise.getMessage().contains("Expected a string but was BEGIN_OBJECT"))
                         log.debug("Catching exception because of issue https://github.com/kubernetes-client/java/issues/86", e);
                     else throw e;
-                }
-                else throw e;
+                } else throw e;
             }
         }
     }
