@@ -1,5 +1,6 @@
 package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl;
 
+import com.google.gson.JsonSyntaxException;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import io.kubernetes.client.ApiClient;
 import io.kubernetes.client.ApiException;
@@ -77,15 +78,27 @@ public class KubernetesClientImpl implements KubernetesClient {
 
     @Override
     public void deletePod(@NonNull UUID experimentId, @NonNull String executionName) throws ApiException {
-        String experimentIdString = experimentId.toString();
-        String executionNameLowerCase = executionName.toLowerCase();
-        if (checkIfNamespaceEmpty(experimentIdString)) {
+        String namespaceString = experimentId.toString();
+        String podName = executionName.toLowerCase();
+        if (checkIfNamespaceEmpty(namespaceString)) {
             throw new RuntimeException("Experimentname is empty");
         } else if (checkIfExecutionNameEmpty(executionName)) {
             throw new RuntimeException("Executionname is empty");
         } else {
-            V1DeleteOptions deleteOptions = new V1DeleteOptions();
-            api.deleteNamespacedPod(executionNameLowerCase, experimentIdString, "pretty", deleteOptions, null, null, false, null);
+            try {
+                V1DeleteOptions deleteOptions = new V1DeleteOptions();
+                api.deleteNamespacedPod(podName, namespaceString, "pretty", deleteOptions, null, null, null, null);
+                log.debug("Deleted namespace {}", namespaceString);
+            }
+            catch (JsonSyntaxException e) {
+                if (e.getCause() instanceof IllegalStateException) {
+                    IllegalStateException ise = (IllegalStateException) e.getCause();
+                    if (ise.getMessage() != null && ise.getMessage().contains("Expected a string but was BEGIN_OBJECT"))
+                        log.debug("Catching exception because of issue https://github.com/kubernetes-client/java/issues/86", e);
+                    else throw e;
+                }
+                else throw e;
+            }
         }
     }
 
