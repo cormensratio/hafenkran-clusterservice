@@ -69,10 +69,10 @@ public class KubernetesClientImpl implements KubernetesClient {
         String image = "martinjl/examples:1.0";
         String podName = executionName.toLowerCase();
 
-        if (!namespaceString.isEmpty()) {
+        if (namespaceString.isEmpty()) {
             throw new IllegalArgumentException("Namespace is empty");
         }
-        if (!podName.isEmpty()) {
+        if (podName.isEmpty()) {
             throw new IllegalArgumentException("Podname is empty");
         }
         List<String> allNamespaces = getAllNamespaces();
@@ -97,10 +97,10 @@ public class KubernetesClientImpl implements KubernetesClient {
         String namespaceString = experimentId.toString();
         String podName = executionName.toLowerCase();
 
-        if (!namespaceString.isEmpty()) {
+        if (namespaceString.isEmpty()) {
             throw new IllegalArgumentException("Namespace is empty.");
         }
-        if (!podName.isEmpty()) {
+        if (podName.isEmpty()) {
             throw new IllegalArgumentException("Podname is empty");
         }
         try {
