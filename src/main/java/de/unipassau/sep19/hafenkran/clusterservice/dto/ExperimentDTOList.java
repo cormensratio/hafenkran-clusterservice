@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NonNull;
 
 import javax.validation.constraints.NotEmpty;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -19,20 +20,21 @@ public class ExperimentDTOList {
 
     @NonNull
     @JsonProperty
-    private final UUID userId;
+    private final UUID ownerId;
 
     @NonNull
-    @JsonProperty
-    private final List<ExperimentDTO> experimentDTOList;
+    @JsonProperty("experiments")
+    private final List<ExperimentDTO> experiments;
 
     @JsonCreator
-    public ExperimentDTOList(@NonNull @NotEmpty List<ExperimentDetails> experimentDetailsList) {
-        this.userId = experimentDetailsList.get(0).getUserId();
-        this.experimentDTOList = convertExperimentListToDTOList(experimentDetailsList);
-    }
+    public ExperimentDTOList(@NonNull List<ExperimentDetails> experimentDetailsList) {
+        this.ownerId = experimentDetailsList.get(0).getOwnerId();
 
-    private static ExperimentDTO convertExperimentToDTO(@NonNull ExperimentDetails experiment) {
-        return new ExperimentDTO(experiment);
+        if (experimentDetailsList.isEmpty()) {
+            this.experiments = Collections.emptyList();
+        } else {
+            this.experiments = convertExperimentListToDTOList(experimentDetailsList);
+        }
     }
 
     /**
@@ -45,6 +47,6 @@ public class ExperimentDTOList {
             @NonNull @NotEmpty List<ExperimentDetails> experimentDetailsList) {
 
         return experimentDetailsList.stream()
-                .map(ExperimentDTOList::convertExperimentToDTO).collect(Collectors.toList());
+                .map(ExperimentDTO::fromExperimentDetails).collect(Collectors.toList());
     }
 }

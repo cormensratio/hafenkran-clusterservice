@@ -16,7 +16,14 @@ spring:
             # Remove when updating Spring Boot to a later version
             # https://stackoverflow.com/a/52545424
             non_contextual_creation: true
+  servlet:
+    multipart:
+      max-file-size: 1420MB
+      max-request-size: 1420MB
 
 experimentsFileUploadLocation:
 
 mockdata: false
+jwt:
+  secret:
+mockKubernetesClient: false

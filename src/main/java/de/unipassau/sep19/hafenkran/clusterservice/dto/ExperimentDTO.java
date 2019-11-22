@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NonNull;
 
+import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -22,6 +23,7 @@ public class ExperimentDTO {
     private final UUID id;
 
     @NonNull
+    @NotBlank
     @JsonProperty("name")
     private final String name;
 
@@ -37,11 +39,13 @@ public class ExperimentDTO {
     @JsonProperty("size")
     private final Long size;
 
-    public ExperimentDTO(@NonNull final ExperimentDetails experimentDetails) {
-        this.id = experimentDetails.getId();
-        this.name = experimentDetails.getExperimentName();
-        this.userId = experimentDetails.getUserId();
-        this.createdAt = experimentDetails.getCreatedAt();
-        this.size = experimentDetails.getSize();
+    public static ExperimentDTO fromExperimentDetails(@NonNull final ExperimentDetails experimentDetails) {
+        return new ExperimentDTO(
+                experimentDetails.getId(),
+                experimentDetails.getName(),
+                experimentDetails.getOwnerId(),
+                experimentDetails.getCreatedAt(),
+                experimentDetails.getSize()
+        );
     }
 }
