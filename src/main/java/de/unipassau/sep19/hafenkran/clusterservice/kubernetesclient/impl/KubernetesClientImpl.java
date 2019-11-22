@@ -68,23 +68,21 @@ public class KubernetesClientImpl implements KubernetesClient {
         String namespaceString = experimentId.toString();
         String image = "martinjl/examples:1.0";
         String podName = executionName.toLowerCase();
-        boolean foundNamespace;
 
-        if (checkIfNamespaceEmpty(namespaceString)) {
-            throw new RuntimeException("Experimentname is empty");
-        } else if (checkIfExecutionNameEmpty(executionName)) {
-            throw new RuntimeException("Executionname is empty");
-        } else {
-            List<String> allNamespaces = getAllNamespaces();
-            foundNamespace = checkIfNamespaceThere(allNamespaces, namespaceString);
-            if (!foundNamespace) {
-                createNamespace(namespaceString);
-            }
-            Map<String, String> labels = new HashMap<>();
-            labels.put("run", podName);
-            createKubernetesPod(namespaceString, podName, image, labels);
-            return api.readNamespacedPod(podName, namespaceString, "pretty", false, false).getMetadata().getName();
+        if (!namespaceString.isEmpty()) {
+            throw new IllegalArgumentException("Namespace is empty");
         }
+        if (!podName.isEmpty()) {
+            throw new IllegalArgumentException("Podname is empty");
+        }
+        List<String> allNamespaces = getAllNamespaces();
+        if (!allNamespaces.contains(namespaceString)) {
+            createNamespace(namespaceString);
+        }
+        Map<String, String> labels = new HashMap<>();
+        labels.put("run", podName);
+        createKubernetesPod(namespaceString, podName, image, labels);
+        return api.readNamespacedPod(podName, namespaceString, "pretty", false, false).getMetadata().getName();
     }
 
     /**
@@ -98,25 +96,26 @@ public class KubernetesClientImpl implements KubernetesClient {
     public void deletePod(@NonNull UUID experimentId, @NonNull String executionName) throws ApiException {
         String namespaceString = experimentId.toString();
         String podName = executionName.toLowerCase();
-        if (checkIfNamespaceEmpty(namespaceString)) {
-            throw new RuntimeException("Experimentname is empty");
-        } else if (checkIfExecutionNameEmpty(executionName)) {
-            throw new RuntimeException("Executionname is empty");
-        } else {
-            try {
-                V1DeleteOptions deleteOptions = new V1DeleteOptions();
-                api.deleteNamespacedPod(podName, namespaceString, "pretty", deleteOptions, null, null, null, null);
-                log.debug("Deleted namespace {}", namespaceString);
-            } catch (JsonSyntaxException e) {
-                if (e.getCause() instanceof IllegalStateException) {
-                    IllegalStateException ise = (IllegalStateException) e.getCause();
-                    if (ise.getMessage() != null && ise.getMessage().contains("Expected a string but" +
-                            " was BEGIN_OBJECT"))
-                        log.debug("Catching exception because of issue " +
-                                "https://github.com/kubernetes-client/java/issues/86", e);
-                    else throw e;
-                } else throw e;
-            }
+
+        if (!namespaceString.isEmpty()) {
+            throw new IllegalArgumentException("Namespace is empty.");
+        }
+        if (!podName.isEmpty()) {
+            throw new IllegalArgumentException("Podname is empty");
+        }
+        try {
+            V1DeleteOptions deleteOptions = new V1DeleteOptions();
+            api.deleteNamespacedPod(podName, namespaceString, "pretty", deleteOptions, null, null, null, null);
+            log.info("Deleted pod {}", podName);
+        } catch (JsonSyntaxException e) {
+            if (e.getCause() instanceof IllegalStateException) {
+                IllegalStateException ise = (IllegalStateException) e.getCause();
+                if (ise.getMessage() != null && ise.getMessage().contains("Expected a string but" +
+                        " was BEGIN_OBJECT"))
+                    log.debug("Catching exception because of issue " +
+                            "https://github.com/kubernetes-client/java/issues/86", e);
+                else throw e;
+            } else throw e;
         }
     }
 
@@ -130,15 +129,6 @@ public class KubernetesClientImpl implements KubernetesClient {
                 .collect(Collectors.toList());
     }
 
-    private boolean checkIfNamespaceThere(@NonNull List<String> allNamespaces, @NonNull String namespaceString) {
-        for (String namespace : allNamespaces) {
-            if (namespace.equals(namespaceString)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private void createNamespace(@NonNull String namespaceString) throws ApiException {
         V1Namespace experimentNamespace = new V1NamespaceBuilder()
                 .withNewMetadata()
@@ -146,6 +136,8 @@ public class KubernetesClientImpl implements KubernetesClient {
                 .endMetadata()
                 .build();
         api.createNamespace(experimentNamespace, true, "pretty", null);
+        log.info("Created namespace {}", namespaceString);
+
     }
 
     private void createKubernetesPod(@NonNull String namespaceString, @NonNull String podName, @NonNull String image,
@@ -170,13 +162,6 @@ public class KubernetesClientImpl implements KubernetesClient {
                 .endSpec()
                 .build();
         api.createNamespacedPod(namespaceString, pod, true, "pretty", null);
-    }
-
-    private boolean checkIfNamespaceEmpty(String namespace) {
-        return namespace.isEmpty();
-    }
-
-    private boolean checkIfExecutionNameEmpty(String executionName) {
-        return executionName.isEmpty();
+        log.info("Created pod {}", podName);
     }
 }
