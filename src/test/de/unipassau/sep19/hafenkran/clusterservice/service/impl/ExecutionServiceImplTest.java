@@ -10,6 +10,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExecutionRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
+import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
 import io.kubernetes.client.ApiException;
 import org.junit.Before;
 import org.junit.Rule;
@@ -361,7 +362,7 @@ public class ExecutionServiceImplTest {
         when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(Optional.of(testExperimentDetails));
         when(mockExecutionRepository.save(any(ExecutionDetails.class))).thenReturn(testExecutionDetails);
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
-        when(mockKubernetesClient.createPod(MOCK_EXPERIMENT_ID, mockExecutionDetails.getName())).thenThrow(ApiException.class);
+        when(mockKubernetesClient.createPod(mockContext.getAuthentication().getName().toLowerCase(), mockExecutionDetails.getExperimentDetails().getName().toLowerCase(), mockExecutionDetails.getName())).thenThrow(ApiException.class);
 
         // Act
         ExecutionDTO actual = subject.createAndStartExecution(executionCreateDTO);
@@ -420,7 +421,9 @@ public class ExecutionServiceImplTest {
         mockExecutionDetails.setPodName("TestPod");
         when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.of(mockExecutionDetails));
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
-        doThrow(new ApiException()).when(mockKubernetesClient).deletePod(MOCK_EXPERIMENT_ID, mockExecutionDetails.getName());
+        doThrow(new ApiException()).when(mockKubernetesClient)
+                .deletePod(mockContext.getAuthentication().getName().toLowerCase(),
+                        mockExecutionDetails.getExperimentDetails().getName().toLowerCase(), mockExecutionDetails.getPodName());
 
         // Act
         ExecutionDTO actual = subject.terminateExecution(MOCK_EXECUTION_ID);
