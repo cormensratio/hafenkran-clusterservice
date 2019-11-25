@@ -58,19 +58,24 @@ public class KubernetesClientImpl implements KubernetesClient {
     /**
      * Creates Kubernetes Pod.
      *
-     * @param experimentId  id of the experiment where the execution is stored
-     * @param executionName the name of the execution which should be deployed as a pod in kubernetes
+     * @param userName  name of the user who creates the pod
+     * @param experimentName name of the experiment which should be deployed
+     * @param executionName name of the execution which should be deployed as a pod in kubernetes
      * @return the name of the pod in kubernetes
      * @throws ApiException if the communication with the api results in an error
      */
     @Override
-    public String createPod(@NonNull UUID experimentId, @NonNull String executionName) throws ApiException {
-        String namespaceString = experimentId.toString();
+    public String createPod(@NonNull String userName, @NonNull String experimentName, @NonNull String executionName) throws ApiException {
+        String experimentNameSubstring = experimentName.toLowerCase().substring(0, experimentName.lastIndexOf('.'));
+        String namespaceString = userName.toLowerCase() + "-" + experimentNameSubstring;
         String image = "martinjl/examples:1.0";
         String podName = executionName.toLowerCase();
 
-        if (namespaceString.isEmpty()) {
-            throw new IllegalArgumentException("Namespace is empty");
+        if (userName.isEmpty()) {
+            throw new IllegalArgumentException("Username is empty");
+        }
+        if (experimentNameSubstring.isEmpty()) {
+            throw new IllegalArgumentException("Experimentname is empty");
         }
         if (podName.isEmpty()) {
             throw new IllegalArgumentException("Podname is empty");
@@ -88,14 +93,15 @@ public class KubernetesClientImpl implements KubernetesClient {
     /**
      * Deletes Kubernetes Pod.
      *
-     * @param experimentId  id of the experiment where the execution is stored
-     * @param executionName the name of the execution which pod should be deleted from kubernetes.
+     * @param userName name of the user who is owner of the pod
+     * @param experimentName  name of the experiment where the execution is stored
+     * @param podName name of the pod which should be deleted from kubernetes
      * @throws ApiException if the communication with the api results in an error
      */
     @Override
-    public void deletePod(@NonNull UUID experimentId, @NonNull String executionName) throws ApiException {
-        String namespaceString = experimentId.toString();
-        String podName = executionName.toLowerCase();
+    public void deletePod(@NonNull String userName, String experimentName, @NonNull String podName) throws ApiException {
+        String experimentNameSubstring = experimentName.toLowerCase().substring(0, experimentName.lastIndexOf('.'));
+        String namespaceString = userName.toLowerCase() + "-" + experimentNameSubstring;
 
         if (namespaceString.isEmpty()) {
             throw new IllegalArgumentException("Namespace is empty.");
