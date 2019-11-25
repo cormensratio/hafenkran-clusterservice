@@ -3,6 +3,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.UserDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
@@ -80,18 +81,18 @@ public class ExecutionServiceImpl implements ExecutionService {
     public ExecutionDTO terminateExecution(@NonNull UUID executionId) {
 
         ExecutionDetails executionDetails = getExecutionDetails(executionId);
-
-        String podName = "";
+        String userName = SecurityContextUtil.getCurrentUserDTO().getName();
+        String experimentName = executionDetails.getExperimentDetails().getName();
+        String podName = executionDetails.getPodName();
 
         try {
-            kubernetesClient.deletePod(executionDetails.getExperimentDetails().getId(),
-                    executionDetails.getName());
+            kubernetesClient.deletePod(userName, experimentName, podName);
         } catch (ApiException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
                     "communicating with the cluster.");
         }
 
-        executionDetails.setPodName(podName);
+        executionDetails.setPodName("");
         executionDetails.setStatus(ExecutionDetails.Status.CANCELED);
         executionDetails.setTerminatedAt(LocalDateTime.now());
 
@@ -146,10 +147,12 @@ public class ExecutionServiceImpl implements ExecutionService {
 
     private ExecutionDetails startExecution(@NonNull ExecutionDetails executionDetails) {
         String podName;
+        String userName = SecurityContextUtil.getCurrentUserDTO().getName();
+        String experimentName = executionDetails.getExperimentDetails().getName();
+        String executionName = executionDetails.getName();
 
         try {
-            podName = kubernetesClient.createPod(executionDetails.getExperimentDetails().getId(),
-                    executionDetails.getName());
+            podName = kubernetesClient.createPod(userName, experimentName, executionName);
         } catch (ApiException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
                     "communicating with the cluster.");
@@ -192,7 +195,8 @@ public class ExecutionServiceImpl implements ExecutionService {
         final long bookedTime;
 
         if (!execCreateDTO.getName().isPresent()) {
-            name = experiment.getName() + " #" + (experiment.getExecutionDetails().size() + 1);
+            name = experiment.getName().substring(0,
+                    experiment.getName().lastIndexOf('.')) + "-" + (experiment.getExecutionDetails().size() + 1);
         } else {
             name = execCreateDTO.getName().get();
         }
