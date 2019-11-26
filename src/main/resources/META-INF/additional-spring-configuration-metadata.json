@@ -34,6 +34,11 @@
       "name": "mockKubernetesClient",
       "type": "java.lang.String",
       "description": "Set false if you want to use the KubernetesClient."
+    },
+    {
+      "name": "kubernetes.defaultLogLines",
+      "type": "java.lang.Integer",
+      "description": "Default amount of lines returned when requesting the logs of an active execution without specifying the amount of lines explicitly."
     }
   ]
 }
