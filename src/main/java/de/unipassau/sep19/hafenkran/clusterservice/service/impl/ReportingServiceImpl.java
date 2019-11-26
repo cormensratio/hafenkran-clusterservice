@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.awt.*;
 import java.io.File;
 import java.util.UUID;
 
@@ -14,11 +13,7 @@ import java.util.UUID;
 @Component
 public class ReportingServiceImpl implements ReportingService {
 
-    public TextField getResults(@NonNull UUID executionId) {
-        return new TextField("hello");
-    }
-
-    public File getResultDocument(@NonNull UUID executionId) {
+    public File getPersistentResults(@NonNull UUID executionId) {
         return new File("home/EPBesprechung.odt");
     }
 

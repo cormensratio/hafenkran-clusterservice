@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.awt.*;
 import java.io.File;
 import java.util.List;
 import java.util.UUID;
@@ -68,18 +67,11 @@ public class ExecutionController {
         return executionService.terminateExecution(executionId);
     }
 
-    @GetMapping("/{executionId}/results")
+    @GetMapping("/{executionId}/persistentresults")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public TextField getExecutionResults(@NonNull @PathVariable UUID executionId) {
-        return reportingService.getResults(executionId);
-    }
-
-    @GetMapping("/{executionId}/resultdocument")
-    @ResponseBody
-    @ResponseStatus(HttpStatus.OK)
-    public File getExecutionResultsDocument(@NonNull @PathVariable UUID executionId) {
-        return reportingService.getResultDocument(executionId);
+    public File getPersistentResultsForExecution(@NonNull @PathVariable UUID executionId) {
+        return reportingService.getPersistentResults(executionId);
     }
 
 }
