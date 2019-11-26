@@ -194,10 +194,10 @@ public class ExecutionServiceImpl implements ExecutionService {
 
         // TODO
         if (!execCreateDTO.getName().isPresent()) {
-            name = experiment.getName().substring(0,
-                    experiment.getName().lastIndexOf('.')) + "-" + (experiment.getExecutionDetails().size() + 1);
+            name = experiment.getName() + "-" + (experiment.getExecutionDetails().size() + 1);
         } else {
-            name = execCreateDTO.getName().get();
+            name = execCreateDTO.getName().get().substring(0,
+                    execCreateDTO.getName().get().lastIndexOf('.')) + "-" + (experiment.getExecutionDetails().size() + 1);
         }
 
         if (!execCreateDTO.getRam().isPresent() || execCreateDTO.getRam().get() <= 0) {
