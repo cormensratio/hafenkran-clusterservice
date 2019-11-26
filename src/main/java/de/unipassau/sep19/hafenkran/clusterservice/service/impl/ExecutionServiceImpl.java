@@ -218,4 +218,13 @@ public class ExecutionServiceImpl implements ExecutionService {
         return new ExecutionDetails(SecurityContextUtil.getCurrentUserDTO().getId(), experiment, name, ram, cpu,
                 bookedTime);
     }
+
+    public boolean deleteExecution(@NonNull UUID executionId) {
+        ExecutionDetails toBeDeleted = executionRepository.findExecutionDetailsById(executionId);
+        if (!toBeDeleted.equals(null)) {
+            executionRepository.deleteExecutionDetailsById(executionId);
+            return true;
+        }
+        return false;
+    }
 }
