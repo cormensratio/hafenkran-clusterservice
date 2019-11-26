@@ -192,6 +192,7 @@ public class ExecutionServiceImpl implements ExecutionService {
         final long cpu;
         final long bookedTime;
 
+        // TODO
         if (!execCreateDTO.getName().isPresent()) {
             name = experiment.getName().substring(0,
                     experiment.getName().lastIndexOf('.')) + "-" + (experiment.getExecutionDetails().size() + 1);
