@@ -39,6 +39,11 @@
       "name": "kubernetes.defaultLogLines",
       "type": "java.lang.Integer",
       "description": "Default amount of lines returned when requesting the logs of an active execution without specifying the amount of lines explicitly."
+    },
+    {
+      "name": "dockerHubKey",
+      "type": "java.lang.String",
+      "description": "Description for dockerHubKey."
     }
   ]
 }
