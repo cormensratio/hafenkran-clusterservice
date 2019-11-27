@@ -88,7 +88,7 @@ public class ExecutionController {
 
     @DeleteMapping("/{executionId}")
     @ResponseBody
-    @ResponseStatus(HttpStatus.OK)
+    @ResponseStatus(HttpStatus.DELETED)
     public boolean deleteExecution(@NonNull @PathVariable UUID executionId) {
         return executionService.deleteExecution(executionId);
     }
