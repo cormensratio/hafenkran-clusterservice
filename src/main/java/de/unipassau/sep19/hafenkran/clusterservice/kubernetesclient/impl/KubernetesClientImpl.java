@@ -148,13 +148,10 @@ public class KubernetesClientImpl implements KubernetesClient {
 
     private void createKubernetesPod(@NonNull String namespaceString, @NonNull String podName, @NonNull String image,
                                      @NonNull Map<String, String> labels) throws ApiException {
-        V1ContainerPort containerPort = new V1ContainerPort();
-        containerPort.containerPort(5000);
         V1Container container = new V1ContainerBuilder()
                 .withName(podName)
                 .withImage(image)
                 .withImagePullPolicy("IfNotPresent")
-                .withPorts(containerPort)
                 .build();
         V1Pod pod = new V1PodBuilder()
                 .withApiVersion("v1")
