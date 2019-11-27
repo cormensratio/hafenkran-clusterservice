@@ -12,16 +12,14 @@ import io.kubernetes.client.models.*;
 import io.kubernetes.client.util.Config;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -32,6 +30,9 @@ import java.util.stream.Collectors;
 public class KubernetesClientImpl implements KubernetesClient {
 
     private CoreV1Api api;
+
+    @Value("${dockerHubKey}")
+    private String dockerHubKey;
 
     /**
      * Constructor of KubernetesClientImpl.
@@ -63,7 +64,7 @@ public class KubernetesClientImpl implements KubernetesClient {
     @Override
     public String createPod(@NonNull UUID experimentId, @NonNull String executionName) throws ApiException {
         String namespaceString = experimentId.toString();
-        String image = "martinjl/examples:1.0";
+        String image = "hafenkran/hafenkran-repo:c3fbebea-6ac8-4297-b9e6-256f23ff25fc";
         String podName = executionName.toLowerCase();
 
         if (namespaceString.isEmpty()) {
@@ -180,6 +181,27 @@ public class KubernetesClientImpl implements KubernetesClient {
                 .withImagePullPolicy("IfNotPresent")
                 .withPorts(containerPort)
                 .build();
+        String encodedDockerHubKey = Base64.getEncoder().encodeToString(dockerHubKey.getBytes());
+        byte[] secretKey = encodedDockerHubKey.getBytes();
+        Map<String, byte[]> dockerHubKeySecret = new HashMap<>();
+        dockerHubKeySecret.put(".dockerconfigjson", secretKey);
+        V1Secret dockerHubSecret = new V1SecretBuilder()
+                .withApiVersion("v1")
+                .withNewKind("Secret")
+                .withNewMetadata()
+                .withName("dockerhub-secret")
+                .withNamespace(namespaceString)
+                .endMetadata()
+                .withData(dockerHubKeySecret)
+                .withType("kubernetes.io/dockerconfigjson")
+                .build();
+
+        api.createNamespacedSecret(namespaceString, dockerHubSecret, true, "pretty", null);
+
+        V1LocalObjectReference secret = new V1LocalObjectReferenceBuilder()
+                .withName("dockerhub-secret")
+                .build();
+
         V1Pod pod = new V1PodBuilder()
                 .withApiVersion("v1")
                 .withKind("Pod")
@@ -188,6 +210,7 @@ public class KubernetesClientImpl implements KubernetesClient {
                 .withLabels(labels)
                 .endMetadata()
                 .withNewSpec()
+                .withImagePullSecrets(secret)
                 .withContainers(container)
                 .endSpec()
                 .build();
