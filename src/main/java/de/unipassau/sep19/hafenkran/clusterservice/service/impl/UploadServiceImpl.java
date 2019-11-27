@@ -37,6 +37,12 @@ public class UploadServiceImpl implements UploadService {
     @Value("${experimentsFileUploadLocation}")
     private String path;
 
+    private Path getFileStoragePath(@NonNull ExperimentDetails experimentDetails) {
+        return Paths.get(
+                String.format("%s/%s/%s", path, experimentDetails.getOwnerId(), experimentDetails.getId()))
+                .toAbsolutePath().normalize();
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -53,9 +59,7 @@ public class UploadServiceImpl implements UploadService {
         }
 
         // Configure exact naming of fileStorageLocation-path
-        Path fileStorageLocation = Paths.get(
-                String.format("%s/%s/%s", path, experimentDetails.getOwnerId(), experimentDetails.getId()))
-                .toAbsolutePath().normalize();
+        Path fileStorageLocation = getFileStoragePath(experimentDetails);
 
         try {
             Files.createDirectories(fileStorageLocation);
@@ -74,6 +78,8 @@ public class UploadServiceImpl implements UploadService {
             Path uploadLocation = fileStorageLocation.resolve(fileName);
             Files.copy(file.getInputStream(), uploadLocation, StandardCopyOption.REPLACE_EXISTING);
 
+            loadImageFromTar()
+
             experimentService.createExperiment(experimentDetails);
 
             return ExperimentDTO.fromExperimentDetails(experimentDetails);
@@ -82,23 +88,20 @@ public class UploadServiceImpl implements UploadService {
         }
     }
 
-    private InputStream loadImageFromTar(@NonNull ExecutionDetails executionDetails) {
+    private InputStream loadImageFromTar(@NonNull ExperimentDetails experimentDetails) {
 
-        Path pathToTar = Paths.get(
-                path
-                        + "/" + executionDetails.getOwnerId()
-                        + "/" + executionDetails.getExperimentDetails().getId()
-                        + "/" + executionDetails.getExperimentDetails().getFileName())
-                .toAbsolutePath().normalize();
+        Path fileStoragePath = getFileStoragePath(experimentDetails);
+
         InputStream inputStream = null;
         try {
-            inputStream = Files.newInputStream(pathToTar);
+            inputStream = Files.newInputStream(fileStoragePath);
         } catch (IOException ex) {
             log.info("The image could not be correctly extracted " +
-                    "from" + pathToTar.toString(), ex);
+                    "from" + fileStoragePath.toString(), ex);
         }
         return inputStream;
     }
+
 /*
     private void pushImageToRegistry(@NonNull InputStream inputStream,
                                      @NonNull ExecutionDetails executionDetails) throws IOException {
