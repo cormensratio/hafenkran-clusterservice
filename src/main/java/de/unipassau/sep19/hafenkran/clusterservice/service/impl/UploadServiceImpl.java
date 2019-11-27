@@ -1,8 +1,12 @@
 package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.model.Image;
+import com.github.dockerjava.core.DefaultDockerClientConfig;
+import com.github.dockerjava.core.DockerClientBuilder;
+import com.github.dockerjava.core.command.PushImageResultCallback;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceStorageException;
-import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
 import de.unipassau.sep19.hafenkran.clusterservice.service.UploadService;
@@ -12,9 +16,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,7 +28,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The UploadService for uploading and storing files to an experiment.
@@ -32,6 +39,9 @@ import java.nio.file.StandardCopyOption;
 @Slf4j
 public class UploadServiceImpl implements UploadService {
 
+    public static final String HAFENKRAN_HAFENKRAN_REPO = "hafenkran" +
+            "/hafenkran" +
+            "-repo";
     private final ExperimentService experimentService;
 
     @Value("${experimentsFileUploadLocation}")
@@ -78,7 +88,8 @@ public class UploadServiceImpl implements UploadService {
             Path uploadLocation = fileStorageLocation.resolve(fileName);
             Files.copy(file.getInputStream(), uploadLocation, StandardCopyOption.REPLACE_EXISTING);
 
-            loadImageFromTar()
+            InputStream imageStream = loadImageFromTar(experimentDetails);
+            pushImageToDockerHub(imageStream, experimentDetails);
 
             experimentService.createExperiment(experimentDetails);
 
@@ -90,55 +101,69 @@ public class UploadServiceImpl implements UploadService {
 
     private InputStream loadImageFromTar(@NonNull ExperimentDetails experimentDetails) {
 
-        Path fileStoragePath = getFileStoragePath(experimentDetails);
+        Path pathToFile = Paths.get(getFileStoragePath(experimentDetails) + "/"
+                + experimentDetails.getFileName());
 
-        InputStream inputStream = null;
+        //todo: hardcoded path - delete me
+        pathToFile = Paths.get("/home/cormensratio/archive.tar");
+
+        InputStream inputStream;
         try {
-            inputStream = Files.newInputStream(fileStoragePath);
+            inputStream =
+                    Files.newInputStream(pathToFile);
         } catch (IOException ex) {
-            log.info("The image could not be correctly extracted " +
-                    "from" + fileStoragePath.toString(), ex);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Uploaded image could not be extracted from file.", ex);
         }
         return inputStream;
     }
 
-/*
-    private void pushImageToRegistry(@NonNull InputStream inputStream,
-                                     @NonNull ExecutionDetails executionDetails) throws IOException {
+    private void pushImageToDockerHub(@NonNull InputStream inputStream,
+                                      @NonNull ExperimentDetails experimentDetails) {
 
+        // Configuration for docker account
+        /*
         DefaultDockerClientConfig config
                 = DefaultDockerClientConfig.createDefaultConfigBuilder()
                 .withRegistryEmail("hafenkran@protonmail.com")
                 .withRegistryPassword("president encode cold")
                 .withRegistryUsername("hafenkran")
-                .withDockerCertPath("~/.docker/config.json/certs")
+                .withDockerCertPath("~/.docker/")
                 .withDockerConfig("~/.docker/")
                 .withDockerTlsVerify("1")
-                .withDockerHost("tcp://docker.hafenkran.com:2376").build();
+                .withDockerHost("tcp://localhost:2376").build();
 
-        DockerClient dockerClient =
-                DockerClientBuilder.getInstance(config).build();
+         */
 
-        // load image in local docker store
-        dockerClient.loadImageCmd(inputStream).exec();
+        DefaultDockerClientConfig.Builder config
+                = DefaultDockerClientConfig.createDefaultConfigBuilder();
+        DockerClient dockerClient = DockerClientBuilder
+                .getInstance(config)
+                .build();
 
-            String md5 =
-                    org.apache.commons.codec.digest.DigestUtils.md5Hex(image);
+        dockerClient.createImageCmd(
+                HAFENKRAN_HAFENKRAN_REPO + ":" +
+                        experimentDetails.getId(), inputStream).exec();
 
-        String repository =
-                "hafenkran/" + executionDetails.getExperimentDetails().getName();
+        try {
+            dockerClient.pushImageCmd(HAFENKRAN_HAFENKRAN_REPO)
+                    .withTag(experimentDetails.getId().toString()).exec(new PushImageResultCallback())
+                    .awaitCompletion(130, TimeUnit.SECONDS);
+        } catch (InterruptedException ex) {
+            throw new RuntimeException(ex);
+        }
 
-        String tag = "git";
+        List<Image> images =
+                dockerClient.listImagesCmd().withImageNameFilter(HAFENKRAN_HAFENKRAN_REPO + ":" + experimentDetails.getId()).exec();
 
-        dockerClient.tagImageCmd(imageId, repository, tag).exec();
+        Image image = images.get(0);
 
-        dockerClient.pushImageCmd("hafenkran")
+        System.out.println("HERE " + image.getId().substring(7, 19));
 
+        dockerClient.removeImageCmd(image.getId().substring(7, 19)).exec();
+
+        //logging
+        //refactor
+        //get(0)
     }
-
- */
-
-
-
-
 }
