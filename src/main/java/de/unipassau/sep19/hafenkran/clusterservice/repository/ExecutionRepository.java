@@ -15,8 +15,6 @@ public interface ExecutionRepository extends CrudRepository<ExecutionDetails, UU
 
     List<ExecutionDetails> findAllByExperimentDetails_OwnerId(@NonNull UUID ownerId);
 
-    ExecutionDetails findExecutionDetailsById(@NonNull UUID executionId);
-
     boolean deleteExecutionDetailsById(@NonNull UUID executionId);
 
 }

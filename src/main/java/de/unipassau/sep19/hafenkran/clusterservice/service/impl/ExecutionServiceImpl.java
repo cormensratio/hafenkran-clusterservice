@@ -244,12 +244,23 @@ public class ExecutionServiceImpl implements ExecutionService {
                 bookedTime);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public boolean deleteExecution(@NonNull UUID executionId) {
-        ExecutionDetails toBeDeleted = executionRepository.findExecutionDetailsById(executionId);
-        if (!toBeDeleted.equals(null)) {
-            executionRepository.deleteExecutionDetailsById(executionId);
-            return true;
+
+        ExecutionDetails executionDetails = getExecutionDetails(executionId);
+
+        if (!executionDetails.equals(null)) {
+            if (executionDetails.getStatus().toString().equals("TERMINATED") || executionDetails.getStatus().toString().equals("ABORTED")
+                    || executionDetails.getStatus().toString().equals("CANCELED")){
+                executionRepository.delete(getExecutionDetails(executionId));
+                log.info(String.format("Execution with id %S deleted", executionId));
+                return true;
+            }
         }
+
         return false;
     }
 }
