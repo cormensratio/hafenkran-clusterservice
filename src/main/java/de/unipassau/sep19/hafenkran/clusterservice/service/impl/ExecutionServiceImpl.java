@@ -248,7 +248,7 @@ public class ExecutionServiceImpl implements ExecutionService {
      * {@inheritDoc}
      */
     @Override
-    public boolean deleteExecution(@NonNull UUID executionId) {
+    public ExecutionDetails deleteExecution(@NonNull UUID executionId) {
 
         ExecutionDetails executionDetails = getExecutionDetails(executionId);
 
@@ -257,10 +257,10 @@ public class ExecutionServiceImpl implements ExecutionService {
                     || executionDetails.getStatus().toString().equals("CANCELED")){
                 executionRepository.delete(getExecutionDetails(executionId));
                 log.info(String.format("Execution with id %S deleted", executionId));
-                return true;
+                return executionDetails;
             }
         }
 
-        return false;
+        return null;
     }
 }

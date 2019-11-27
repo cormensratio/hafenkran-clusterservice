@@ -79,5 +79,5 @@ public interface ExecutionService {
      * @param executionId The {@code executionId} of the execution that should be deleted
      * @return The boolean according to wether the deletion was successful or not
      */
-    boolean deleteExecution(@NonNull UUID executionId);
+    ExecutionDetails deleteExecution(@NonNull UUID executionId);
 }

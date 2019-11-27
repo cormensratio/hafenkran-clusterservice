@@ -2,6 +2,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.controller;
 
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
+import de.unipassau.sep19.hafenkran.clusterservice.model.*;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
 import lombok.NonNull;
@@ -88,8 +89,8 @@ public class ExecutionController {
 
     @DeleteMapping("/{executionId}")
     @ResponseBody
-    @ResponseStatus(HttpStatus.DELETED)
-    public boolean deleteExecution(@NonNull @PathVariable UUID executionId) {
+    @ResponseStatus(HttpStatus.GONE)
+    public ExecutionDetails deleteExecution(@NonNull @PathVariable UUID executionId) {
         return executionService.deleteExecution(executionId);
     }
 
