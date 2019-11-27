@@ -39,18 +39,17 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class UploadServiceImpl implements UploadService {
 
-    public static final String HAFENKRAN_HAFENKRAN_REPO = "hafenkran" +
-            "/hafenkran" +
-            "-repo";
     private final ExperimentService experimentService;
-
+    @Value("${dockerHubRepoPath}")
+    private String DOCKER_HUB_REPO_PATH;
     @Value("${experimentsFileUploadLocation}")
     private String path;
 
     private Path getFileStoragePath(@NonNull ExperimentDetails experimentDetails) {
-        return Paths.get(
-                String.format("%s/%s/%s", path, experimentDetails.getOwnerId(), experimentDetails.getId()))
-                .toAbsolutePath().normalize();
+        return Paths.get(String
+                .format("%s/%s/%s", path, experimentDetails.getOwnerId(), experimentDetails.getId()))
+                .toAbsolutePath()
+                .normalize();
     }
 
     /**
@@ -104,9 +103,6 @@ public class UploadServiceImpl implements UploadService {
         Path pathToFile = Paths.get(getFileStoragePath(experimentDetails) + "/"
                 + experimentDetails.getFileName());
 
-        //todo: hardcoded path - delete me
-        pathToFile = Paths.get("/home/cormensratio/archive.tar");
-
         InputStream inputStream;
         try {
             inputStream =
@@ -115,13 +111,14 @@ public class UploadServiceImpl implements UploadService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Uploaded image could not be extracted from file.", ex);
         }
+        log.info("Successfully extracted the uploaded file.");
         return inputStream;
     }
 
     private void pushImageToDockerHub(@NonNull InputStream inputStream,
                                       @NonNull ExperimentDetails experimentDetails) {
 
-        // Configuration for docker account
+        // Custom configuration for docker account
         /*
         DefaultDockerClientConfig config
                 = DefaultDockerClientConfig.createDefaultConfigBuilder()
@@ -134,36 +131,40 @@ public class UploadServiceImpl implements UploadService {
                 .withDockerHost("tcp://localhost:2376").build();
 
          */
+        DefaultDockerClientConfig.Builder config = DefaultDockerClientConfig
+                .createDefaultConfigBuilder();
 
-        DefaultDockerClientConfig.Builder config
-                = DefaultDockerClientConfig.createDefaultConfigBuilder();
         DockerClient dockerClient = DockerClientBuilder
                 .getInstance(config)
                 .build();
+        log.info("Created default docker client");
 
         dockerClient.createImageCmd(
-                HAFENKRAN_HAFENKRAN_REPO + ":" +
+                DOCKER_HUB_REPO_PATH + ":" +
                         experimentDetails.getId(), inputStream).exec();
+        log.info("Created image from InputStream and saved in local registry.");
 
         try {
-            dockerClient.pushImageCmd(HAFENKRAN_HAFENKRAN_REPO)
-                    .withTag(experimentDetails.getId().toString()).exec(new PushImageResultCallback())
+            dockerClient.pushImageCmd(DOCKER_HUB_REPO_PATH)
+                    .withTag(experimentDetails.getId().toString())
+                    .exec(new PushImageResultCallback())
                     .awaitCompletion(130, TimeUnit.SECONDS);
         } catch (InterruptedException ex) {
             throw new RuntimeException(ex);
         }
+        log.info("Successfully pushed the image to the docker-hub repository.");
 
         List<Image> images =
-                dockerClient.listImagesCmd().withImageNameFilter(HAFENKRAN_HAFENKRAN_REPO + ":" + experimentDetails.getId()).exec();
+                dockerClient.listImagesCmd()
+                        .withImageNameFilter(DOCKER_HUB_REPO_PATH + ":"
+                                + experimentDetails.getId()).exec();
 
-        Image image = images.get(0);
-
-        System.out.println("HERE " + image.getId().substring(7, 19));
-
-        dockerClient.removeImageCmd(image.getId().substring(7, 19)).exec();
-
-        //logging
-        //refactor
-        //get(0)
+        /*
+         In order to identify the to be removed image, the substring cuts away
+         the "sha256" prefix and only leaves the short version of the imageID,
+         which has 12 digits.
+        */
+        dockerClient.removeImageCmd(images.get(0).getId().substring(7, 19)).exec();
+        log.info("Successfully removed the image from the local registry.");
     }
 }

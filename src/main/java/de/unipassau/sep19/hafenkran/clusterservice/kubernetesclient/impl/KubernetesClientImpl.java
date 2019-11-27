@@ -12,6 +12,7 @@ import io.kubernetes.client.models.*;
 import io.kubernetes.client.util.Config;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
@@ -32,6 +33,9 @@ import java.util.stream.Collectors;
 public class KubernetesClientImpl implements KubernetesClient {
 
     private CoreV1Api api;
+
+    @Value("${dockerHubRepoPath}")
+    private String DOCKER_HUB_REPO_PATH;
 
     /**
      * Constructor of KubernetesClientImpl.
