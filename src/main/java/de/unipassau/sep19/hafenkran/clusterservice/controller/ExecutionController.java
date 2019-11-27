@@ -86,7 +86,7 @@ public class ExecutionController {
         return executionService.terminateExecution(executionId);
     }
 
-    @PostMapping("/{executionId}/delete")
+    @DeleteMapping("/{executionId}")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public boolean deleteExecution(@NonNull @PathVariable UUID executionId) {
