@@ -50,7 +50,8 @@ public class ExperimentServiceImplTest {
     @Before
     public void setUp() {
         this.subject = new ExperimentServiceImpl(mockExperimentRepository);
-        this.testExperimentDetails = new ExperimentDetails(MOCK_ID, "testExperiment", 500);
+        this.testExperimentDetails = new ExperimentDetails(MOCK_ID,
+                "testExperiment", "testExperiment,tar", 500);
 
         SecurityContextHolder.setContext(mockContext);
     }
