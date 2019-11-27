@@ -12,6 +12,17 @@ import java.util.UUID;
 public interface ExecutionService {
 
     /**
+     * Retrieves the logs of the execution, but only if the given execution is currently running.
+     *
+     * @param executionId    The id of the target execution.
+     * @param lines          The amount of lines to be returned.
+     * @param sinceSeconds   The time in seconds defining the range from where to start the extraction of logs.
+     * @param withTimestamps Show the timestamp for every line.
+     * @return The string with the lines from the log.
+     */
+    String retrieveLogsForExecutionId(@NonNull UUID executionId, int lines, Integer sinceSeconds, boolean withTimestamps);
+
+    /**
      * Converts an {@link ExecutionCreateDTO} to {@link ExecutionDTO}, saves its {@link ExecutionDetails} in the database
      * and starts the execution.
      *
