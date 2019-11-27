@@ -252,13 +252,15 @@ public class ExecutionServiceImpl implements ExecutionService {
 
         ExecutionDetails executionDetails = getExecutionDetails(executionId);
 
-        if (!executionDetails.equals(null)) {
-            if (executionDetails.getStatus().toString().equals("TERMINATED") || executionDetails.getStatus().toString().equals("ABORTED")
-                    || executionDetails.getStatus().toString().equals("CANCELED")){
-                executionRepository.delete(getExecutionDetails(executionId));
-                log.info(String.format("Execution with id %S deleted", executionId));
-                return executionDetails;
-            }
+        if(executionDetails.getStatus().equals(ExecutionDetails.Status.RUNNING) || executionDetails.getStatus().equals(ExecutionDetails.Status.WAITING)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Can not delete executions in running or waiting");
+        }
+
+        if (executionDetails.getStatus().equals(ExecutionDetails.Status.CANCELED) || executionDetails.getStatus().equals(ExecutionDetails.Status.ABORTED)
+                || executionDetails.getStatus().equals(ExecutionDetails.Status.FINISHED) || executionDetails.getStatus().equals(ExecutionDetails.Status.FAILED)) {
+            executionRepository.delete(getExecutionDetails(executionId));
+            log.info(String.format("Execution with id %S deleted", executionId));
+            return executionDetails;
         }
 
         return null;
