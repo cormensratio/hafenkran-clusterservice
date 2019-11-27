@@ -50,6 +50,22 @@ public class ExecutionServiceImpl implements ExecutionService {
     /**
      * {@inheritDoc}
      */
+    @Override
+    public String retrieveLogsForExecutionId(@NonNull UUID id, int lines, Integer sinceSeconds, boolean withTimestamps) {
+        final String logs;
+        try {
+            logs = kubernetesClient.retrieveLogs(retrieveExecutionDetailsById(id), lines, sinceSeconds, withTimestamps);
+        } catch (ApiException e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
+                    "communicating with the cluster.", e);
+        }
+        return logs;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public ExecutionDTO createAndStartExecution(@NonNull ExecutionCreateDTO executionCreateDTO) {
         final ExecutionDetails executionDetails =
                 createExecutionFromExecCreateDTO(executionCreateDTO);
@@ -64,6 +80,7 @@ public class ExecutionServiceImpl implements ExecutionService {
     /**
      * {@inheritDoc}
      */
+    @Override
     public ExecutionDetails createExecution(@NonNull ExecutionDetails executionDetails) {
         final ExecutionDetails savedExecutionDetails =
                 executionRepository.save(executionDetails);
@@ -77,6 +94,7 @@ public class ExecutionServiceImpl implements ExecutionService {
     /**
      * {@inheritDoc}
      */
+    @Override
     public ExecutionDTO terminateExecution(@NonNull UUID executionId) {
 
         ExecutionDetails executionDetails = getExecutionDetails(executionId);
@@ -88,7 +106,7 @@ public class ExecutionServiceImpl implements ExecutionService {
                     executionDetails.getName());
         } catch (ApiException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
-                    "communicating with the cluster.");
+                    "communicating with the cluster.", e);
         }
 
         executionDetails.setPodName(podName);
@@ -107,18 +125,24 @@ public class ExecutionServiceImpl implements ExecutionService {
     /**
      * {@inheritDoc}
      */
+    @Override
     public ExecutionDTO retrieveExecutionDTOById(@NonNull UUID id) {
+        return ExecutionDTO.fromExecutionDetails(retrieveExecutionDetailsById(id));
+    }
+
+    private ExecutionDetails retrieveExecutionDetailsById(@NonNull UUID id) {
         final Optional<ExecutionDetails> execution = executionRepository.findById(id);
         ExecutionDetails executionDetails = execution.orElseThrow(
                 () -> new ResourceNotFoundException(ExecutionDetails.class, "id",
                         id.toString()));
         executionDetails.validatePermissions();
-        return ExecutionDTO.fromExecutionDetails(executionDetails);
+        return executionDetails;
     }
 
     /**
      * {@inheritDoc}
      */
+    @Override
     public List<ExecutionDTO> retrieveExecutionsDTOListOfExperimentId(@NonNull UUID experimentId) {
         List<ExecutionDetails> executionDetailsList = executionRepository.findAllByExperimentDetails_Id(experimentId);
 
@@ -133,6 +157,7 @@ public class ExecutionServiceImpl implements ExecutionService {
     /**
      * {@inheritDoc}
      */
+    @Override
     public List<ExecutionDTO> retrieveExecutionsDTOListForUserId(@NonNull UUID userId) {
         List<ExecutionDetails> executionDetailsList = executionRepository.findAllByExperimentDetails_OwnerId(userId);
 
@@ -152,7 +177,7 @@ public class ExecutionServiceImpl implements ExecutionService {
                     executionDetails.getName());
         } catch (ApiException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
-                    "communicating with the cluster.");
+                    "communicating with the cluster.", e);
         }
 
         executionDetails.setPodName(podName);

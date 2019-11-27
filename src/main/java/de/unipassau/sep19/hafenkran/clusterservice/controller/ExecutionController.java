@@ -8,6 +8,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +26,9 @@ public class ExecutionController {
 
     private final ExecutionService executionService;
 
+    @Value("${kubernetes.defaultLogLines}")
+    private int defaultLogLines;
+
     /**
      * GET-Endpoint for receiving a single {@link ExecutionDTO} by its id.
      *
@@ -36,6 +40,25 @@ public class ExecutionController {
     @ResponseStatus(HttpStatus.OK)
     public ExecutionDTO getExecutionDTOById(@NonNull @PathVariable UUID executionId) {
         return executionService.retrieveExecutionDTOById(executionId);
+    }
+
+    /**
+     * GET-Endpoint for receiving the logs of a running execution.
+     *
+     * @param executionId The UUID of the requested execution.
+     * @return The logs of the running execution.
+     */
+    @GetMapping("/{executionId}/logs")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public String getLogsDTOById(@NonNull @PathVariable UUID executionId,
+                                 @RequestParam(value = "lines", required = false) Integer lines,
+                                 @RequestParam(value = "sinceSeconds", required = false) Integer sinceSeconds,
+                                 @RequestParam(value = "printTimestamps", defaultValue = "false") boolean printTimestamps) {
+        if (lines == null || lines <= 0) {
+            lines = defaultLogLines;
+        }
+        return executionService.retrieveLogsForExecutionId(executionId, lines, sinceSeconds, printTimestamps);
     }
 
     /**

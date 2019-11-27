@@ -68,7 +68,8 @@ public class ExecutionServiceImplTest {
     public void setUp() {
         SecurityContextHolder.setContext(mockContext);
 
-        this.subject = new ExecutionServiceImpl(mockExecutionRepository, mockExperimentRepository, mockKubernetesClient);
+        this.subject = new ExecutionServiceImpl(mockExecutionRepository, mockExperimentRepository,
+                mockKubernetesClient);
 
         ExperimentDetails experimentDetails = new ExperimentDetails(MOCK_USER_ID, "testExperiment", 500);
         experimentDetails.setId(MOCK_EXPERIMENT_ID);
@@ -358,10 +359,12 @@ public class ExecutionServiceImplTest {
                 Optional.of(1L), Optional.of(1L), Optional.of(1L));
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, testExperimentDetails, "Test1",
                 1L, 1L, 1L);
-        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(Optional.of(testExperimentDetails));
+        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
+                Optional.of(testExperimentDetails));
         when(mockExecutionRepository.save(any(ExecutionDetails.class))).thenReturn(testExecutionDetails);
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
-        when(mockKubernetesClient.createPod(MOCK_EXPERIMENT_ID, mockExecutionDetails.getName())).thenThrow(ApiException.class);
+        when(mockKubernetesClient.createPod(MOCK_EXPERIMENT_ID, mockExecutionDetails.getName())).thenThrow(
+                ApiException.class);
 
         // Act
         ExecutionDTO actual = subject.createAndStartExecution(executionCreateDTO);
@@ -388,7 +391,8 @@ public class ExecutionServiceImplTest {
         verify(mockContext, times(1)).getAuthentication();
         assertEquals("", testExecutionDetails.getPodName());
         assertEquals(mockExecutionDTO.getStatus(), actualExecutionDTO.getStatus());
-        assertEquals((mockExecutionDTO.getTerminatedAt().getSecond()), actualExecutionDTO.getTerminatedAt().getSecond());
+        assertEquals((mockExecutionDTO.getTerminatedAt().getSecond()),
+                actualExecutionDTO.getTerminatedAt().getSecond());
         verifyNoMoreInteractions(mockContext);
     }
 
@@ -420,12 +424,57 @@ public class ExecutionServiceImplTest {
         mockExecutionDetails.setPodName("TestPod");
         when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.of(mockExecutionDetails));
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
-        doThrow(new ApiException()).when(mockKubernetesClient).deletePod(MOCK_EXPERIMENT_ID, mockExecutionDetails.getName());
+        doThrow(new ApiException()).when(mockKubernetesClient).deletePod(MOCK_EXPERIMENT_ID,
+                mockExecutionDetails.getName());
 
         // Act
         ExecutionDTO actual = subject.terminateExecution(MOCK_EXECUTION_ID);
 
         // Assert - with rule
+    }
 
+    @Test
+    public void testRetrieveLogsForExecutionId_validInput_validLogReturned() throws ApiException {
+        // Arrange
+        int lines = 5;
+        int sinceSeconds = 5;
+        String expectedLog = "Test Log";
+        ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, testExperimentDetails, "Test1",
+                1L, 1L, 1L);
+        when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.of(mockExecutionDetails));
+        when(mockKubernetesClient.retrieveLogs(mockExecutionDetails, lines, sinceSeconds, true)).thenReturn(
+                expectedLog);
+        when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
+
+        // Act
+        String actual = subject.retrieveLogsForExecutionId(MOCK_EXECUTION_ID, 5, 5, true);
+
+        // Assert
+        assertEquals(expectedLog, actual);
+        verify(mockExecutionRepository, times(1)).findById(MOCK_EXECUTION_ID);
+        verify(mockKubernetesClient, times(1)).retrieveLogs(mockExecutionDetails, lines, sinceSeconds, true);
+        verify(mockContext, times(1)).getAuthentication();
+    }
+
+    @Test
+    public void testRetrieveLogsForExecutionId_noConnectionToKubernetes_throwsException() throws ApiException {
+        // Arrange
+        expectedEx.expect(ResponseStatusException.class);
+        expectedEx.expectMessage("There was an error while communicating with the cluster");
+
+        int lines = 5;
+        int sinceSeconds = 5;
+        String expectedLog = "Test Log";
+        ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, testExperimentDetails, "Test1",
+                1L, 1L, 1L);
+        when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.of(mockExecutionDetails));
+        when(mockKubernetesClient.retrieveLogs(mockExecutionDetails, lines, sinceSeconds, true)).thenThrow(
+                ApiException.class);
+        when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
+
+        // Act
+        String actual = subject.retrieveLogsForExecutionId(MOCK_EXECUTION_ID, 5, 5, true);
+
+        // Assert -- with logs
     }
 }
