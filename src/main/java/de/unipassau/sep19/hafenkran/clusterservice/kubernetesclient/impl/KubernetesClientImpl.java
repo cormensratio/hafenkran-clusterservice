@@ -8,7 +8,6 @@ import io.kubernetes.client.Configuration;
 import io.kubernetes.client.apis.CoreV1Api;
 import io.kubernetes.client.models.V1Container;
 import io.kubernetes.client.models.V1ContainerBuilder;
-import io.kubernetes.client.models.V1ContainerPort;
 import io.kubernetes.client.models.V1DeleteOptions;
 import io.kubernetes.client.models.V1Namespace;
 import io.kubernetes.client.models.V1NamespaceBuilder;
@@ -24,7 +23,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -56,15 +54,8 @@ public class KubernetesClientImpl implements KubernetesClient {
     }
 
     /**
-     * Creates Kubernetes Pod.
-     *
-     * @param userName  name of the user who creates the pod
-     * @param experimentName name of the experiment which should be deployed
-     * @param executionName name of the execution which should be deployed as a pod in kubernetes
-     * @return the name of the pod in kubernetes
-     * @throws ApiException if the communication with the api results in an error
+     * {@inheritDoc}
      */
-    @Override
     public String createPod(@NonNull String userName, @NonNull String experimentName, @NonNull String executionName) throws ApiException {
         String experimentNameSubstring = experimentName.toLowerCase().substring(0, experimentName.lastIndexOf('.'));
         String namespaceString = userName.toLowerCase() + "-" + experimentNameSubstring;
@@ -91,14 +82,8 @@ public class KubernetesClientImpl implements KubernetesClient {
     }
 
     /**
-     * Deletes Kubernetes Pod.
-     *
-     * @param userName name of the user who is owner of the pod
-     * @param experimentName  name of the experiment where the execution is stored
-     * @param podName name of the pod which should be deleted from kubernetes
-     * @throws ApiException if the communication with the api results in an error
+     * {@inheritDoc}
      */
-    @Override
     public void deletePod(@NonNull String userName, String experimentName, @NonNull String podName) throws ApiException {
         String experimentNameSubstring = experimentName.toLowerCase().substring(0, experimentName.lastIndexOf('.'));
         String namespaceString = userName.toLowerCase() + "-" + experimentNameSubstring;
