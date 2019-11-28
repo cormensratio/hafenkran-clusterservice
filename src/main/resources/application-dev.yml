@@ -31,4 +31,7 @@ kubernetes:
 jwt:
   secret: MCgCIQCAS7IFlSvaBOPXwSBHo+7+6C4RbkvYj3fgI5+Abe4pRwIDAQAB
 
-dockerHubKey: d94ea759-94d1-4be2-b38b-7204ffb67504
+dockerHubUser: hafenkran
+dockerHubPassword: president encode cold
+dockerHubEmail: hafenkran@protonmail.com
+dockerHubKey: aGFmZW5rcmFuOnByZXNpZGVudCBlbmNvZGUgY29sZA==
