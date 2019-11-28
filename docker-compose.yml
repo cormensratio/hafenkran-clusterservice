@@ -22,7 +22,7 @@ services:
     expose:
       - "8082"
     ports:
-      - "8086:8082"
+      - "8082:8082"
     networks:
       - backend
     depends_on:
