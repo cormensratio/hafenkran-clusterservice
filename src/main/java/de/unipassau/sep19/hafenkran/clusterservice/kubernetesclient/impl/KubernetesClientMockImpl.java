@@ -6,8 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.UUID;
-
 /**
  * Implementation of Kubernetes Mock Client for test purposes,
  * where Kubernetes isn't needed.
@@ -18,7 +16,7 @@ public class KubernetesClientMockImpl implements KubernetesClient {
 
     /**
      * Constructor of KubernetesClientMockImpl.
-     * <p>
+     *
      * Prints out info that mockKubernetesClient is used.
      *
      * @throws IOException Exception never thrown
@@ -28,13 +26,17 @@ public class KubernetesClientMockImpl implements KubernetesClient {
                 " if you want to use Kubernetes.");
     }
 
-    @Override
+    /**
+     * {@inheritDoc}
+     */
     public String createPod(String userName, String experimentName, String executionName) throws ApiException {
         log.info("KubernetesClientMockImpl can not create a Pod.");
         return "No Pod created. KubernetesClientMockImpl.";
     }
 
-    @Override
+    /**
+     * {@inheritDoc}
+     */
     public void deletePod(String userName, String experimentName, String podName) throws ApiException {
         log.info("KubernetesClientMockImpl can not delete a Pod.");
     }
