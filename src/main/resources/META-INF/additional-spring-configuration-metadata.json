@@ -44,6 +44,21 @@
       "name": "dockerHubKey",
       "type": "java.lang.String",
       "description": "Description for dockerHubKey."
+    },
+    {
+      "name": "dockerHubUser",
+      "type": "java.lang.String",
+      "description": "Description for dockerHubUser."
+    },
+    {
+      "name": "dockerHubPassword",
+      "type": "java.lang.String",
+      "description": "Description for dockerHubPassword."
+    },
+    {
+      "name": "dockerHubEmail",
+      "type": "java.lang.String",
+      "description": "Description for dockerHubEmail."
     }
   ]
 }
