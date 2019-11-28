@@ -3,7 +3,6 @@ package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
-import de.unipassau.sep19.hafenkran.clusterservice.dto.UserDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
@@ -92,7 +91,6 @@ public class ExecutionServiceImpl implements ExecutionService {
                     "communicating with the cluster.");
         }
 
-        executionDetails.setPodName("");
         executionDetails.setStatus(ExecutionDetails.Status.CANCELED);
         executionDetails.setTerminatedAt(LocalDateTime.now());
 
@@ -194,11 +192,12 @@ public class ExecutionServiceImpl implements ExecutionService {
         final long cpu;
         final long bookedTime;
 
+        // TODO: check if naming is correct
         if (!execCreateDTO.getName().isPresent()) {
-            name = experiment.getName().substring(0,
-                    experiment.getName().lastIndexOf('.')) + "-" + (experiment.getExecutionDetails().size() + 1);
+            name = experiment.getName() + "-" + (experiment.getExecutionDetails().size() + 1);
         } else {
-            name = execCreateDTO.getName().get();
+            name = execCreateDTO.getName().get().substring(0,
+                    execCreateDTO.getName().get().lastIndexOf('.')) + "-" + (experiment.getExecutionDetails().size() + 1);
         }
 
         if (!execCreateDTO.getRam().isPresent() || execCreateDTO.getRam().get() <= 0) {
