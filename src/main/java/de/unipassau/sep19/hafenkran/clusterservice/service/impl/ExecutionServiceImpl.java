@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Service
@@ -87,8 +88,8 @@ public class ExecutionServiceImpl implements ExecutionService {
         try {
             kubernetesClient.deletePod(userName, experimentName, podName);
         } catch (ApiException e) {
-            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
-                    "communicating with the cluster.");
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while "
+                    + "communicating with the cluster.");
         }
 
         executionDetails.setStatus(ExecutionDetails.Status.CANCELED);
@@ -191,13 +192,41 @@ public class ExecutionServiceImpl implements ExecutionService {
         final long ram;
         final long cpu;
         final long bookedTime;
+        final String regex = "[a-z0-9]([-a-z0-9]*[a-z0-9])?";
 
-        // TODO: check if naming is correct
         if (!execCreateDTO.getName().isPresent()) {
-            name = experiment.getName() + "-" + (experiment.getExecutionDetails().size() + 1);
-        } else {
-            name = execCreateDTO.getName().get().substring(0,
-                    execCreateDTO.getName().get().lastIndexOf('.')) + "-" + (experiment.getExecutionDetails().size() + 1);
+            if (experiment.getName().isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                        "Name must be at least one alphanumeric letter.");
+            } else if (Pattern.matches(regex, experiment.getName())) {
+                if (experiment.getName().contains(String.valueOf('.'))) {
+                    name = experiment.getName().substring(0,
+                            experiment.getName().indexOf('.')) + "-" + (experiment.getExecutionDetails().size() + 1);
+                } else {
+                    name = experiment.getName() + "-" + (experiment.getExecutionDetails().size() + 1);
+                }
+            } else {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                        "You can only use alphanumeric letters and a hyphen for naming. "
+                                + "Name must start and end alphanumeric.");
+            }
+        } else { //custom naming atm not possible at hafenkran client but server-side already implemented here
+            if (execCreateDTO.getName().get().isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                        "Name must be at least one alphanumeric letter.");
+            } else if (Pattern.matches(regex, execCreateDTO.getName().toString())) {
+                if (execCreateDTO.getName().toString().contains(String.valueOf('.'))) {
+                    name = execCreateDTO.getName().get().substring(0,
+                            execCreateDTO.getName().get().indexOf('.')) + "-"
+                            + (experiment.getExecutionDetails().size() + 1);
+                } else {
+                    name = execCreateDTO.getName() + "-" + (experiment.getExecutionDetails().size() + 1);
+                }
+            } else {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                        "You can only use alphanumeric letters and a hyphen for naming. "
+                                + "Name must start and end alphanumeric.");
+            }
         }
 
         if (!execCreateDTO.getRam().isPresent() || execCreateDTO.getRam().get() <= 0) {
