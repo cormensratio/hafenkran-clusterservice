@@ -1,7 +1,6 @@
 package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
 import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.api.model.Image;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.command.PushImageResultCallback;
@@ -14,6 +13,9 @@ import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -22,13 +24,11 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -39,9 +39,12 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class UploadServiceImpl implements UploadService {
 
+    private static final int PUSH_TIMEOUT = 130;
     private final ExperimentService experimentService;
+
     @Value("${dockerHubRepoPath}")
     private String DOCKER_HUB_REPO_PATH;
+
     @Value("${experimentsFileUploadLocation}")
     private String path;
 
@@ -87,7 +90,7 @@ public class UploadServiceImpl implements UploadService {
             Path uploadLocation = fileStorageLocation.resolve(fileName);
             Files.copy(file.getInputStream(), uploadLocation, StandardCopyOption.REPLACE_EXISTING);
 
-            InputStream imageStream = loadImageFromTar(experimentDetails);
+            InputStream imageStream = getImageInputStream(experimentDetails);
             pushImageToDockerHub(imageStream, experimentDetails);
 
             experimentService.createExperiment(experimentDetails);
@@ -98,15 +101,16 @@ public class UploadServiceImpl implements UploadService {
         }
     }
 
-    private InputStream loadImageFromTar(@NonNull ExperimentDetails experimentDetails) {
-
-        Path pathToFile = Paths.get(getFileStoragePath(experimentDetails) + "/"
+    private Path getPathToTar(@NonNull ExperimentDetails experimentDetails) {
+        return Paths.get(getFileStoragePath(experimentDetails) + "/"
                 + experimentDetails.getFileName());
+    }
 
+    private InputStream getImageInputStream(@NonNull ExperimentDetails experimentDetails) {
         InputStream inputStream;
         try {
             inputStream =
-                    Files.newInputStream(pathToFile);
+                    Files.newInputStream(getPathToTar(experimentDetails));
         } catch (IOException ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Uploaded image could not be extracted from file.", ex);
@@ -115,8 +119,61 @@ public class UploadServiceImpl implements UploadService {
         return inputStream;
     }
 
+    private TarArchiveInputStream getTarInputStream(@NonNull ExperimentDetails experimentDetails) {
+        TarArchiveInputStream tarStream;
+        try {
+            tarStream =
+                    new TarArchiveInputStream(new FileInputStream(new File(String.valueOf(getPathToTar(experimentDetails)))));
+        } catch (IOException ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "ImageID of uploaded file could not be extracted.", ex);
+        }
+        return tarStream;
+    }
+
+    private String extractImageIdFromTar(@NonNull ExperimentDetails experimentDetails) {
+        TarArchiveInputStream tarStream = getTarInputStream(experimentDetails);
+        TarArchiveEntry tarEntry;
+        String imageId = "";
+        try {
+            while ((tarEntry = tarStream.getNextTarEntry()) != null) {
+                if (tarEntry.isFile() && tarEntry.getName().equals("manifest.json")) {
+                    try {
+                        File destFile = new File(String.valueOf(getFileStoragePath(experimentDetails)));
+                        File outputFile = new File(destFile + File.separator + tarEntry.getName());
+                        outputFile.getParentFile().mkdirs();
+                        IOUtils.copy(tarStream, new FileOutputStream(outputFile));
+                        String manifestString = Files.readAllLines(Paths.get(outputFile.getPath())).toString();
+
+                        // Builds the substring of of the shortened image id in the manifest.json file.
+                        imageId = manifestString.substring(13, 25);
+                        outputFile.delete();
+                        tarStream.close();
+                    } catch (IOException ex) {
+                        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                                "Image ID could not be extracted from file.", ex);
+                    }
+                    return imageId;
+                }
+            }
+        } catch (IOException ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Entry for manifest.json could not be read from tar.", ex);
+        }
+        if (imageId.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Erroneous image ID extracted");
+        }
+        return imageId;
+    }
+
     private void pushImageToDockerHub(@NonNull InputStream inputStream,
                                       @NonNull ExperimentDetails experimentDetails) {
+
+        //TODO: Check constraints for repository naming!
+
+        String imageId = extractImageIdFromTar(experimentDetails);
+        String tag = experimentDetails.getId().toString();
 
         // Custom configuration for docker account
         /*
@@ -130,7 +187,7 @@ public class UploadServiceImpl implements UploadService {
                 .withDockerTlsVerify("1")
                 .withDockerHost("tcp://localhost:2376").build();
 
-         */
+        */
         DefaultDockerClientConfig.Builder config = DefaultDockerClientConfig
                 .createDefaultConfigBuilder();
 
@@ -139,32 +196,33 @@ public class UploadServiceImpl implements UploadService {
                 .build();
         log.info("Created default docker client");
 
-        dockerClient.createImageCmd(
-                DOCKER_HUB_REPO_PATH + ":" +
-                        experimentDetails.getId(), inputStream).exec();
-        log.info("Created image from InputStream and saved in local registry.");
+        dockerClient.loadImageCmd(inputStream).exec();
+        log.info("Successfully loaded the image into the local registry.");
+
+        try {
+            inputStream.close();
+        } catch (IOException ex){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "There was an error closing the input stream.");
+        }
+
+        dockerClient.tagImageCmd(imageId, DOCKER_HUB_REPO_PATH, tag).exec();
+        log.info("Tagged the loaded image.");
 
         try {
             dockerClient.pushImageCmd(DOCKER_HUB_REPO_PATH)
                     .withTag(experimentDetails.getId().toString())
                     .exec(new PushImageResultCallback())
-                    .awaitCompletion(130, TimeUnit.SECONDS);
+                    .awaitCompletion(PUSH_TIMEOUT, TimeUnit.SECONDS);
         } catch (InterruptedException ex) {
             throw new RuntimeException(ex);
         }
         log.info("Successfully pushed the image to the docker-hub repository.");
 
-        List<Image> images =
-                dockerClient.listImagesCmd()
-                        .withImageNameFilter(DOCKER_HUB_REPO_PATH + ":"
-                                + experimentDetails.getId()).exec();
-
-        /*
-         In order to identify the to be removed image, the substring cuts away
-         the "sha256" prefix and only leaves the short version of the imageID,
-         which has 12 digits.
-        */
-        dockerClient.removeImageCmd(images.get(0).getId().substring(7, 19)).exec();
+        // The image could be referenced in multiple containers and would need a force remove. The workaround is to
+        // remove the tagged instance by tag name and the base image by its image id.
+        dockerClient.removeImageCmd(DOCKER_HUB_REPO_PATH + ":" + experimentDetails.getId()).exec();
+        dockerClient.removeImageCmd(imageId).exec();
         log.info("Successfully removed the image from the local registry.");
     }
 }
