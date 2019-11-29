@@ -91,8 +91,8 @@ public class ExecutionServiceImpl implements ExecutionService {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                     "Must be at least one alphanumeric letter. Username: " + userName + ", Experimentname: "
                             + experimentName + ", Podname: " + podName);
-        } else if (Pattern.matches(regex, userName) && Pattern.matches(regex, experimentName)
-                && Pattern.matches(regex, podName)) {
+        } else if (Pattern.matches(regex, userName.toLowerCase()) && Pattern.matches(regex, experimentName.toLowerCase())
+                && Pattern.matches(regex, podName.toLowerCase())) {
             try {
                 kubernetesClient.deletePod(userName, experimentName, podName);
             } catch (ApiException e) {
@@ -168,8 +168,8 @@ public class ExecutionServiceImpl implements ExecutionService {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                     "Must be at least one alphanumeric letter. Username: " + userName + ", Experimentname: "
                             + experimentName + ", Executionname: " + executionName);
-        } else if (Pattern.matches(regex, userName) && Pattern.matches(regex, experimentName)
-                && Pattern.matches(regex, executionName)) {
+        } else if (Pattern.matches(regex, userName.toLowerCase()) && Pattern.matches(regex, experimentName.toLowerCase())
+                && Pattern.matches(regex, executionName.toLowerCase())) {
             try {
                 podName = kubernetesClient.createPod(userName, experimentName, executionName);
             } catch (ApiException e) {
@@ -222,35 +222,48 @@ public class ExecutionServiceImpl implements ExecutionService {
         if (!execCreateDTO.getName().isPresent()) {
             if (experiment.getName().isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                        "Name must be at least one alphanumeric letter.");
-            } else if (Pattern.matches(regex, experiment.getName())) {
-                if (experiment.getName().contains(String.valueOf('.'))) {
-                    name = experiment.getName().substring(0,
-                            experiment.getName().indexOf('.')) + "-" + (experiment.getExecutionDetails().size() + 1);
+                        "Experimentname must be at least one alphanumeric letter.");
+            } else if (experiment.getName().contains(String.valueOf('.'))) {
+                String expName = experiment.getName().substring(0,
+                        experiment.getName().indexOf('.')) + "-"
+                        + (experiment.getExecutionDetails().size() + 1);
+                if (Pattern.matches(regex, expName.toLowerCase())) {
+                    name = expName;
+                    experiment.setName(expName);
                 } else {
-                    name = experiment.getName() + "-" + (experiment.getExecutionDetails().size() + 1);
+                    throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                            "You can only use alphanumeric letters and a hyphen for naming. "
+                                    + "Must start and end alphanumeric.");
                 }
             } else {
-                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                        "You can only use alphanumeric letters and a hyphen for naming. "
-                                + "Must start and end alphanumeric.");
+                if (Pattern.matches(regex, experiment.getName().toLowerCase())) {
+                    name = experiment.getName() + "-" + (experiment.getExecutionDetails().size() + 1);
+                } else {
+                    throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                            "You can only use alphanumeric letters and a hyphen for naming. "
+                                    + "Must start and end alphanumeric.");
+                }
             }
         } else { //custom naming atm not possible at hafenkran client but server-side already implemented here
-            if (execCreateDTO.getName().get().isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                        "Must be at least one alphanumeric letter.");
-            } else if (Pattern.matches(regex, execCreateDTO.getName().toString())) {
-                if (execCreateDTO.getName().toString().contains(String.valueOf('.'))) {
-                    name = execCreateDTO.getName().get().substring(0,
-                            execCreateDTO.getName().get().indexOf('.')) + "-"
-                            + (experiment.getExecutionDetails().size() + 1);
+            if (execCreateDTO.getName().toString().contains(String.valueOf('.'))) {
+                String execName = execCreateDTO.getName().get().substring(0,
+                        execCreateDTO.getName().get().indexOf('.')) + "-"
+                        + (experiment.getExecutionDetails().size() + 1);
+                if (Pattern.matches(regex, execName.toLowerCase())) {
+                    name = execName;
                 } else {
-                    name = execCreateDTO.getName() + "-" + (experiment.getExecutionDetails().size() + 1);
+                    throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                            "You can only use alphanumeric letters and a hyphen for naming. "
+                                    + "Must start and end alphanumeric.");
                 }
             } else {
-                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                        "You can only use alphanumeric letters and a hyphen for naming. "
-                                + "Must start and end alphanumeric.");
+                if (Pattern.matches(regex, execCreateDTO.getName().get().toLowerCase())) {
+                    name = execCreateDTO.getName() + "-" + (experiment.getExecutionDetails().size() + 1);
+                } else {
+                    throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                            "You can only use alphanumeric letters and a hyphen for naming. "
+                                    + "Must start and end alphanumeric.");
+                }
             }
         }
 
