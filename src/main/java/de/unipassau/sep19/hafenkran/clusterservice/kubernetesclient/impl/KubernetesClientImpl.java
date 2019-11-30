@@ -31,17 +31,17 @@ public class KubernetesClientImpl implements KubernetesClient {
 
     private CoreV1Api api;
 
-    @Value("${dockerHubUser}")
-    private String dockerHubUser;
+    @Value("${dockerRegistry.username}")
+    private String dockerRegistryUsername;
 
-    @Value("${dockerHubPassword}")
-    private String dockerHubPassword;
+    @Value("${dockerRegistry.password}")
+    private String dockerRegistryPassword;
 
-    @Value("${dockerHubEmail}")
-    private String dockerHubEmail;
+    @Value("${dockerRegistry.email}")
+    private String dockerRegistryEmail;
 
-    @Value("${dockerHubKey}")
-    private String dockerHubKey;
+    @Value("${dockerRegistry.authKey}")
+    private String dockerRegistryAuthKey;
 
     /**
      * Constructor of KubernetesClientImpl.
@@ -63,7 +63,7 @@ public class KubernetesClientImpl implements KubernetesClient {
     }
 
     /**
-     * Creates Kubernetes Pod.
+     * Creates Kubernetes Pod and if not already there the namespace and the image pull secret for the namespace.
      *
      * @param experimentId  id of the experiment where the execution is stored
      * @param executionName the name of the execution which should be deployed as a pod in kubernetes
@@ -73,7 +73,7 @@ public class KubernetesClientImpl implements KubernetesClient {
     @Override
     public String createPod(@NonNull UUID experimentId, @NonNull String executionName) throws ApiException {
         String namespaceString = experimentId.toString();
-        String image = "hafenkran/hafenkran-repo:c3fbebea-6ac8-4297-b9e6-256f23ff25fc";
+        String image = "hafenkran/hafenkran-repo:e058ab3b-c3e5-4fc4-bf61-6946cbdc6da3";
         String podName = executionName.toLowerCase();
 
         if (namespaceString.isEmpty()) {
@@ -85,11 +85,11 @@ public class KubernetesClientImpl implements KubernetesClient {
         List<String> allNamespaces = getAllNamespaces();
         if (!allNamespaces.contains(namespaceString)) {
             createNamespace(namespaceString);
-            createNamespacedImagePullSecret(namespaceString);
+            createImagePullSecretForNamespace(namespaceString);
         }
         Map<String, String> labels = new HashMap<>();
         labels.put("run", podName);
-        createKubernetesPod(namespaceString, podName, image, labels);
+        createPodInNamespace(namespaceString, podName, image, labels);
         return api.readNamespacedPod(podName, namespaceString, "pretty", false, false).getMetadata().getName();
     }
 
@@ -104,6 +104,7 @@ public class KubernetesClientImpl implements KubernetesClient {
     public void deletePod(@NonNull UUID experimentId, @NonNull String executionName) throws ApiException {
         String namespaceString = experimentId.toString();
         String podName = executionName.toLowerCase();
+        List<String> allPodsInNamespace = getAllPodsFromNamespace(namespaceString);
 
         if (namespaceString.isEmpty()) {
             throw new IllegalArgumentException("Namespace is empty.");
@@ -111,32 +112,24 @@ public class KubernetesClientImpl implements KubernetesClient {
         if (podName.isEmpty()) {
             throw new IllegalArgumentException("Podname is empty");
         }
-        if (getAllNamespacedPods(namespaceString).size() == 1 && getAllNamespacedPods(namespaceString).contains(podName)) {
-            try {
+        if (allPodsInNamespace == null) {
+            throw new IllegalArgumentException("This namespace doesnt exist");
+        }
+        try {
+            if (allPodsInNamespace.size() <= 1 && allPodsInNamespace.contains(podName)) {
                 deleteNamespace(namespaceString);
-            } catch (JsonSyntaxException e) {
-                if (e.getCause() instanceof IllegalStateException) {
-                    IllegalStateException ise = (IllegalStateException) e.getCause();
-                    if (ise.getMessage() != null && ise.getMessage().contains("Expected a string but" +
-                            " was BEGIN_OBJECT"))
-                        log.debug("Catching exception because of issue " +
-                                "https://github.com/kubernetes-client/java/issues/86", e);
-                    else throw e;
-                } else throw e;
+            } else {
+                deletePodInNamespace(namespaceString, podName);
             }
-        } else {
-            try {
-                deleteNamespacedPod(namespaceString, podName);
-            } catch (JsonSyntaxException e) {
-                if (e.getCause() instanceof IllegalStateException) {
-                    IllegalStateException ise = (IllegalStateException) e.getCause();
-                    if (ise.getMessage() != null && ise.getMessage().contains("Expected a string but" +
-                            " was BEGIN_OBJECT"))
-                        log.debug("Catching exception because of issue " +
-                                "https://github.com/kubernetes-client/java/issues/86", e);
-                    else throw e;
-                } else throw e;
-            }
+        } catch (JsonSyntaxException e) {
+            if (e.getCause() instanceof IllegalStateException) {
+                IllegalStateException ise = (IllegalStateException) e.getCause();
+                if (ise.getMessage() != null && ise.getMessage().contains("Expected a string but" +
+                        " was BEGIN_OBJECT"))
+                    log.debug("Catching exception because of issue " +
+                            "https://github.com/kubernetes-client/java/issues/86", e);
+                else throw e;
+            } else throw e;
         }
     }
 
@@ -180,7 +173,7 @@ public class KubernetesClientImpl implements KubernetesClient {
                 .collect(Collectors.toList());
     }
 
-    private List<String> getAllNamespacedPods(@NonNull String namespaceString) throws ApiException {
+    private List<String> getAllPodsFromNamespace(@NonNull String namespaceString) throws ApiException {
         V1PodList podList =
                 api.listNamespacedPod(namespaceString, true, "pretty", null, null, null, 0, null, Integer.MAX_VALUE, Boolean.FALSE);
         return podList
@@ -201,9 +194,18 @@ public class KubernetesClientImpl implements KubernetesClient {
 
     }
 
-    private void createKubernetesPod(@NonNull String namespaceString, @NonNull String podName, @NonNull String
+    /**
+     * Creates a Kubernetes Pod and sets the Image Pull Secret for it.
+     *
+     * @param namespaceString namespace where the pod should be created
+     * @param podName         name of the pod
+     * @param image           name of the image which should be used
+     * @param labels          list of labels which should be used
+     * @throws ApiException if the communication with the api results in an error
+     */
+    private void createPodInNamespace(@NonNull String namespaceString, @NonNull String podName, @NonNull String
             image,
-                                     @NonNull Map<String, String> labels) throws ApiException {
+                                      @NonNull Map<String, String> labels) throws ApiException {
 
         V1Container container = new V1ContainerBuilder()
                 .withName(podName)
@@ -213,8 +215,8 @@ public class KubernetesClientImpl implements KubernetesClient {
                 .withTty(true)
                 .build();
 
-        V1LocalObjectReference secret = new V1LocalObjectReferenceBuilder()
-                .withName("newsecret")
+        V1LocalObjectReference imagePullSecret = new V1LocalObjectReferenceBuilder()
+                .withName("image-pull-secret") //references secret with the given name
                 .build();
 
         V1Pod pod = new V1PodBuilder()
@@ -226,33 +228,39 @@ public class KubernetesClientImpl implements KubernetesClient {
                 .endMetadata()
                 .withNewSpec()
                 .withContainers(container)
-                .withImagePullSecrets(secret)
+                .withImagePullSecrets(imagePullSecret) //sets the secret for accessing docker registry
                 .withHostNetwork(true)
                 .endSpec()
                 .build();
         api.createNamespacedPod(namespaceString, pod, true, "pretty", null);
-        log.info("Created pod {}", podName);
+        log.info("Created pod {} in Namespace {}", podName, namespaceString);
     }
 
-    private void createNamespacedImagePullSecret(@NonNull String namespaceString) throws ApiException {
-        V1Secret newSecret = new V1SecretBuilder()
+    /**
+     * Creates Image Pull Secret for a Namespace. All created Pods in the same namespace can access it.
+     *
+     * @param namespaceString namespace where the secret should be created
+     * @throws ApiException if the communication with the api results in an error
+     */
+    private void createImagePullSecretForNamespace(@NonNull String namespaceString) throws ApiException {
+        V1Secret imagePullSecret = new V1SecretBuilder()
                 .withNewMetadata()
-                .withName("newsecret")
+                .withName("image-pull-secret")
                 .withNamespace(namespaceString)
                 .endMetadata()
                 .build();
-        newSecret.setType("kubernetes.io/dockerconfigjson");
+        imagePullSecret.setType("kubernetes.io/dockerconfigjson");
         String dockerCfg = String.format("{\"auths\": {\"%s\": {\"username\": \"%s\",\t\"password\": \"%s\",\"email\": \"%s\",\t\"auth\": \"%s\"}}}",
                 "https://index.docker.io/v1/",
-                dockerHubUser,
-                dockerHubPassword,
-                dockerHubEmail,
-                dockerHubKey);
+                dockerRegistryUsername,
+                dockerRegistryPassword,
+                dockerRegistryEmail,
+                dockerRegistryAuthKey);
         Map<String, byte[]> data = new HashMap<>();
         data.put(".dockerconfigjson", dockerCfg.getBytes());
-        newSecret.setData(data);
-        api.createNamespacedSecret(namespaceString, newSecret, true, "pretty", null);
-        log.info("Created namespacedSecret {} in Namespace {}", newSecret.getMetadata().getName(), namespaceString);
+        imagePullSecret.setData(data);
+        api.createNamespacedSecret(namespaceString, imagePullSecret, true, "pretty", null);
+        log.info("Created Image-Pull-Secret {} for Namespace {}", imagePullSecret.getMetadata().getName(), namespaceString);
     }
 
     private void deleteNamespace(@NonNull String namespaceString) throws ApiException {
@@ -261,7 +269,7 @@ public class KubernetesClientImpl implements KubernetesClient {
         log.info("Deleted namespace {}", namespaceString);
     }
 
-    private void deleteNamespacedPod(@NonNull String namespaceString, @NonNull String podName) throws ApiException {
+    private void deletePodInNamespace(@NonNull String namespaceString, @NonNull String podName) throws ApiException {
         V1DeleteOptions deleteOptions = new V1DeleteOptions();
         api.deleteNamespacedPod(podName, namespaceString, "pretty", deleteOptions, null, null, null, null);
         log.info("Deleted pod {}", podName);
