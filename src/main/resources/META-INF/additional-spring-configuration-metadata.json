@@ -41,24 +41,24 @@
       "description": "Default amount of lines returned when requesting the logs of an active execution without specifying the amount of lines explicitly."
     },
     {
-      "name": "dockerHubKey",
+      "name": "dockerRegistry.username",
       "type": "java.lang.String",
-      "description": "Description for dockerHubKey."
+      "description": "The users name from which the image should be pulled from the docker registry."
     },
     {
-      "name": "dockerHubUser",
+      "name": "dockerRegistry.password",
       "type": "java.lang.String",
-      "description": "Description for dockerHubUser."
+      "description": "The password of the user."
     },
     {
-      "name": "dockerHubPassword",
+      "name": "dockerRegistry.email",
       "type": "java.lang.String",
-      "description": "Description for dockerHubPassword."
+      "description": "The email-address of the user."
     },
     {
-      "name": "dockerHubEmail",
+      "name": "dockerRegistry.authKey",
       "type": "java.lang.String",
-      "description": "Description for dockerHubEmail."
+      "description": "The authentication key of the user."
     }
   ]
 }
