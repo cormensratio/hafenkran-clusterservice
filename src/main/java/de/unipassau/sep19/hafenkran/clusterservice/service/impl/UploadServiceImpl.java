@@ -113,7 +113,7 @@ public class UploadServiceImpl implements UploadService {
                     Files.newInputStream(getPathToTar(experimentDetails));
         } catch (IOException ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Uploaded image could not be extracted from file.", ex);
+                    "Uploaded image " + getPathToTar(experimentDetails) + " could not be extracted from file", ex);
         }
         log.info("Successfully extracted the uploaded file.");
         return inputStream;
@@ -126,7 +126,7 @@ public class UploadServiceImpl implements UploadService {
                     new TarArchiveInputStream(new FileInputStream(new File(String.valueOf(getPathToTar(experimentDetails)))));
         } catch (IOException ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "ImageID of uploaded file could not be extracted.", ex);
+                    "Uploaded image " + getPathToTar(experimentDetails) + " could not be extracted from file", ex);
         }
         return tarStream;
     }
@@ -151,18 +151,19 @@ public class UploadServiceImpl implements UploadService {
                         tarStream.close();
                     } catch (IOException ex) {
                         throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                                "Image ID could not be extracted from file.", ex);
+                                "Image ID of uploaded image " + getPathToTar(experimentDetails) + " could not be " +
+                                        "extracted from file.", ex);
                     }
                     return imageId;
                 }
             }
         } catch (IOException ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Entry for manifest.json could not be read from tar.", ex);
+                    "Error reading entry for manifest.json in " + getPathToTar(experimentDetails), ex);
         }
         if (imageId.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Erroneous image ID extracted");
+                    "Entry of manifest.json could not be found in " + getPathToTar(experimentDetails));
         }
         return imageId;
     }
@@ -188,26 +189,27 @@ public class UploadServiceImpl implements UploadService {
                 .withDockerHost("tcp://localhost:2376").build();
 
         */
+
         DefaultDockerClientConfig.Builder config = DefaultDockerClientConfig
                 .createDefaultConfigBuilder();
 
         DockerClient dockerClient = DockerClientBuilder
                 .getInstance(config)
                 .build();
-        log.info("Created default docker client");
+        log.debug("Created default docker client");
 
         dockerClient.loadImageCmd(inputStream).exec();
-        log.info("Successfully loaded the image into the local registry.");
+        log.debug("Successfully loaded the image into the local registry.");
 
         try {
             inputStream.close();
-        } catch (IOException ex){
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "There was an error closing the input stream.");
+        } catch (IOException ex) {
+            log.debug("There was an error closing the input stream.", ex);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         dockerClient.tagImageCmd(imageId, DOCKER_HUB_REPO_PATH, tag).exec();
-        log.info("Tagged the loaded image.");
+        log.debug("Tagged the loaded image.");
 
         try {
             dockerClient.pushImageCmd(DOCKER_HUB_REPO_PATH)
@@ -217,12 +219,15 @@ public class UploadServiceImpl implements UploadService {
         } catch (InterruptedException ex) {
             throw new RuntimeException(ex);
         }
-        log.info("Successfully pushed the image to the docker-hub repository.");
+        log.debug("Successfully pushed the image to the docker-hub repository: " + DOCKER_HUB_REPO_PATH);
+        log.info("Successfully uploaded the image.");
 
-        // The image could be referenced in multiple containers and would need a force remove. The workaround is to
-        // remove the tagged instance by tag name and the base image by its image id.
+        /*
+         The image could be referenced in multiple containers and would need a force remove. The workaround is to
+         remove the tagged instance by tag name and afterwards the base image by its image id.
+        */
         dockerClient.removeImageCmd(DOCKER_HUB_REPO_PATH + ":" + experimentDetails.getId()).exec();
         dockerClient.removeImageCmd(imageId).exec();
-        log.info("Successfully removed the image from the local registry.");
+        log.debug("Successfully removed the image from the local registry.");
     }
 }
