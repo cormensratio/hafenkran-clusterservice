@@ -1,8 +1,6 @@
 package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
 import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.core.DefaultDockerClientConfig;
-import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.command.PushImageResultCallback;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceStorageException;
@@ -47,6 +45,9 @@ public class UploadServiceImpl implements UploadService {
 
     @Value("${experimentsFileUploadLocation}")
     private String path;
+
+    @Autowired
+    private DockerClient dockerClient;
 
     private Path getFileStoragePath(@NonNull ExperimentDetails experimentDetails) {
         return Paths.get(String
@@ -113,7 +114,8 @@ public class UploadServiceImpl implements UploadService {
                     Files.newInputStream(getPathToTar(experimentDetails));
         } catch (IOException ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Uploaded image " + getPathToTar(experimentDetails) + " could not be extracted from file", ex);
+                    "Uploaded experiment " + experimentDetails.getName() + " with id " + experimentDetails.getId()
+                            + " could not be extracted from file.", ex);
         }
         log.info("Successfully extracted the uploaded file.");
         return inputStream;
@@ -126,7 +128,8 @@ public class UploadServiceImpl implements UploadService {
                     new TarArchiveInputStream(new FileInputStream(new File(String.valueOf(getPathToTar(experimentDetails)))));
         } catch (IOException ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Uploaded image " + getPathToTar(experimentDetails) + " could not be extracted from file", ex);
+                    "Uploaded experiment " + experimentDetails.getName() + " with id " + experimentDetails.getId()
+                            + " could not be extracted from file.", ex);
         }
         return tarStream;
     }
@@ -151,27 +154,26 @@ public class UploadServiceImpl implements UploadService {
                         tarStream.close();
                     } catch (IOException ex) {
                         throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                                "Image ID of uploaded image " + getPathToTar(experimentDetails) + " could not be " +
-                                        "extracted from file.", ex);
+                                "Image id of uploaded experiment " + experimentDetails.getName() + " with id " + experimentDetails.getId()
+                                        + " could not be extracted from file.", ex);
                     }
                     return imageId;
                 }
             }
         } catch (IOException ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Error reading entry for manifest.json in " + getPathToTar(experimentDetails), ex);
+                    "Error reading entry for manifest.json in uploaded experiment " + experimentDetails.getName() +
+                            " with id " + experimentDetails.getId(), ex);
         }
         if (imageId.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Entry of manifest.json could not be found in " + getPathToTar(experimentDetails));
+                    "Entry of manifest.json could not be found in " + experimentDetails.getName() + " with id " + experimentDetails.getId());
         }
         return imageId;
     }
 
     private void pushImageToDockerHub(@NonNull InputStream inputStream,
                                       @NonNull ExperimentDetails experimentDetails) {
-
-        //TODO: Check constraints for repository naming!
 
         String imageId = extractImageIdFromTar(experimentDetails);
         String tag = experimentDetails.getId().toString();
@@ -190,26 +192,19 @@ public class UploadServiceImpl implements UploadService {
 
         */
 
-        DefaultDockerClientConfig.Builder config = DefaultDockerClientConfig
-                .createDefaultConfigBuilder();
-
-        DockerClient dockerClient = DockerClientBuilder
-                .getInstance(config)
-                .build();
-        log.debug("Created default docker client");
-
         dockerClient.loadImageCmd(inputStream).exec();
-        log.debug("Successfully loaded the image into the local registry.");
+        log.debug("Successfully loaded the image with experiment name " + experimentDetails.getName()
+                + " and experiment id " + experimentDetails.getId() + " into the local registry.");
 
         try {
             inputStream.close();
         } catch (IOException ex) {
-            log.debug("There was an error closing the input stream.", ex);
+            log.debug("An error occurred while closing the input stream.", ex);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         dockerClient.tagImageCmd(imageId, DOCKER_HUB_REPO_PATH, tag).exec();
-        log.debug("Tagged the loaded image.");
+        log.debug("Tagged the loaded image with experiment id " + experimentDetails.getId());
 
         try {
             dockerClient.pushImageCmd(DOCKER_HUB_REPO_PATH)
@@ -230,4 +225,5 @@ public class UploadServiceImpl implements UploadService {
         dockerClient.removeImageCmd(imageId).exec();
         log.debug("Successfully removed the image from the local registry.");
     }
+
 }
