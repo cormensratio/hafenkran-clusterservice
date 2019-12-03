@@ -220,7 +220,6 @@ public class ExecutionServiceImpl implements ExecutionService {
         final long bookedTime;
 
         String inputName;
-        boolean gotInputNameFromExperiment;
 
         // Get name either from the execCreateDTO or from the experiment
         if (!execCreateDTO.getName().isPresent()) {
@@ -229,18 +228,13 @@ public class ExecutionServiceImpl implements ExecutionService {
                         "Experimentname must be at least one alphanumeric letter.");
             }
             inputName = experiment.getName();
-            gotInputNameFromExperiment = true;
         } else {
             inputName = execCreateDTO.getName().get();
-            gotInputNameFromExperiment = false;
         }
 
         // Check if the name is containing the filetype and change the name if true
         if (inputName.contains(String.valueOf('.'))) {
             inputName = inputName.substring(0, inputName.indexOf('.'));
-            if (gotInputNameFromExperiment) {
-                experiment.setName(inputName);
-            }
         }
 
         // Check if the name matches the regex
