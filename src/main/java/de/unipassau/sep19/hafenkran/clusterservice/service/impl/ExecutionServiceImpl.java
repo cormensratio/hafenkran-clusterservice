@@ -235,7 +235,7 @@ public class ExecutionServiceImpl implements ExecutionService {
             gotInputNameFromExperiment = false;
         }
 
-        // Check if the name is containing the fileending and change the name if true
+        // Check if the name is containing the filetype and change the name if true
         if (inputName.contains(String.valueOf('.'))) {
             inputName = inputName.substring(0, inputName.indexOf('.'));
             if (gotInputNameFromExperiment) {
