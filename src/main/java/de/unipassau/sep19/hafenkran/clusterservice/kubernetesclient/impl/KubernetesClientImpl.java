@@ -2,25 +2,22 @@ package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl;
 
 import com.google.gson.JsonSyntaxException;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
+import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import io.kubernetes.client.ApiClient;
 import io.kubernetes.client.ApiException;
 import io.kubernetes.client.Configuration;
+import io.kubernetes.client.PodLogs;
 import io.kubernetes.client.apis.CoreV1Api;
-import io.kubernetes.client.models.V1Container;
-import io.kubernetes.client.models.V1ContainerBuilder;
-import io.kubernetes.client.models.V1ContainerPort;
-import io.kubernetes.client.models.V1DeleteOptions;
-import io.kubernetes.client.models.V1Namespace;
-import io.kubernetes.client.models.V1NamespaceBuilder;
-import io.kubernetes.client.models.V1NamespaceList;
-import io.kubernetes.client.models.V1Pod;
-import io.kubernetes.client.models.V1PodBuilder;
+import io.kubernetes.client.models.*;
 import io.kubernetes.client.util.Config;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -119,6 +116,38 @@ public class KubernetesClientImpl implements KubernetesClient {
         }
     }
 
+    @Override
+    public String retrieveLogs(@NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamps) throws ApiException {
+
+        if (!executionDetails.getStatus().equals(ExecutionDetails.Status.RUNNING)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    String.format("Found execution for id %s, but with status %s.", executionDetails.getId(),
+                            executionDetails.getStatus()));
+        }
+
+        final String namespace = executionDetails.getExperimentDetails().getId().toString();
+        final String podName = executionDetails.getPodName();
+
+        final PodLogs logs = new PodLogs();
+
+        InputStream is = null;
+        try {
+            is = logs.streamNamespacedPodLog(namespace, podName, null, sinceSeconds, lines, withTimestamps);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (is == null) {
+            return "";
+        }
+
+        final Reader r = new InputStreamReader(is, StandardCharsets.UTF_8);
+        final BufferedReader br = new BufferedReader(r);
+        return br.lines().collect(Collectors.joining("\n"));
+
+
+    }
+
     private List<String> getAllNamespaces() throws ApiException {
         V1NamespaceList listNamespace =
                 api.listNamespace(true, "pretty", null, null, null, 0, null, Integer.MAX_VALUE, Boolean.FALSE);
@@ -140,7 +169,8 @@ public class KubernetesClientImpl implements KubernetesClient {
 
     }
 
-    private void createKubernetesPod(@NonNull String namespaceString, @NonNull String podName, @NonNull String image,
+    private void createKubernetesPod(@NonNull String namespaceString, @NonNull String podName, @NonNull String
+            image,
                                      @NonNull Map<String, String> labels) throws ApiException {
         V1ContainerPort containerPort = new V1ContainerPort();
         containerPort.containerPort(5000);
