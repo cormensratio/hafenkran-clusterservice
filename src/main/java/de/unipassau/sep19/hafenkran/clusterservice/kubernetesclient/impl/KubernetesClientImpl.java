@@ -50,12 +50,7 @@ public class KubernetesClientImpl implements KubernetesClient {
     }
 
     /**
-     * Creates Kubernetes Pod.
-     *
-     * @param experimentId  id of the experiment where the execution is stored
-     * @param executionName the name of the execution which should be deployed as a pod in kubernetes
-     * @return the name of the pod in kubernetes
-     * @throws ApiException if the communication with the api results in an error
+     * {@inheritDoc}
      */
     @Override
     public String createPod(@NonNull UUID experimentId, @NonNull String executionName) throws ApiException {
@@ -80,18 +75,14 @@ public class KubernetesClientImpl implements KubernetesClient {
     }
 
     /**
-     * Deletes Kubernetes Pod.
-     *
-     * @param experimentId  id of the experiment where the execution is stored
-     * @param executionName the name of the execution which pod should be deleted from kubernetes.
-     * @throws ApiException if the communication with the api results in an error
+     * {@inheritDoc}
      */
     @Override
     public void deletePod(@NonNull UUID experimentId, @NonNull String executionName) throws ApiException {
-        String namespaceString = experimentId.toString();
+        String namespace = experimentId.toString();
         String podName = executionName.toLowerCase();
 
-        if (namespaceString.isEmpty()) {
+        if (namespace.isEmpty()) {
             throw new IllegalArgumentException("Namespace is empty.");
         }
         if (podName.isEmpty()) {
@@ -99,7 +90,7 @@ public class KubernetesClientImpl implements KubernetesClient {
         }
         try {
             V1DeleteOptions deleteOptions = new V1DeleteOptions();
-            api.deleteNamespacedPod(podName, namespaceString, "pretty", deleteOptions, null, null, null, null);
+            api.deleteNamespacedPod(podName, namespace, "pretty", deleteOptions, null, null, null, null);
             log.info("Deleted pod {}", podName);
         } catch (JsonSyntaxException e) {
             if (e.getCause() instanceof IllegalStateException) {
@@ -113,6 +104,9 @@ public class KubernetesClientImpl implements KubernetesClient {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String retrieveLogs(@NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamps) throws ApiException {
 
@@ -145,13 +139,17 @@ public class KubernetesClientImpl implements KubernetesClient {
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void sendSTIN(@NonNull String input, @NonNull ExecutionDetails executionDetails) throws IOException, ApiException {
         Exec exec = new Exec();
 
-        String experimentId = executionDetails.getExperimentDetails().getId().toString();
+        String namespace = executionDetails.getExperimentDetails().getId().toString();
+        String podName = executionDetails.getName().toLowerCase();
 
-        exec.exec(experimentId, executionDetails.getName().toLowerCase(), new String[]{input}, true, false);
+        exec.exec(namespace, podName, new String[]{input}, false, false);
     }
 
 

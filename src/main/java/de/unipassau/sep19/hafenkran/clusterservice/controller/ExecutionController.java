@@ -87,6 +87,12 @@ public class ExecutionController {
         return executionService.terminateExecution(executionId);
     }
 
+    /**
+     * POST-Endpoint for sending standardinputs to an execution.
+     *
+     * @param executionId The execution to receive inputs.
+     * @param stdinDTO    The input to be sent.
+     */
     @PostMapping("/{executionId}/stdin")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)

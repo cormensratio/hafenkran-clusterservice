@@ -75,6 +75,12 @@ public interface ExecutionService {
      */
     List<ExecutionDTO> retrieveExecutionsDTOListForUserId(@NonNull UUID userId);
 
+    /**
+     * Sends an standardinput {@code stdinDTO} to a specific execution with the {@code executionId}.
+     *
+     * @param executionId The id of the execution, which should receive the input.
+     * @param stdinDTO    The input to be sent.
+     */
     void sendSTDIN(@NonNull UUID executionId, @NonNull StdinDTO stdinDTO);
 
 }
