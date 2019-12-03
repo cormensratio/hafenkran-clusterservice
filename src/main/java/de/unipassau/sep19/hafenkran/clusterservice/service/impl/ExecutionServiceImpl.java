@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
@@ -248,16 +249,17 @@ public class ExecutionServiceImpl implements ExecutionService {
      * {@inheritDoc}
      */
     @Override
-    public ExecutionDetails deleteExecution(@NonNull UUID executionId) {
+    @Transactional
+    public ExecutionDTO deleteExecution(@NonNull UUID executionId) {
 
         ExecutionDetails executionDetails = getExecutionDetails(executionId);
 
-        if (executionDetails.getStatus().equals(ExecutionDetails.Status.RUNNING) || executionDetails.getStatus().equals(ExecutionDetails.Status.WAITING)) {
+        if (executionDetails.getStatus().equals(ExecutionDetails.Status.RUNNING)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Can not delete executions in running or waiting");
         }
 
-        executionRepository.deleteExecutionDetailsById(executionId);
+        executionRepository.deleteById(executionId);
         log.info(String.format("Execution with id %S deleted", executionId));
-        return executionDetails;
+        return ExecutionDTO.fromExecutionDetails(executionDetails);
     }
 }

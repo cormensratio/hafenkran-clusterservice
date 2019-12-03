@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -90,7 +91,7 @@ public class ExecutionController {
     @DeleteMapping("/{executionId}")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public ExecutionDetails deleteExecution(@NonNull @PathVariable UUID executionId) {
+    public ExecutionDTO deleteExecution(@NonNull @PathVariable UUID executionId) {
         return executionService.deleteExecution(executionId);
     }
 
