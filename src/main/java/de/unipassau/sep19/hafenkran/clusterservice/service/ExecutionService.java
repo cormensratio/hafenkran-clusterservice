@@ -3,6 +3,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.service;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.StdinDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import lombok.NonNull;
 
@@ -73,5 +74,7 @@ public interface ExecutionService {
      * @return The list of {@link ExecutionDTO}s of the requested {@code userId}.
      */
     List<ExecutionDTO> retrieveExecutionsDTOListForUserId(@NonNull UUID userId);
+
+    void sendSTDIN(@NonNull UUID executionId, @NonNull StdinDTO stdinDTO);
 
 }

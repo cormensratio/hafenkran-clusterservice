@@ -4,6 +4,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import io.kubernetes.client.ApiException;
 import lombok.NonNull;
 
+import java.io.IOException;
 import java.util.UUID;
 
 /**
@@ -32,5 +33,7 @@ public interface KubernetesClient {
      * @throws ApiException if the pod can't be deleted
      */
     String retrieveLogs(@NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamps) throws ApiException;
+
+    void sendSTIN(@NonNull String input, @NonNull ExecutionDetails executionDetails) throws IOException, ApiException;
 
 }

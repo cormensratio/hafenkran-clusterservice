@@ -2,6 +2,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.controller;
 
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.StdinDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
 import lombok.NonNull;
@@ -84,6 +85,13 @@ public class ExecutionController {
     @ResponseStatus(HttpStatus.OK)
     public ExecutionDTO terminateExecution(@NonNull @PathVariable UUID executionId) {
         return executionService.terminateExecution(executionId);
+    }
+
+    @PostMapping("/{executionId}/stdin")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public void sendSTDIN(@NonNull @PathVariable UUID executionId, @NonNull @RequestBody StdinDTO stdinDTO) {
+        executionService.sendSTDIN(executionId, stdinDTO);
     }
 
 }

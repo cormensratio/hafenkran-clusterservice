@@ -3,10 +3,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl;
 import com.google.gson.JsonSyntaxException;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
-import io.kubernetes.client.ApiClient;
-import io.kubernetes.client.ApiException;
-import io.kubernetes.client.Configuration;
-import io.kubernetes.client.PodLogs;
+import io.kubernetes.client.*;
 import io.kubernetes.client.apis.CoreV1Api;
 import io.kubernetes.client.models.*;
 import io.kubernetes.client.util.Config;
@@ -147,6 +144,16 @@ public class KubernetesClientImpl implements KubernetesClient {
 
 
     }
+
+    @Override
+    public void sendSTIN(@NonNull String input, @NonNull ExecutionDetails executionDetails) throws IOException, ApiException {
+        Exec exec = new Exec();
+
+        String experimentId = executionDetails.getExperimentDetails().getId().toString();
+
+        exec.exec(experimentId, executionDetails.getName().toLowerCase(), new String[]{input}, true, false);
+    }
+
 
     private List<String> getAllNamespaces() throws ApiException {
         V1NamespaceList listNamespace =
