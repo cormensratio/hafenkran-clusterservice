@@ -8,7 +8,7 @@ spring:
     password: test
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     show-sql: true
   servlet:
     multipart:
@@ -16,6 +16,7 @@ spring:
       max-request-size: -1
 
 experimentsFileUploadLocation: /tmp/hafenkran-clusterservice
+dockerHubRepoPath: hafenkran/hafenkran-repo
 
 mockdata: true
 mockKubernetesClient: false
@@ -30,3 +31,8 @@ kubernetes:
 
 jwt:
   secret: MCgCIQCAS7IFlSvaBOPXwSBHo+7+6C4RbkvYj3fgI5+Abe4pRwIDAQAB
+
+dockerRegistry.username: hafenkran
+dockerRegistry.password: president encode cold
+dockerRegistry.email: hafenkran@protonmail.com
+dockerRegistry.authKey: aGFmZW5rcmFuOnByZXNpZGVudCBlbmNvZGUgY29sZA==

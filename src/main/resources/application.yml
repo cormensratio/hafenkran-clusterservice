@@ -36,3 +36,8 @@ kubernetes:
       cpu: 10
       bookedTime: 3600
   defaultLogLines: 500
+
+dockerRegistry.username:
+dockerRegistry.password:
+dockerRegistry.email:
+dockerRegistry.authKey:
