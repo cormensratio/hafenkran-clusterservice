@@ -4,6 +4,8 @@ import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import io.kubernetes.client.ApiException;
 import lombok.NonNull;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.UUID;
 
 /**
@@ -33,4 +35,5 @@ public interface KubernetesClient {
      */
     String retrieveLogs(@NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamps) throws ApiException;
 
+    Path retrieveResults(@NonNull ExecutionDetails executionDetails) throws ApiException, IOException;
 }

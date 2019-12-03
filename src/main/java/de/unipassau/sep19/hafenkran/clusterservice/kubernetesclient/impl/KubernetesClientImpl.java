@@ -3,21 +3,21 @@ package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl;
 import com.google.gson.JsonSyntaxException;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
-import io.kubernetes.client.ApiClient;
-import io.kubernetes.client.ApiException;
-import io.kubernetes.client.Configuration;
-import io.kubernetes.client.PodLogs;
+import io.kubernetes.client.*;
 import io.kubernetes.client.apis.CoreV1Api;
 import io.kubernetes.client.models.*;
 import io.kubernetes.client.util.Config;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +32,9 @@ import java.util.stream.Collectors;
 public class KubernetesClientImpl implements KubernetesClient {
 
     private CoreV1Api api;
+
+    @Value("${resultsStorageLocation}")
+    private String path;
 
     /**
      * Constructor of KubernetesClientImpl.
@@ -116,6 +119,9 @@ public class KubernetesClientImpl implements KubernetesClient {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String retrieveLogs(@NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamps) throws ApiException {
 
@@ -146,6 +152,21 @@ public class KubernetesClientImpl implements KubernetesClient {
         return br.lines().collect(Collectors.joining("\n"));
 
 
+    }
+
+    @Override
+    public Path retrieveResults(@NonNull ExecutionDetails executionDetails) throws ApiException, IOException {
+        Copy copy = new Copy();
+
+        String namespace = executionDetails.getExperimentDetails().getId().toString();
+        String podName = executionDetails.getPodName();
+
+        // Configure exact naming of resultStorageLocation-path
+        Path resultStorageLocation = Paths.get(String.format("%s/%s", path, executionDetails.getId())).toAbsolutePath().normalize();
+
+        copy.copyDirectoryFromPod(api.readNamespacedPod(podName, namespace, "pretty", null, null), podName, resultStorageLocation);
+
+        return resultStorageLocation;
     }
 
     private List<String> getAllNamespaces() throws ApiException {

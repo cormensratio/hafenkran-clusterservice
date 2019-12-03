@@ -15,12 +15,16 @@ import io.kubernetes.client.ApiException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.utils.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -167,6 +171,68 @@ public class ExecutionServiceImpl implements ExecutionService {
 
         executionDetailsList.forEach(ExecutionDetails::validatePermissions);
         return ExecutionDTOList.fromExecutionDetailsList(executionDetailsList);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public byte[] getResults(@NonNull UUID executionId) {
+        ExecutionDetails executionDetails = retrieveExecutionDetailsById(executionId);
+        Path resultStoragePath;
+
+        try {
+            resultStoragePath = kubernetesClient.retrieveResults(executionDetails);
+        } catch (IOException | ApiException e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
+                    "communicating with the cluster.", e);
+        }
+
+        /*// Zip results
+        String sourceFile = resultStoragePath.toString();
+        FileOutputStream fos = new FileOutputStream("results.tar.gz");
+        ZipOutputStream zipOut = new ZipOutputStream(fos);
+        File fileToZip = new File(sourceFile);
+
+
+        if (fileToZip.isHidden()) {
+            return;
+        }
+        if (fileToZip.isDirectory()) {
+            if (fileName.endsWith("/")) {
+                zipOut.putNextEntry(new ZipEntry(fileName));
+                zipOut.closeEntry();
+            } else {
+                zipOut.putNextEntry(new ZipEntry(fileName + "/"));
+                zipOut.closeEntry();
+            }
+            File[] children = fileToZip.listFiles();
+            for (File childFile : children) {
+                zipFile(childFile, fileName + "/" + childFile.getName(), zipOut);
+            }
+            return;
+        }
+        FileInputStream fis = new FileInputStream(fileToZip);
+        ZipEntry zipEntry = new ZipEntry(fileName);
+        zipOut.putNextEntry(zipEntry);
+        byte[] bytes = new byte[1024];
+        int length;
+        while ((length = fis.read(bytes)) >= 0) {
+            zipOut.write(bytes, 0, length);
+        }
+        fis.close();*/
+
+
+        InputStream in = getClass().getResourceAsStream(resultStoragePath.toString());
+        byte[] results;
+        try {
+            results = IOUtils.toByteArray(in);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "There were no results found at the " +
+                    "resultStorageLocation.", e);
+        }
+
+        return results;
     }
 
     private ExecutionDetails startExecution(@NonNull ExecutionDetails executionDetails) {

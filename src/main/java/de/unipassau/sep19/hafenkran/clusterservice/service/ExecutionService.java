@@ -74,4 +74,12 @@ public interface ExecutionService {
      */
     List<ExecutionDTO> retrieveExecutionsDTOListForUserId(@NonNull UUID userId);
 
+    /**
+     * Returns a file with all results of the execution with the {@code executionId}.
+     *
+     * @param executionId The id of the execution, which results should be returned.
+     * @return A file with all results from the execution.
+     */
+    byte[] getResults(@NonNull UUID executionId);
+
 }

@@ -16,6 +16,7 @@ spring:
       max-request-size: -1
 
 experimentsFileUploadLocation: /tmp/hafenkran-clusterservice
+resultsStorageLocation: /tmp/hafenkran-clusterservice/results
 
 mockdata: true
 mockKubernetesClient: false
