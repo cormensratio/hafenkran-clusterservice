@@ -3,6 +3,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.controller;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
+import de.unipassau.sep19.hafenkran.clusterservice.service.ReportingService;
 import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,6 +27,8 @@ import java.util.UUID;
 public class ExecutionController {
 
     private final ExecutionService executionService;
+
+    private final ReportingService reportingService;
 
     @Value("${kubernetes.defaultLogLines}")
     private int defaultLogLines;
@@ -84,6 +88,13 @@ public class ExecutionController {
     @ResponseStatus(HttpStatus.OK)
     public ExecutionDTO terminateExecution(@NonNull @PathVariable UUID executionId) {
         return executionService.terminateExecution(executionId);
+    }
+
+    @GetMapping("/{executionId}/results")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public File getPersistentResultsForExecution(@NonNull @PathVariable UUID executionId) {
+        return reportingService.getPersistentResults(executionId);
     }
 
 }
