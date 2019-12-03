@@ -464,7 +464,7 @@ public class ExecutionServiceImplTest {
     public void testCreateAndStartExecution_emptyExecCreateDTONameAndExperimentNameContainsDot_validExecutionDTO() {
 
         // Arrange
-        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "Test.zip", 1L);
+        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "Test", 1L);
         mockExperimentDetails.setId(MOCK_EXPERIMENT_ID);
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, "Test-1",
                 1L, 1L, 1L);

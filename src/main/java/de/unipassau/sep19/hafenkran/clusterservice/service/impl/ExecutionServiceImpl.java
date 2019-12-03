@@ -219,54 +219,34 @@ public class ExecutionServiceImpl implements ExecutionService {
         final long cpu;
         final long bookedTime;
 
+        String inputName;
+
+        // Get name either from the execCreateDTO or from the experiment
         if (!execCreateDTO.getName().isPresent()) {
             if (experiment.getName().isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                         "Experimentname must be at least one alphanumeric letter.");
-            } else if (experiment.getName().contains(String.valueOf('.'))) {
-                String expName = experiment.getName().substring(0,
-                        experiment.getName().indexOf('.')) + "-"
-                        + (experiment.getExecutionDetails().size() + 1);
-                if (Pattern.matches(regex, expName.toLowerCase())) {
-                    name = expName;
-                    experiment.setName(expName);
-                } else {
-                    throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                            "You can only use alphanumeric letters and a hyphen for naming. "
-                                    + "Must start and end alphanumeric.");
-                }
-            } else {
-                if (Pattern.matches(regex, experiment.getName().toLowerCase())) {
-                    name = experiment.getName() + "-" + (experiment.getExecutionDetails().size() + 1);
-                } else {
-                    throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                            "You can only use alphanumeric letters and a hyphen for naming. "
-                                    + "Must start and end alphanumeric.");
-                }
             }
-        } else { //custom naming atm not possible at hafenkran client but server-side already implemented here
-            if (execCreateDTO.getName().toString().contains(String.valueOf('.'))) {
-                String execName = execCreateDTO.getName().get().substring(0,
-                        execCreateDTO.getName().get().indexOf('.')) + "-"
-                        + (experiment.getExecutionDetails().size() + 1);
-                if (Pattern.matches(regex, execName.toLowerCase())) {
-                    name = execName;
-                } else {
-                    throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                            "You can only use alphanumeric letters and a hyphen for naming. "
-                                    + "Must start and end alphanumeric.");
-                }
-            } else {
-                if (Pattern.matches(regex, execCreateDTO.getName().get().toLowerCase())) {
-                    name = execCreateDTO.getName() + "-" + (experiment.getExecutionDetails().size() + 1);
-                } else {
-                    throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                            "You can only use alphanumeric letters and a hyphen for naming. "
-                                    + "Must start and end alphanumeric.");
-                }
-            }
+            inputName = experiment.getName();
+        } else {
+            inputName = execCreateDTO.getName().get();
         }
 
+        // Check if the name is containing the filetype and change the name if true
+        if (inputName.contains(String.valueOf('.'))) {
+            inputName = inputName.substring(0, inputName.indexOf('.'));
+        }
+
+        // Check if the name matches the regex
+        if (Pattern.matches(regex, inputName.toLowerCase())) {
+            name = inputName + "-" + (experiment.getExecutionDetails().size() + 1);
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "You can only use alphanumeric letters and a hyphen for naming. "
+                            + "Must start and end alphanumeric.");
+        }
+
+        // Set variables from the ExecutionDetails
         if (!execCreateDTO.getRam().isPresent() || execCreateDTO.getRam().get() <= 0) {
             ram = ramDefault;
         } else {
