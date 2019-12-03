@@ -6,14 +6,7 @@ import io.kubernetes.client.ApiClient;
 import io.kubernetes.client.ApiException;
 import io.kubernetes.client.Configuration;
 import io.kubernetes.client.apis.CoreV1Api;
-import io.kubernetes.client.models.V1Container;
-import io.kubernetes.client.models.V1ContainerBuilder;
-import io.kubernetes.client.models.V1DeleteOptions;
-import io.kubernetes.client.models.V1Namespace;
-import io.kubernetes.client.models.V1NamespaceBuilder;
-import io.kubernetes.client.models.V1NamespaceList;
-import io.kubernetes.client.models.V1Pod;
-import io.kubernetes.client.models.V1PodBuilder;
+import io.kubernetes.client.models.*;
 import io.kubernetes.client.util.Config;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -57,7 +50,7 @@ public class KubernetesClientImpl implements KubernetesClient {
      * {@inheritDoc}
      */
     public String createPod(@NonNull String userName, @NonNull String experimentName, @NonNull String executionName) throws ApiException {
-        String experimentNameSubstring = experimentName.toLowerCase().substring(0, experimentName.lastIndexOf('.'));
+        String experimentNameSubstring = experimentName.toLowerCase();
         String namespaceString = userName.toLowerCase() + "-" + experimentNameSubstring;
         String image = "martinjl/examples:1.0";
         String podName = executionName.toLowerCase();
@@ -137,7 +130,10 @@ public class KubernetesClientImpl implements KubernetesClient {
                 .withName(podName)
                 .withImage(image)
                 .withImagePullPolicy("IfNotPresent")
+                .withStdin(true)
+                .withTty(true)
                 .build();
+
         V1Pod pod = new V1PodBuilder()
                 .withApiVersion("v1")
                 .withKind("Pod")
@@ -147,6 +143,8 @@ public class KubernetesClientImpl implements KubernetesClient {
                 .endMetadata()
                 .withNewSpec()
                 .withContainers(container)
+                .withRestartPolicy("Never")
+                .withHostNetwork(true)
                 .endSpec()
                 .build();
         api.createNamespacedPod(namespaceString, pod, true, "pretty", null);
