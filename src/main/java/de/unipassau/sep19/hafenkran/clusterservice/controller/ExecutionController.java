@@ -2,7 +2,6 @@ package de.unipassau.sep19.hafenkran.clusterservice.controller;
 
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
-import de.unipassau.sep19.hafenkran.clusterservice.model.*;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
 import lombok.NonNull;
@@ -12,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.transaction.annotation.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -91,7 +89,7 @@ public class ExecutionController {
 
     /**
      * DELETE-Endpoint for deleting an execution from an experiment.
-     * 
+     *
      * @param executionId The id from the execution, which should be deleted.
      * @return An {@link ExecutionDTO} from the deleted execution.
      */
@@ -101,7 +99,13 @@ public class ExecutionController {
     public ExecutionDTO deleteExecution(@NonNull @PathVariable UUID executionId) {
         return executionService.deleteExecution(executionId);
     }
-    
+
+    /**
+     * GET-Endpoint for receiving the results of the execution with the {@code executionId}.
+     *
+     * @param executionId The id from the execution to get the results from.
+     * @return A byteArray with the results.
+     */
     @GetMapping(value = "/{executionId}/results", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
