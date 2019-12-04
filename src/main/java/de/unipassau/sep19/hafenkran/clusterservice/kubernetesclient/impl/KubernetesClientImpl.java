@@ -100,7 +100,7 @@ public class KubernetesClientImpl implements KubernetesClient {
         String podName = executionName.toLowerCase();
         List<String> allPodsInNamespace = getAllPodsFromNamespace(namespaceString);
 
-        if (namespace.isEmpty()) {
+        if (namespaceString.isEmpty()) {
             throw new IllegalArgumentException("Namespace is empty.");
         }
         if (podName.isEmpty()) {
