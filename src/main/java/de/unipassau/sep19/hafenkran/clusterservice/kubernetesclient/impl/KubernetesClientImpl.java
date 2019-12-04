@@ -96,7 +96,7 @@ public class KubernetesClientImpl implements KubernetesClient {
      */
     @Override
     public void deletePod(@NonNull UUID experimentId, @NonNull String executionName) throws ApiException {
-        String namespace = experimentId.toString();
+        String namespaceString = experimentId.toString();
         String podName = executionName.toLowerCase();
         List<String> allPodsInNamespace = getAllPodsFromNamespace(namespaceString);
 
