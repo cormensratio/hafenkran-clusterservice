@@ -154,6 +154,9 @@ public class KubernetesClientImpl implements KubernetesClient {
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Path retrieveResults(@NonNull ExecutionDetails executionDetails) throws ApiException, IOException {
         Copy copy = new Copy();

@@ -6,6 +6,8 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.UUID;
 
 /**
@@ -43,6 +45,12 @@ public class KubernetesClientMockImpl implements KubernetesClient {
                 "KubernetesClientMockImpl: Retrieving first %s lines printed to the log since %s for pod %s with id %s",
                 lines, sinceSeconds, executionDetails.getPodName(), executionDetails.getId()));
         return String.format("this is a test log for %s \n 1 \n 2", executionDetails.getPodName());
+    }
+
+    @Override
+    public Path retrieveResults(@NonNull ExecutionDetails executionDetails) {
+        log.info(String.format("KubernetesClientMockImpl: Results retrieved from execution with id %s", executionDetails.getId()));
+        return Paths.get("tmp/hafenkran-clusterservice/results/" + executionDetails.getId());
     }
 
 }
