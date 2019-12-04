@@ -53,6 +53,23 @@ public class ExecutionServiceImpl implements ExecutionService {
     /**
      * {@inheritDoc}
      */
+    @Override
+    public String retrieveLogsForExecutionId(@NonNull UUID id, int lines, Integer sinceSeconds, boolean withTimestamps) {
+        final String userName = SecurityContextUtil.getCurrentUserDTO().getName();
+        final String logs;
+        try {
+            logs = kubernetesClient.retrieveLogs(userName, retrieveExecutionDetailsById(id), lines, sinceSeconds, withTimestamps);
+        } catch (ApiException e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
+                    "communicating with the cluster.", e);
+        }
+        return logs;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public ExecutionDTO createAndStartExecution(@NonNull ExecutionCreateDTO executionCreateDTO) {
         final ExecutionDetails executionDetails =
                 createExecutionFromExecCreateDTO(executionCreateDTO);
@@ -67,6 +84,7 @@ public class ExecutionServiceImpl implements ExecutionService {
     /**
      * {@inheritDoc}
      */
+    @Override
     public ExecutionDetails createExecution(@NonNull ExecutionDetails executionDetails) {
         final ExecutionDetails savedExecutionDetails =
                 executionRepository.save(executionDetails);
@@ -80,6 +98,7 @@ public class ExecutionServiceImpl implements ExecutionService {
     /**
      * {@inheritDoc}
      */
+    @Override
     public ExecutionDTO terminateExecution(@NonNull UUID executionId) {
 
         ExecutionDetails executionDetails = getExecutionDetails(executionId);
@@ -121,18 +140,24 @@ public class ExecutionServiceImpl implements ExecutionService {
     /**
      * {@inheritDoc}
      */
+    @Override
     public ExecutionDTO retrieveExecutionDTOById(@NonNull UUID id) {
+        return ExecutionDTO.fromExecutionDetails(retrieveExecutionDetailsById(id));
+    }
+
+    private ExecutionDetails retrieveExecutionDetailsById(@NonNull UUID id) {
         final Optional<ExecutionDetails> execution = executionRepository.findById(id);
         ExecutionDetails executionDetails = execution.orElseThrow(
                 () -> new ResourceNotFoundException(ExecutionDetails.class, "id",
                         id.toString()));
         executionDetails.validatePermissions();
-        return ExecutionDTO.fromExecutionDetails(executionDetails);
+        return executionDetails;
     }
 
     /**
      * {@inheritDoc}
      */
+    @Override
     public List<ExecutionDTO> retrieveExecutionsDTOListOfExperimentId(@NonNull UUID experimentId) {
         List<ExecutionDetails> executionDetailsList = executionRepository.findAllByExperimentDetails_Id(experimentId);
 
@@ -147,6 +172,7 @@ public class ExecutionServiceImpl implements ExecutionService {
     /**
      * {@inheritDoc}
      */
+    @Override
     public List<ExecutionDTO> retrieveExecutionsDTOListForUserId(@NonNull UUID userId) {
         List<ExecutionDetails> executionDetailsList = executionRepository.findAllByExperimentDetails_OwnerId(userId);
 
@@ -162,7 +188,12 @@ public class ExecutionServiceImpl implements ExecutionService {
         String podName;
         String userName = SecurityContextUtil.getCurrentUserDTO().getName();
         String experimentName = executionDetails.getExperimentDetails().getName();
+
+        if (experimentName.contains(String.valueOf('.'))) {
+            experimentName = experimentName.substring(0, experimentName.indexOf('.'));
+        }
         String executionName = executionDetails.getName();
+        UUID experimentId = executionDetails.getExperimentDetails().getId();
 
         if (userName.isEmpty() || experimentName.isEmpty() || executionName.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
@@ -171,7 +202,7 @@ public class ExecutionServiceImpl implements ExecutionService {
         } else if (Pattern.matches(regex, userName.toLowerCase()) && Pattern.matches(regex, experimentName.toLowerCase())
                 && Pattern.matches(regex, executionName.toLowerCase())) {
             try {
-                podName = kubernetesClient.createPod(userName, experimentName, executionName);
+                podName = kubernetesClient.createPod(userName, experimentName, executionName, experimentId);
             } catch (ApiException e) {
                 throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while "
                         + "communicating with the cluster.");
