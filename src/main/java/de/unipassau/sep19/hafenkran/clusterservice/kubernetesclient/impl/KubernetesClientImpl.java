@@ -3,10 +3,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl;
 import com.google.gson.JsonSyntaxException;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
-import io.kubernetes.client.ApiClient;
-import io.kubernetes.client.ApiException;
-import io.kubernetes.client.Configuration;
-import io.kubernetes.client.PodLogs;
+import io.kubernetes.client.*;
 import io.kubernetes.client.apis.CoreV1Api;
 import io.kubernetes.client.models.*;
 import io.kubernetes.client.util.Config;
@@ -69,12 +66,7 @@ public class KubernetesClientImpl implements KubernetesClient {
     }
 
     /**
-     * Creates Kubernetes Pod and if not already there the namespace and the image pull secret for the namespace.
-     *
-     * @param experimentId  id of the experiment where the execution is stored
-     * @param executionName the name of the execution which should be deployed as a pod in kubernetes
-     * @return the name of the pod in kubernetes
-     * @throws ApiException if the communication with the api results in an error
+     * {@inheritDoc}
      */
     @Override
     public String createPod(@NonNull UUID experimentId, @NonNull String executionName) throws ApiException {
@@ -100,11 +92,7 @@ public class KubernetesClientImpl implements KubernetesClient {
     }
 
     /**
-     * Deletes Kubernetes Pod.
-     *
-     * @param experimentId  id of the experiment where the execution is stored
-     * @param executionName the name of the execution which pod should be deleted from kubernetes.
-     * @throws ApiException if the communication with the api results in an error
+     * {@inheritDoc}
      */
     @Override
     public void deletePod(@NonNull UUID experimentId, @NonNull String executionName) throws ApiException {
@@ -139,6 +127,9 @@ public class KubernetesClientImpl implements KubernetesClient {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String retrieveLogs(@NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamps) throws ApiException {
 
@@ -168,6 +159,20 @@ public class KubernetesClientImpl implements KubernetesClient {
         final BufferedReader br = new BufferedReader(r);
         return br.lines().collect(Collectors.joining("\n"));
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void sendSTIN(@NonNull String input, @NonNull ExecutionDetails executionDetails) throws IOException, ApiException {
+        Exec exec = new Exec();
+
+        String namespace = executionDetails.getExperimentDetails().getId().toString();
+        String podName = executionDetails.getName().toLowerCase();
+
+        exec.exec(namespace, podName, new String[]{input}, false, false);
+    }
+
 
     private List<String> getAllNamespaces() throws ApiException {
         V1NamespaceList listNamespace =

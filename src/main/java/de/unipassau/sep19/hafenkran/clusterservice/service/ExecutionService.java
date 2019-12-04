@@ -3,6 +3,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.service;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.StdinDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import lombok.NonNull;
 
@@ -73,11 +74,21 @@ public interface ExecutionService {
      * @return The list of {@link ExecutionDTO}s of the requested {@code userId}.
      */
     List<ExecutionDTO> retrieveExecutionsDTOListForUserId(@NonNull UUID userId);
-
-    /**
-     * Deletes the execution with the given Id
+    
+    /** 
+     * Deletes the execution with the given Id.
+     * 
      * @param executionId The {@code executionId} of the execution that should be deleted
      * @return The boolean according to wether the deletion was successful or not
      */
     ExecutionDTO deleteExecution(@NonNull UUID executionId);
+
+    /**
+     * Sends an standardinput {@code stdinDTO} to a specific execution with the {@code executionId}.
+     *
+     * @param executionId The id of the execution, which should receive the input.
+     * @param stdinDTO    The input to be sent.
+     */
+    void sendSTDIN(@NonNull UUID executionId, @NonNull StdinDTO stdinDTO);
+
 }

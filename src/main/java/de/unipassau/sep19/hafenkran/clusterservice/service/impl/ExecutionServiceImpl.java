@@ -3,6 +3,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.StdinDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -168,6 +170,20 @@ public class ExecutionServiceImpl implements ExecutionService {
 
         executionDetailsList.forEach(ExecutionDetails::validatePermissions);
         return ExecutionDTOList.fromExecutionDetailsList(executionDetailsList);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void sendSTDIN(@NonNull UUID executionId, @NonNull StdinDTO stdinDTO) {
+        ExecutionDetails executionDetails = retrieveExecutionDetailsById(executionId);
+        try {
+            kubernetesClient.sendSTIN(stdinDTO.getInput(), executionDetails);
+        } catch (IOException | ApiException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "There was an error while " +
+                    "communicating with the cluster.", e);
+        }
     }
 
     private ExecutionDetails startExecution(@NonNull ExecutionDetails executionDetails) {
