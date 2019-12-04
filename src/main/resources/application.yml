@@ -24,6 +24,20 @@ spring:
 experimentsFileUploadLocation:
 
 mockdata: false
+mockKubernetesClient: false
+
 jwt:
   secret:
-mockKubernetesClient: false
+
+kubernetes:
+  deployment:
+    defaults:
+      ram: 1000
+      cpu: 10
+      bookedTime: 3600
+  defaultLogLines: 500
+
+dockerRegistry.username:
+dockerRegistry.password:
+dockerRegistry.email:
+dockerRegistry.authKey:
