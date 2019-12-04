@@ -22,14 +22,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Slf4j
 @Service
@@ -173,6 +171,26 @@ public class ExecutionServiceImpl implements ExecutionService {
         return ExecutionDTOList.fromExecutionDetailsList(executionDetailsList);
     }
 
+    private static LinkedList<String> getAllFiles(File rootFile) {
+        File[] files = rootFile.listFiles();
+        LinkedList<String> allFiles = new LinkedList<>();
+
+        if (files != null) {
+            for (File file : files) {
+
+                if (file.isDirectory()) {
+                    LinkedList<String> moreFiles = getAllFiles(file);
+                    allFiles.addAll(moreFiles);
+                } else {
+                    allFiles.add(file.getAbsolutePath());
+                }
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "There were no files within the rootFile.");
+        }
+        return allFiles;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -188,42 +206,38 @@ public class ExecutionServiceImpl implements ExecutionService {
                     "communicating with the cluster.", e);
         }
 
-        /*// Zip results
-        String sourceFile = resultStoragePath.toString();
-        FileOutputStream fos = new FileOutputStream("results.tar.gz");
-        ZipOutputStream zipOut = new ZipOutputStream(fos);
-        File fileToZip = new File(sourceFile);
-
-
-        if (fileToZip.isHidden()) {
-            return;
-        }
-        if (fileToZip.isDirectory()) {
-            if (fileName.endsWith("/")) {
-                zipOut.putNextEntry(new ZipEntry(fileName));
-                zipOut.closeEntry();
-            } else {
-                zipOut.putNextEntry(new ZipEntry(fileName + "/"));
-                zipOut.closeEntry();
-            }
-            File[] children = fileToZip.listFiles();
-            for (File childFile : children) {
-                zipFile(childFile, fileName + "/" + childFile.getName(), zipOut);
-            }
-            return;
-        }
-        FileInputStream fis = new FileInputStream(fileToZip);
-        ZipEntry zipEntry = new ZipEntry(fileName);
-        zipOut.putNextEntry(zipEntry);
         byte[] bytes = new byte[1024];
-        int length;
-        while ((length = fis.read(bytes)) >= 0) {
-            zipOut.write(bytes, 0, length);
+
+        // Zip results
+        try {
+            LinkedList<String> fileList = getAllFiles(resultStoragePath.toFile());
+
+            String outFilename = resultStoragePath.toString() + "/results.tar.gz";
+            FileOutputStream fos = new FileOutputStream(outFilename);
+            ZipOutputStream zos = new ZipOutputStream(fos);
+
+            for (String fileName : fileList) {
+
+                FileInputStream fis = new FileInputStream(fileName);
+                zos.putNextEntry(new ZipEntry(fileName));
+
+                int length;
+                while ((length = fis.read(bytes)) >= 0) {
+                    zos.write(bytes, 0, length);
+                }
+
+                zos.closeEntry();
+                fis.close();
+            }
+
+            zos.close();
+            fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        fis.close();*/
 
-
-        InputStream in = getClass().getResourceAsStream(resultStoragePath.toString());
+        // Get zipped results
+        InputStream in = getClass().getResourceAsStream(resultStoragePath.toString() + "/results.tar.gz");
         byte[] results;
         try {
             results = IOUtils.toByteArray(in);
