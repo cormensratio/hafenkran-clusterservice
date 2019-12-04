@@ -3,6 +3,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.StdinDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
@@ -25,6 +26,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.*;
 import java.nio.file.Path;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -175,37 +177,6 @@ public class ExecutionServiceImpl implements ExecutionService {
         return ExecutionDTOList.fromExecutionDetailsList(executionDetailsList);
     }
 
-    private static void zipFile(File fileToZip, String fileName, ZipOutputStream zipOut) throws IOException {
-        if (fileToZip.isDirectory()) {
-            if (fileName.endsWith("/")) {
-                zipOut.putNextEntry(new ZipEntry(fileName));
-            } else {
-                zipOut.putNextEntry(new ZipEntry(fileName + "/"));
-                zipOut.closeEntry();
-            }
-            File[] children = fileToZip.listFiles();
-            if (children != null) {
-                for (File childFile : children) {
-                    if (!childFile.getName().equals("results.tar.gz")) {
-                        zipFile(childFile, fileName + "/" + childFile.getName(), zipOut);
-                    }
-                }
-            }
-        }
-
-        FileInputStream fis = new FileInputStream(fileToZip);
-        ZipEntry zipEntry = new ZipEntry(fileName);
-        zipOut.putNextEntry(zipEntry);
-        byte[] bytes = new byte[1024];
-        int length;
-
-        while ((length = fis.read(bytes)) >= 0) {
-            zipOut.write(bytes, 0, length);
-        }
-
-        fis.close();
-    }
-
     /**
      * {@inheritDoc}
      */
@@ -271,6 +242,51 @@ public class ExecutionServiceImpl implements ExecutionService {
             }
         }
         return true;
+    }
+    
+    private static void zipFile(File fileToZip, String fileName, ZipOutputStream zipOut) throws IOException {
+        if (fileToZip.isDirectory()) {
+            if (fileName.endsWith("/")) {
+                zipOut.putNextEntry(new ZipEntry(fileName));
+            } else {
+                zipOut.putNextEntry(new ZipEntry(fileName + "/"));
+                zipOut.closeEntry();
+            }
+            File[] children = fileToZip.listFiles();
+            if (children != null) {
+                for (File childFile : children) {
+                    if (!childFile.getName().equals("results.tar.gz")) {
+                        zipFile(childFile, fileName + "/" + childFile.getName(), zipOut);
+                    }
+                }
+            }
+        }
+
+        FileInputStream fis = new FileInputStream(fileToZip);
+        ZipEntry zipEntry = new ZipEntry(fileName);
+        zipOut.putNextEntry(zipEntry);
+        byte[] bytes = new byte[1024];
+        int length;
+
+        while ((length = fis.read(bytes)) >= 0) {
+            zipOut.write(bytes, 0, length);
+        }
+
+        fis.close();
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void sendSTDIN(@NonNull UUID executionId, @NonNull StdinDTO stdinDTO) {
+        ExecutionDetails executionDetails = retrieveExecutionDetailsById(executionId);
+        try {
+            kubernetesClient.sendSTIN(stdinDTO.getInput(), executionDetails);
+        } catch (IOException | ApiException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "There was an error while " +
+                    "communicating with the cluster.", e);
+        }
     }
 
     private ExecutionDetails startExecution(@NonNull ExecutionDetails executionDetails) {

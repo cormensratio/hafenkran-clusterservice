@@ -57,4 +57,9 @@ public class KubernetesClientMockImpl implements KubernetesClient {
         return Paths.get(resultsStorageLocation + executionDetails.getId().toString());
     }
 
+    @Override
+    public void sendSTIN(@NonNull String input, @NonNull ExecutionDetails executionDetails) {
+        log.info(String.format("KubernetesClientMockImpl: Sending the following input to execution with id %s: %s", executionDetails.getId(), input));
+    }
+
 }

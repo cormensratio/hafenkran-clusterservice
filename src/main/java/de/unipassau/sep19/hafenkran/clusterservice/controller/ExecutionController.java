@@ -2,6 +2,8 @@ package de.unipassau.sep19.hafenkran.clusterservice.controller;
 
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.StdinDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.model.*;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
 import lombok.NonNull;
@@ -86,10 +88,10 @@ public class ExecutionController {
     public ExecutionDTO terminateExecution(@NonNull @PathVariable UUID executionId) {
         return executionService.terminateExecution(executionId);
     }
-
+    
     /**
      * DELETE-Endpoint for deleting an execution from an experiment.
-     *
+     * 
      * @param executionId The id from the execution, which should be deleted.
      * @return An {@link ExecutionDTO} from the deleted execution.
      */
@@ -111,6 +113,19 @@ public class ExecutionController {
     @ResponseStatus(HttpStatus.OK)
     public byte[] getResultsForExecution(@NonNull @PathVariable UUID executionId) {
         return executionService.getResults(executionId);
+    }
+
+    /**
+     * POST-Endpoint for sending standardinputs to an execution.
+     *
+     * @param executionId The execution to receive inputs.
+     * @param stdinDTO    The input to be sent.
+     */
+    @PostMapping("/{executionId}/stdin")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public void sendSTDIN(@NonNull @PathVariable UUID executionId, @NonNull @RequestBody StdinDTO stdinDTO) {
+        executionService.sendSTDIN(executionId, stdinDTO);
     }
 
 }
