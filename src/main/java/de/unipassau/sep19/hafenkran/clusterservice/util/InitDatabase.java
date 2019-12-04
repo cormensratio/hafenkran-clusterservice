@@ -33,13 +33,17 @@ public class InitDatabase implements CommandLineRunner {
         }
 
         final ExperimentDetails experimentDetails1 =
-                new ExperimentDetails(UUID.fromString("00000000-0000-0000-0000-000000000001"), "ColdFusionAlgorithm",
-                        300);
+                new ExperimentDetails(UUID.fromString(
+                        "00000000-0000-0000-0000-000000000001"),
+                        "ColdFusionAlgorithm",
+                        "ColdFusionAlgorithm.tar", 300);
         experimentDetails1.setId(UUID.fromString("00000000-0000-0000-0000-000000000001"));
         experimentService.createExperimentDatabaseInit(experimentDetails1);
 
         final ExperimentDetails experimentDetails2 =
-                new ExperimentDetails(UUID.fromString("00000000-0000-0000-0000-000000000001"), "CompletePI", 1024);
+                new ExperimentDetails(UUID.fromString("00000000-0000-0000-0000-000000000001"),
+                        "CompletePI",
+                        "CompletePI.tar", 1024);
         experimentDetails2.setId(UUID.fromString("00000000-0000-0000-0000-000000000002"));
         experimentService.createExperimentDatabaseInit(experimentDetails2);
 
