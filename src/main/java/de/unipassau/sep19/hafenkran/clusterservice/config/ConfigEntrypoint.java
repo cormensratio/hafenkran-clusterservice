@@ -1,8 +1,12 @@
 package de.unipassau.sep19.hafenkran.clusterservice.config;
 
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.core.DefaultDockerClientConfig;
+import com.github.dockerjava.core.DockerClientBuilder;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl.KubernetesClientImpl;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl.KubernetesClientMockImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -29,6 +33,7 @@ import java.io.IOException;
 @EnableJpaRepositories(basePackages = {
         "de.unipassau.sep19.hafenkran.clusterservice.repository",
 })
+@Slf4j
 @EnableAutoConfiguration
 public class ConfigEntrypoint {
 
@@ -55,6 +60,19 @@ public class ConfigEntrypoint {
     public void handleValidationExceptions(
             MethodArgumentNotValidException ex) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid parameters.", ex);
+    }
+
+    @Bean
+    public DockerClient dockerClient() {
+        DefaultDockerClientConfig.Builder config = DefaultDockerClientConfig
+                .createDefaultConfigBuilder();
+
+        DockerClient dockerClient = DockerClientBuilder
+                .getInstance(config)
+                .build();
+        log.debug("Created default docker client");
+
+        return dockerClient;
     }
 
 }
