@@ -75,6 +75,14 @@ public interface ExecutionService {
     List<ExecutionDTO> retrieveExecutionsDTOListForUserId(@NonNull UUID userId);
 
     /**
+     * Deletes the execution with the given Id.
+     * 
+     * @param executionId The {@code executionId} of the execution that should be deleted
+     * @return The boolean according to wether the deletion was successful or not
+     */
+    ExecutionDTO deleteExecution(@NonNull UUID executionId);
+    
+    /**
      * Returns a file with all results of the execution with the {@code executionId}.
      *
      * @param executionId The id of the execution, which results should be returned.

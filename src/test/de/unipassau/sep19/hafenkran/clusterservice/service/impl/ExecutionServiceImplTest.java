@@ -71,10 +71,13 @@ public class ExecutionServiceImplTest {
         this.subject = new ExecutionServiceImpl(mockExecutionRepository, mockExperimentRepository,
                 mockKubernetesClient);
 
-        ExperimentDetails experimentDetails = new ExperimentDetails(MOCK_USER_ID, "testExperiment", 500);
+        ExperimentDetails experimentDetails =
+                new ExperimentDetails(MOCK_USER_ID, "testExperiment",
+                        "testExperiment.tar", 500);
         experimentDetails.setId(MOCK_EXPERIMENT_ID);
 
-        this.testExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "ExpTest", 1L);
+        this.testExperimentDetails = new ExperimentDetails(MOCK_USER_ID,
+                "ExpTest", "ExpTest.tar",1L);
         testExperimentDetails.setId(MOCK_EXPERIMENT_ID);
         this.testExecutionDetails = new ExecutionDetails(MOCK_USER_ID, experimentDetails, "Test1", 1L, 1L, 1L);
         testExecutionDetails.setId(MOCK_EXECUTION_ID);
