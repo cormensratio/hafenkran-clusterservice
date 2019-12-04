@@ -4,6 +4,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesCl
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
@@ -17,6 +18,9 @@ import java.util.UUID;
 @Slf4j
 @Component
 public class KubernetesClientMockImpl implements KubernetesClient {
+
+    @Value("${resultsStorageLocation}")
+    private String resultsStorageLocation;
 
     /**
      * Constructor of KubernetesClientMockImpl.
@@ -50,7 +54,7 @@ public class KubernetesClientMockImpl implements KubernetesClient {
     @Override
     public Path retrieveResults(@NonNull ExecutionDetails executionDetails) {
         log.info(String.format("KubernetesClientMockImpl: Results retrieved from execution with id %s", executionDetails.getId()));
-        return Paths.get("tmp/hafenkran-clusterservice/results/" + executionDetails.getId());
+        return Paths.get(resultsStorageLocation + executionDetails.getId().toString());
     }
 
 }

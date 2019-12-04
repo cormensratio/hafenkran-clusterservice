@@ -20,7 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.*;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.*;
@@ -176,9 +176,6 @@ public class ExecutionServiceImpl implements ExecutionService {
     }
 
     private static void zipFile(File fileToZip, String fileName, ZipOutputStream zipOut) throws IOException {
-        if (fileToZip.isHidden()) {
-            return;
-        }
         if (fileToZip.isDirectory()) {
             if (fileName.endsWith("/")) {
                 zipOut.putNextEntry(new ZipEntry(fileName));
@@ -189,12 +186,11 @@ public class ExecutionServiceImpl implements ExecutionService {
             File[] children = fileToZip.listFiles();
             if (children != null) {
                 for (File childFile : children) {
-                    if (!childFile.getName().equals("results2.tar.gz")) {
+                    if (!childFile.getName().equals("results.tar.gz")) {
                         zipFile(childFile, fileName + "/" + childFile.getName(), zipOut);
                     }
                 }
             }
-            return;
         }
 
         FileInputStream fis = new FileInputStream(fileToZip);
@@ -226,6 +222,13 @@ public class ExecutionServiceImpl implements ExecutionService {
                     "communicating with the cluster.", e);
         }
 
+        // See if results.tar.gz already exists and delete it if true
+        boolean successfulDeletion = searchAndDeleteExistingResultsTar(resultStoragePath.toFile());
+        if (!successfulDeletion) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "The existing results.tar.gz file " +
+                    "couldn't be deleted.");
+        }
+
         // Zip results
         String sourceDirectory = resultStoragePath.toString();
         FileOutputStream fos;
@@ -234,9 +237,9 @@ public class ExecutionServiceImpl implements ExecutionService {
         } catch (FileNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ResultStoragePath couldn't be found.", e);
         }
+
         ZipOutputStream zipOut = new ZipOutputStream(fos);
         File directoryToZip = new File(sourceDirectory);
-
         try {
             zipFile(directoryToZip, directoryToZip.getName(), zipOut);
             zipOut.close();
@@ -256,6 +259,18 @@ public class ExecutionServiceImpl implements ExecutionService {
         }
 
         return results;
+    }
+
+    private boolean searchAndDeleteExistingResultsTar(File directory) {
+        File[] files = directory.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.getName().equals("results.tar.gz")) {
+                    return file.delete();
+                }
+            }
+        }
+        return true;
     }
 
     private ExecutionDetails startExecution(@NonNull ExecutionDetails executionDetails) {
