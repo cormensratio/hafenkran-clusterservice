@@ -178,12 +178,7 @@ public class KubernetesClientImpl implements KubernetesClient {
         // Configure exact naming of resultStorageLocation-path
         Path resultStorageLocation = Paths.get(String.format("%s/%s", path, executionDetails.getId())).toAbsolutePath().normalize();
 
-        V1Pod pod;
-        try {
-            pod = api.readNamespacedPod(podName, namespace, "pretty", null, null);
-        } catch (ApiException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Pod couldn't be found.", e);
-        }
+        V1Pod pod = api.readNamespacedPod(podName, namespace, "pretty", null, null);
         copy.copyDirectoryFromPod(pod, podName, resultStorageLocation);
 
         return resultStorageLocation;
