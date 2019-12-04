@@ -68,12 +68,16 @@ public class ExecutionServiceImplTest {
     public void setUp() {
         SecurityContextHolder.setContext(mockContext);
 
-        this.subject = new ExecutionServiceImpl(mockExecutionRepository, mockExperimentRepository, mockKubernetesClient);
+        this.subject = new ExecutionServiceImpl(mockExecutionRepository, mockExperimentRepository,
+                mockKubernetesClient);
 
-        ExperimentDetails experimentDetails = new ExperimentDetails(MOCK_USER_ID, "testExperiment", 500);
+        ExperimentDetails experimentDetails =
+                new ExperimentDetails(MOCK_USER_ID, "testExperiment",
+                        "testExperiment.tar", 500);
         experimentDetails.setId(MOCK_EXPERIMENT_ID);
 
-        this.testExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "ExpTest", 1L);
+        this.testExperimentDetails = new ExperimentDetails(MOCK_USER_ID,
+                "ExpTest", "ExpTest.tar", 1L);
         testExperimentDetails.setId(MOCK_EXPERIMENT_ID);
         this.testExecutionDetails = new ExecutionDetails(MOCK_USER_ID, experimentDetails, "Test1", 1L, 1L, 1L);
         testExecutionDetails.setId(MOCK_EXECUTION_ID);
@@ -279,7 +283,7 @@ public class ExecutionServiceImplTest {
         // Arrange
         ExecutionCreateDTO executionCreateDTO = new ExecutionCreateDTO(Optional.empty(), MOCK_EXPERIMENT_ID,
                 Optional.empty(), Optional.empty(), Optional.empty());
-        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "Test", 1L);
+        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "Test", "filename", 1L);
         mockExperimentDetails.setId(MOCK_EXPERIMENT_ID);
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, "Test-1", 1L, 1L, 1L);
         mockExecutionDetails.setId(MOCK_EXECUTION_ID);
@@ -314,7 +318,7 @@ public class ExecutionServiceImplTest {
                 Optional.of(1L), Optional.of(1L), Optional.of(1L));
         ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_EXECUTION_ID, MOCK_EXPERIMENT_ID, "Test-1",
                 LocalDateTime.now(), null, null, ExecutionDetails.Status.RUNNING, 1L, 1L, 1L);
-        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "Test", 1L);
+        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "Test", "filename", 1L);
         mockExperimentDetails.setId(MOCK_EXPERIMENT_ID);
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, "Test-1", 1L, 1L, 1L);
         mockExecutionDetails.setId(MOCK_EXECUTION_ID);
@@ -370,7 +374,7 @@ public class ExecutionServiceImplTest {
         when(mockExecutionRepository.save(any(ExecutionDetails.class))).thenReturn(mockExecutionDetails);
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
         when(mockKubernetesClient.createPod(MOCK_USER.getName(), mockExecutionDetails.getExperimentDetails().getName(),
-                mockExecutionDetails.getName())).thenThrow(ApiException.class);
+                mockExecutionDetails.getName(), mockExecutionDetails.getExperimentDetails().getId())).thenThrow(ApiException.class);
 
         // Act
         ExecutionDTO actual = subject.createAndStartExecution(executionCreateDTO);
@@ -385,7 +389,7 @@ public class ExecutionServiceImplTest {
         // Arrange
         UserDTO mockUserDTO = new UserDTO(MOCK_USER_ID, "", "", false);
         JwtAuthentication mockAuthFromNewUserDTO = new JwtAuthentication(mockUserDTO);
-        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "", 1L);
+        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "", "filename", 1L);
         mockExperimentDetails.setId(MOCK_EXPERIMENT_ID);
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, "",
                 1L, 1L, 1L);
@@ -413,7 +417,7 @@ public class ExecutionServiceImplTest {
         // Arrange
         UserDTO mockUserDTO = new UserDTO(MOCK_USER_ID, "Ri88#d", "", false);
         JwtAuthentication mockAuthFromNewUserDTO = new JwtAuthentication(mockUserDTO);
-        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "+++", 1L);
+        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "+++", "filename", 1L);
         mockExperimentDetails.setId(MOCK_EXPERIMENT_ID);
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, ".-.",
                 1L, 1L, 1L);
@@ -440,7 +444,7 @@ public class ExecutionServiceImplTest {
     public void testCreateAndStartExecution_emptyExecCreateDTONameAndEmptyExperimentName_throwsException() throws ResponseStatusException {
 
         // Arrange
-        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "", 1L);
+        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "", "filename", 1L);
         mockExperimentDetails.setId(MOCK_EXPERIMENT_ID);
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, "TestExec",
                 1L, 1L, 1L);
@@ -464,7 +468,7 @@ public class ExecutionServiceImplTest {
     public void testCreateAndStartExecution_emptyExecCreateDTONameAndExperimentNameContainsDot_validExecutionDTO() {
 
         // Arrange
-        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "Test", 1L);
+        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "Test", "filename", 1L);
         mockExperimentDetails.setId(MOCK_EXPERIMENT_ID);
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, "Test-1",
                 1L, 1L, 1L);
@@ -497,7 +501,7 @@ public class ExecutionServiceImplTest {
     public void testCreateAndStartExecution_emptyExecCreateDTONameAndExperimentNameContainsDotAndDoesntMatchRegex_throwsException() throws ResponseStatusException {
 
         // Arrange
-        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "Test#.zip", 1L);
+        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "Test#.zip", "filename", 1L);
         mockExperimentDetails.setId(MOCK_EXPERIMENT_ID);
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, "Test-1",
                 1L, 1L, 1L);
@@ -522,7 +526,7 @@ public class ExecutionServiceImplTest {
     public void testCreateAndStartExecution_emptyExecCreateDTONameAndExperimentNameDoesntMatchRegex_throwsException() throws ResponseStatusException {
 
         // Arrange
-        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "+++", 1L);
+        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "+++", "filename", 1L);
         mockExperimentDetails.setId(MOCK_EXPERIMENT_ID);
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, "Test-1",
                 1L, 1L, 1L);
@@ -547,7 +551,7 @@ public class ExecutionServiceImplTest {
     public void testCreateAndStartExecution_execCreateDTONameContainsDotAndDoesntMatchRegex_throwsException() throws ResponseStatusException {
 
         // Arrange
-        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "Test", 1L);
+        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "Test", "filename", 1L);
         mockExperimentDetails.setId(MOCK_EXPERIMENT_ID);
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, "Test-1",
                 1L, 1L, 1L);
@@ -572,7 +576,7 @@ public class ExecutionServiceImplTest {
     public void testCreateAndStartExecution_execCreateDTONameMatchesRegex_validExecutionDTO() {
 
         // Arrange
-        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "TestExp", 1L);
+        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "TestExp", "filename", 1L);
         mockExperimentDetails.setId(MOCK_EXPERIMENT_ID);
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, "Test-1",
                 1L, 1L, 1L);
@@ -606,7 +610,7 @@ public class ExecutionServiceImplTest {
     public void testCreateAndStartExecution_execCreateDTONameDoesntMatchRegex_throwsException() throws ResponseStatusException {
 
         // Arrange
-        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "Test", 1L);
+        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "Test", "filename", 1L);
         mockExperimentDetails.setId(MOCK_EXPERIMENT_ID);
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, "Test-1",
                 1L, 1L, 1L);
@@ -644,7 +648,8 @@ public class ExecutionServiceImplTest {
         verify(mockExecutionRepository, times(1)).findById(MOCK_EXECUTION_ID);
         verify(mockContext, times(2)).getAuthentication();
         assertEquals(mockExecutionDTO.getStatus(), actualExecutionDTO.getStatus());
-        assertEquals((mockExecutionDTO.getTerminatedAt().getSecond()), actualExecutionDTO.getTerminatedAt().getSecond());
+        assertEquals((mockExecutionDTO.getTerminatedAt().getSecond()),
+                actualExecutionDTO.getTerminatedAt().getSecond());
         verifyNoMoreInteractions(mockContext);
     }
 
@@ -692,7 +697,7 @@ public class ExecutionServiceImplTest {
         // Arrange
         UserDTO mockUserDTO = new UserDTO(MOCK_USER_ID, "", "", false);
         JwtAuthentication mockAuthFromNewUserDTO = new JwtAuthentication(mockUserDTO);
-        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "", 1L);
+        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "", "filename", 1L);
         mockExperimentDetails.setId(MOCK_EXPERIMENT_ID);
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, "",
                 1L, 1L, 1L);
@@ -717,7 +722,7 @@ public class ExecutionServiceImplTest {
         // Arrange
         UserDTO mockUserDTO = new UserDTO(MOCK_USER_ID, "Ri88#d", "", false);
         JwtAuthentication mockAuthFromNewUserDTO = new JwtAuthentication(mockUserDTO);
-        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "+++", 1L);
+        ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "+++", "filename", 1L);
         mockExperimentDetails.setId(MOCK_EXPERIMENT_ID);
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, ".-.",
                 1L, 1L, 1L);
@@ -735,6 +740,52 @@ public class ExecutionServiceImplTest {
         ExecutionDTO actual = subject.terminateExecution(MOCK_EXECUTION_ID);
 
         // Assert - with rule
+    }
 
+    @Test
+    public void testRetrieveLogsForExecutionId_validInput_validLogReturned() throws ApiException {
+        // Arrange
+        int lines = 5;
+        int sinceSeconds = 5;
+        String expectedLog = "Test Log";
+        UserDTO mockUserDTO = new UserDTO(MOCK_USER_ID, "Rick", "", false);
+        ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, testExperimentDetails, "Test1",
+                1L, 1L, 1L);
+        when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.of(mockExecutionDetails));
+        when(mockKubernetesClient.retrieveLogs(mockUserDTO.getName(), mockExecutionDetails, lines, sinceSeconds, true)).thenReturn(
+                expectedLog);
+        when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
+
+        // Act
+        String actual = subject.retrieveLogsForExecutionId(MOCK_EXECUTION_ID, 5, 5, true);
+
+        // Assert
+        assertEquals(expectedLog, actual);
+        verify(mockExecutionRepository, times(1)).findById(MOCK_EXECUTION_ID);
+        verify(mockKubernetesClient, times(1)).retrieveLogs(mockUserDTO.getName(), mockExecutionDetails, lines, sinceSeconds, true);
+        verify(mockContext, times(2)).getAuthentication();
+    }
+
+    @Test
+    public void testRetrieveLogsForExecutionId_noConnectionToKubernetes_throwsException() throws ApiException {
+        // Arrange
+        expectedEx.expect(ResponseStatusException.class);
+        expectedEx.expectMessage("There was an error while communicating with the cluster");
+
+        int lines = 5;
+        int sinceSeconds = 5;
+        String expectedLog = "Test Log";
+        UserDTO mockUserDTO = new UserDTO(MOCK_USER_ID, "Rick", "", false);
+        ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, testExperimentDetails, "Test1",
+                1L, 1L, 1L);
+        when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.of(mockExecutionDetails));
+        when(mockKubernetesClient.retrieveLogs(mockUserDTO.getName(), mockExecutionDetails, lines, sinceSeconds, true)).thenThrow(
+                ApiException.class);
+        when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
+
+        // Act
+        String actual = subject.retrieveLogsForExecutionId(MOCK_EXECUTION_ID, 5, 5, true);
+
+        // Assert -- with logs
     }
 }
