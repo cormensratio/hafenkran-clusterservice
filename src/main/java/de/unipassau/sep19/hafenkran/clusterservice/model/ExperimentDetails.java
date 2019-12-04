@@ -34,15 +34,19 @@ public class ExperimentDetails extends Resource {
     @NotBlank
     private String name;
 
+    @NonNull
+    private String fileName;
+
     private long size;
 
-    public ExperimentDetails(@NonNull UUID ownerId, @NonNull String name, long size) {
+    public ExperimentDetails(@NonNull UUID ownerId, @NonNull String name,
+                             @NonNull String fileName, long size) {
         super(ownerId);
         this.name = name;
         this.size = size;
+        this.fileName = fileName;
         this.executionDetails = Collections.emptyList();
     }
-
 }
 
 
