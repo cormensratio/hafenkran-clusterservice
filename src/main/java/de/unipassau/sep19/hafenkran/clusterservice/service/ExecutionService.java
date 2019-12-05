@@ -89,7 +89,7 @@ public interface ExecutionService {
      * @param executionId The id of the execution, which results should be returned.
      * @return A Base64-String with all results from the execution.
      */
-    String getResults(@NonNull UUID executionId);
+    byte[] getResults(@NonNull UUID executionId);
 
     /**
      * Sends an standardinput {@code stdinDTO} to a specific execution with the {@code executionId}.
