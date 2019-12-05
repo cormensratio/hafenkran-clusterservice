@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -62,9 +61,6 @@ public class KubernetesClientImpl implements KubernetesClient {
         log.info("Kubernetes Client ready!");
         //auto detect kubernetes config file
         ApiClient client = Config.defaultClient();
-        client.getHttpClient().setConnectTimeout(120, TimeUnit.SECONDS);
-        client.getHttpClient().setWriteTimeout(120, TimeUnit.SECONDS);
-        client.getHttpClient().setReadTimeout(120, TimeUnit.SECONDS);
         client.setDebugging(true);
         //set global default api-client to the in-cluster one from above
         Configuration.setDefaultApiClient(client);
