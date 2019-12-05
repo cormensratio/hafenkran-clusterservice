@@ -19,7 +19,7 @@ experimentsFileUploadLocation: /tmp/hafenkran-clusterservice
 dockerHubRepoPath: hafenkran/hafenkran-repo
 
 mockdata: true
-mockKubernetesClient: false
+mockKubernetesClient: true
 
 kubernetes:
   deployment:
