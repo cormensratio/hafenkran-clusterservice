@@ -3,7 +3,10 @@ package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl;
 import com.google.gson.JsonSyntaxException;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
-import io.kubernetes.client.*;
+import io.kubernetes.client.ApiClient;
+import io.kubernetes.client.ApiException;
+import io.kubernetes.client.Attach;
+import io.kubernetes.client.Configuration;
 import io.kubernetes.client.apis.CoreV1Api;
 import io.kubernetes.client.models.*;
 import io.kubernetes.client.util.Config;
@@ -14,8 +17,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -142,22 +145,8 @@ public class KubernetesClientImpl implements KubernetesClient {
         final String namespace = executionDetails.getExperimentDetails().getId().toString();
         final String podName = executionDetails.getPodName();
 
-        final PodLogs logs = new PodLogs();
-
-        InputStream is = null;
-        try {
-            is = logs.streamNamespacedPodLog(namespace, podName, null, sinceSeconds, lines, withTimestamps);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        if (is == null) {
-            return "";
-        }
-
-        final Reader r = new InputStreamReader(is, StandardCharsets.UTF_8);
-        final BufferedReader br = new BufferedReader(r);
-        return br.lines().collect(Collectors.joining("\n"));
+        return api.readNamespacedPodLog(podName, namespace, null, false, null, null, false, sinceSeconds, lines,
+                withTimestamps);
     }
 
     /**
@@ -165,12 +154,17 @@ public class KubernetesClientImpl implements KubernetesClient {
      */
     @Override
     public void sendSTIN(@NonNull String input, @NonNull ExecutionDetails executionDetails) throws IOException, ApiException {
-        Exec exec = new Exec();
-
         String namespace = executionDetails.getExperimentDetails().getId().toString();
         String podName = executionDetails.getName().toLowerCase();
+        Attach attach = new Attach();
+        final Attach.AttachResult result = attach.attach(namespace, podName, true);
+        OutputStream output = result.getStandardInputStream();
 
-        exec.exec(namespace, podName, new String[]{input}, false, false);
+        output.write(input.getBytes());
+        output.write('\n');
+        output.flush();
+        output.close();
+        result.close();
     }
 
 
@@ -186,7 +180,8 @@ public class KubernetesClientImpl implements KubernetesClient {
 
     private List<String> getAllPodsFromNamespace(@NonNull String namespaceString) throws ApiException {
         V1PodList podList =
-                api.listNamespacedPod(namespaceString, true, "pretty", null, null, null, 0, null, Integer.MAX_VALUE, Boolean.FALSE);
+                api.listNamespacedPod(namespaceString, true, "pretty", null, null, null, 0, null, Integer.MAX_VALUE,
+                        Boolean.FALSE);
         return podList
                 .getItems()
                 .stream()
@@ -261,7 +256,8 @@ public class KubernetesClientImpl implements KubernetesClient {
                 .endMetadata()
                 .build();
         imagePullSecret.setType("kubernetes.io/dockerconfigjson");
-        String dockerCfg = String.format("{\"auths\": {\"%s\": {\"username\": \"%s\",\t\"password\": \"%s\",\"email\": \"%s\",\t\"auth\": \"%s\"}}}",
+        String dockerCfg = String.format(
+                "{\"auths\": {\"%s\": {\"username\": \"%s\",\t\"password\": \"%s\",\"email\": \"%s\",\t\"auth\": \"%s\"}}}",
                 "https://index.docker.io/v1/",
                 dockerRegistryUsername,
                 dockerRegistryPassword,
@@ -271,7 +267,8 @@ public class KubernetesClientImpl implements KubernetesClient {
         data.put(".dockerconfigjson", dockerCfg.getBytes());
         imagePullSecret.setData(data);
         api.createNamespacedSecret(namespaceString, imagePullSecret, true, "pretty", null);
-        log.info("Created Image-Pull-Secret {} for Namespace {}", imagePullSecret.getMetadata().getName(), namespaceString);
+        log.info("Created Image-Pull-Secret {} for Namespace {}", imagePullSecret.getMetadata().getName(),
+                namespaceString);
     }
 
     private void deleteNamespace(@NonNull String namespaceString) throws ApiException {
