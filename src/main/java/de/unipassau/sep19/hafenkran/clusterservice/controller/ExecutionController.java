@@ -93,7 +93,7 @@ public class ExecutionController {
      * @param executionId The id from the execution, which should be deleted.
      * @return An {@link ExecutionDTO} from the deleted execution.
      */
-    @DeleteMapping("/{executionId}")
+    @PostMapping("/{executionId}/delete")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public ExecutionDTO deleteExecution(@NonNull @PathVariable UUID executionId) {
