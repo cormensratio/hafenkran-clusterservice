@@ -159,7 +159,8 @@ public class KubernetesClientImpl implements KubernetesClient {
         final String namespace = userName.toLowerCase() + "-" + experimentName.toLowerCase();
         final String podName = executionDetails.getName().toLowerCase();
 
-        return api.readNamespacedPodLog(podName, namespace, null, false, null, null, false, sinceSeconds, lines,
+        return api.readNamespacedPodLog(podName, namespace, null, false, null, "pretty", false, sinceSeconds,
+                lines,
                 withTimestamps);
     }
 

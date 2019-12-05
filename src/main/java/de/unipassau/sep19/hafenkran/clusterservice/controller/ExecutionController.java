@@ -55,11 +55,13 @@ public class ExecutionController {
     public String getLogsDTOById(@NonNull @PathVariable UUID executionId,
                                  @RequestParam(value = "lines", required = false) Integer lines,
                                  @RequestParam(value = "sinceSeconds", required = false) Integer sinceSeconds,
-                                 @RequestParam(value = "printTimestamps", defaultValue = "false") boolean printTimestamps) {
+                                 @RequestParam(value = "printTimestamps", defaultValue = "false") String printTimestamps) {
         if (lines == null || lines <= 0) {
             lines = defaultLogLines;
         }
-        return executionService.retrieveLogsForExecutionId(executionId, lines, sinceSeconds, printTimestamps);
+
+        return executionService.retrieveLogsForExecutionId(executionId, lines, sinceSeconds,
+                printTimestamps.equals("true"));
     }
 
     /**
