@@ -45,4 +45,10 @@ public class KubernetesClientMockImpl implements KubernetesClient {
         return String.format("this is a test log for %s \n 1 \n 2", executionDetails.getPodName());
     }
 
+    @Override
+    public void sendSTIN(@NonNull String input, @NonNull ExecutionDetails executionDetails) {
+        log.info(String.format("KubernetesClientMockImpl: Sending the following input to execution with id %s: %s", executionDetails.getId(), input));
+    }
+
+
 }
