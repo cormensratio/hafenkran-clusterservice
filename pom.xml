@@ -22,6 +22,7 @@
         <jackson.version>2.10.0</jackson.version>
         <jjwt.version>0.9.1</jjwt.version>
         <kubernetes-client.version>5.0.0</kubernetes-client.version>
+        <docker-java.version>3.1.5</docker-java.version>
     </properties>
 
     <dependencies>
@@ -107,7 +108,7 @@
         <dependency>
             <groupId>com.github.docker-java</groupId>
             <artifactId>docker-java</artifactId>
-            <version>3.1.5</version>
+            <version>${docker-java.version}</version>
         </dependency>
     </dependencies>
 

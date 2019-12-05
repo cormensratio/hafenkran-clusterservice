@@ -1,8 +1,5 @@
 package de.unipassau.sep19.hafenkran.clusterservice.config;
 
-import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.core.DefaultDockerClientConfig;
-import com.github.dockerjava.core.DockerClientBuilder;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl.KubernetesClientImpl;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl.KubernetesClientMockImpl;
@@ -43,7 +40,7 @@ public class ConfigEntrypoint {
             havingValue = "true",
             matchIfMissing = true
     )
-    public KubernetesClient kubernetesMockClient() throws IOException {
+    public KubernetesClient kubernetesMockClient() {
         return new KubernetesClientMockImpl();
     }
 
@@ -61,18 +58,4 @@ public class ConfigEntrypoint {
             MethodArgumentNotValidException ex) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid parameters.", ex);
     }
-
-    @Bean
-    public DockerClient dockerClient() {
-        DefaultDockerClientConfig.Builder config = DefaultDockerClientConfig
-                .createDefaultConfigBuilder();
-
-        DockerClient dockerClient = DockerClientBuilder
-                .getInstance(config)
-                .build();
-        log.debug("Created default docker client");
-
-        return dockerClient;
-    }
-
 }

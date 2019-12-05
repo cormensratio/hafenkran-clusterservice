@@ -56,11 +56,13 @@ public class ExecutionController {
     public String getLogsDTOById(@NonNull @PathVariable UUID executionId,
                                  @RequestParam(value = "lines", required = false) Integer lines,
                                  @RequestParam(value = "sinceSeconds", required = false) Integer sinceSeconds,
-                                 @RequestParam(value = "printTimestamps", defaultValue = "false") boolean printTimestamps) {
+                                 @RequestParam(value = "printTimestamps", defaultValue = "false") String printTimestamps) {
         if (lines == null || lines <= 0) {
             lines = defaultLogLines;
         }
-        return executionService.retrieveLogsForExecutionId(executionId, lines, sinceSeconds, printTimestamps);
+
+        return executionService.retrieveLogsForExecutionId(executionId, lines, sinceSeconds,
+                printTimestamps.equals("true"));
     }
 
     /**
@@ -87,14 +89,14 @@ public class ExecutionController {
     public ExecutionDTO terminateExecution(@NonNull @PathVariable UUID executionId) {
         return executionService.terminateExecution(executionId);
     }
-    
+
     /**
      * DELETE-Endpoint for deleting an execution from an experiment.
-     * 
+     *
      * @param executionId The id from the execution, which should be deleted.
      * @return An {@link ExecutionDTO} from the deleted execution.
      */
-    @DeleteMapping("/{executionId}")
+    @PostMapping("/{executionId}/delete")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public ExecutionDTO deleteExecution(@NonNull @PathVariable UUID executionId) {

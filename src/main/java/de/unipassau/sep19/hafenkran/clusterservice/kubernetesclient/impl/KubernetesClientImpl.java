@@ -16,7 +16,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -71,13 +74,19 @@ public class KubernetesClientImpl implements KubernetesClient {
      * {@inheritDoc}
      */
     @Override
-    public String createPod(@NonNull UUID experimentId, @NonNull String executionName) throws ApiException {
-        String namespaceString = experimentId.toString();
+    public String createPod(@NonNull String userName, @NonNull String experimentName, @NonNull String executionName, @NonNull UUID experimentId) throws ApiException {
+        if (experimentName.contains(String.valueOf('.'))) {
+            experimentName = experimentName.substring(0, experimentName.indexOf('.'));
+        }
+        String namespaceString = userName.toLowerCase() + "-" + experimentName.toLowerCase();
         String image = DOCKER_HUB_REPO_PATH + ":" + experimentId;
         String podName = executionName.toLowerCase();
 
-        if (namespaceString.isEmpty()) {
-            throw new IllegalArgumentException("Namespace is empty");
+        if (userName.isEmpty()) {
+            throw new IllegalArgumentException("Username is empty");
+        }
+        if (experimentName.isEmpty()) {
+            throw new IllegalArgumentException("Experimentname is empty");
         }
         if (podName.isEmpty()) {
             throw new IllegalArgumentException("Podname is empty");
@@ -97,13 +106,18 @@ public class KubernetesClientImpl implements KubernetesClient {
      * {@inheritDoc}
      */
     @Override
-    public void deletePod(@NonNull UUID experimentId, @NonNull String executionName) throws ApiException {
-        String namespaceString = experimentId.toString();
-        String podName = executionName.toLowerCase();
+    public void deletePod(@NonNull String userName, String experimentName, @NonNull String podName) throws ApiException {
+        if (experimentName.contains(String.valueOf('.'))) {
+            experimentName = experimentName.substring(0, experimentName.indexOf('.'));
+        }
+        String namespaceString = userName.toLowerCase() + "-" + experimentName.toLowerCase();
         List<String> allPodsInNamespace = getAllPodsFromNamespace(namespaceString);
 
-        if (namespaceString.isEmpty()) {
-            throw new IllegalArgumentException("Namespace is empty.");
+        if (userName.isEmpty()) {
+            throw new IllegalArgumentException("Username is empty.");
+        }
+        if (experimentName.isEmpty()) {
+            throw new IllegalArgumentException("Experimentname is empty");
         }
         if (podName.isEmpty()) {
             throw new IllegalArgumentException("Podname is empty");
@@ -133,33 +147,23 @@ public class KubernetesClientImpl implements KubernetesClient {
      * {@inheritDoc}
      */
     @Override
-    public String retrieveLogs(@NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamps) throws ApiException {
+    public String retrieveLogs(@NonNull String userName, @NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamps) throws ApiException {
 
         if (!executionDetails.getStatus().equals(ExecutionDetails.Status.RUNNING)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                     String.format("Found execution for id %s, but with status %s.", executionDetails.getId(),
                             executionDetails.getStatus()));
         }
-
-        final String namespace = executionDetails.getExperimentDetails().getId().toString();
-        final String podName = executionDetails.getPodName();
-
-        final PodLogs logs = new PodLogs();
-
-        InputStream is = null;
-        try {
-            is = logs.streamNamespacedPodLog(namespace, podName, null, sinceSeconds, lines, withTimestamps);
-        } catch (IOException e) {
-            e.printStackTrace();
+        String experimentName = executionDetails.getExperimentDetails().getName();
+        if (experimentName.contains(String.valueOf('.'))) {
+            experimentName = experimentName.substring(0, experimentName.indexOf('.'));
         }
+        final String namespace = userName.toLowerCase() + "-" + experimentName.toLowerCase();
+        final String podName = executionDetails.getName().toLowerCase();
 
-        if (is == null) {
-            return "";
-        }
-
-        final Reader r = new InputStreamReader(is, StandardCharsets.UTF_8);
-        final BufferedReader br = new BufferedReader(r);
-        return br.lines().collect(Collectors.joining("\n"));
+        return api.readNamespacedPodLog(podName, namespace, null, false, null, "pretty", false, sinceSeconds,
+                lines,
+                withTimestamps);
     }
 
     /**
@@ -189,12 +193,17 @@ public class KubernetesClientImpl implements KubernetesClient {
      */
     @Override
     public void sendSTIN(@NonNull String input, @NonNull ExecutionDetails executionDetails) throws IOException, ApiException {
-        Exec exec = new Exec();
-
         String namespace = executionDetails.getExperimentDetails().getId().toString();
         String podName = executionDetails.getName().toLowerCase();
+        Attach attach = new Attach();
+        final Attach.AttachResult result = attach.attach(namespace, podName, true);
+        OutputStream output = result.getStandardInputStream();
 
-        exec.exec(namespace, podName, new String[]{input}, false, false);
+        output.write(input.getBytes());
+        output.write('\n');
+        output.flush();
+        output.close();
+        result.close();
     }
 
     private List<String> getAllNamespaces() throws ApiException {
@@ -209,7 +218,8 @@ public class KubernetesClientImpl implements KubernetesClient {
 
     private List<String> getAllPodsFromNamespace(@NonNull String namespaceString) throws ApiException {
         V1PodList podList =
-                api.listNamespacedPod(namespaceString, true, "pretty", null, null, null, 0, null, Integer.MAX_VALUE, Boolean.FALSE);
+                api.listNamespacedPod(namespaceString, true, "pretty", null, null, null, 0, null, Integer.MAX_VALUE,
+                        Boolean.FALSE);
         return podList
                 .getItems()
                 .stream()
@@ -262,7 +272,8 @@ public class KubernetesClientImpl implements KubernetesClient {
                 .endMetadata()
                 .withNewSpec()
                 .withContainers(container)
-                .withImagePullSecrets(imagePullSecret) //sets the secret for accessing docker registry
+                .withRestartPolicy("Never")
+                .withImagePullSecrets(imagePullSecret)//sets the secret for accessing docker registry
                 .withHostNetwork(true)
                 .endSpec()
                 .build();
@@ -284,7 +295,8 @@ public class KubernetesClientImpl implements KubernetesClient {
                 .endMetadata()
                 .build();
         imagePullSecret.setType("kubernetes.io/dockerconfigjson");
-        String dockerCfg = String.format("{\"auths\": {\"%s\": {\"username\": \"%s\",\t\"password\": \"%s\",\"email\": \"%s\",\t\"auth\": \"%s\"}}}",
+        String dockerCfg = String.format(
+                "{\"auths\": {\"%s\": {\"username\": \"%s\",\t\"password\": \"%s\",\"email\": \"%s\",\t\"auth\": \"%s\"}}}",
                 "https://index.docker.io/v1/",
                 dockerRegistryUsername,
                 dockerRegistryPassword,
@@ -294,7 +306,8 @@ public class KubernetesClientImpl implements KubernetesClient {
         data.put(".dockerconfigjson", dockerCfg.getBytes());
         imagePullSecret.setData(data);
         api.createNamespacedSecret(namespaceString, imagePullSecret, true, "pretty", null);
-        log.info("Created Image-Pull-Secret {} for Namespace {}", imagePullSecret.getMetadata().getName(), namespaceString);
+        log.info("Created Image-Pull-Secret {} for Namespace {}", imagePullSecret.getMetadata().getName(),
+                namespaceString);
     }
 
     private void deleteNamespace(@NonNull String namespaceString) throws ApiException {
