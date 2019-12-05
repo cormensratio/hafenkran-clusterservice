@@ -3,7 +3,6 @@ package de.unipassau.sep19.hafenkran.clusterservice.controller;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.StdinDTO;
-import de.unipassau.sep19.hafenkran.clusterservice.model.*;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
 import lombok.NonNull;
@@ -106,12 +105,12 @@ public class ExecutionController {
      * GET-Endpoint for receiving the results of the execution with the {@code executionId}.
      *
      * @param executionId The id from the execution to get the results from.
-     * @return A byteArray with the results.
+     * @return A Base64-String with the results.
      */
     @GetMapping(value = "/{executionId}/results", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public byte[] getResultsForExecution(@NonNull @PathVariable UUID executionId) {
+    public String getResultsForExecution(@NonNull @PathVariable UUID executionId) {
         return executionService.getResults(executionId);
     }
 

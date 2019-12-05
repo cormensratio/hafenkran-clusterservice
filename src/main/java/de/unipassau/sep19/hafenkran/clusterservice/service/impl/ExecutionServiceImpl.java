@@ -16,7 +16,6 @@ import io.kubernetes.client.ApiException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.utils.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -24,16 +23,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.*;
-import java.nio.file.Path;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 @Slf4j
 @Service
@@ -181,98 +176,13 @@ public class ExecutionServiceImpl implements ExecutionService {
      * {@inheritDoc}
      */
     @Override
-    public byte[] getResults(@NonNull UUID executionId) {
+    public String getResults(@NonNull UUID executionId) {
         ExecutionDetails executionDetails = retrieveExecutionDetailsById(executionId);
-        Path resultStoragePath;
-
-        // Get results from the execution from Kubernetes
         try {
-            resultStoragePath = kubernetesClient.retrieveResults(executionDetails);
-        } catch (IOException | ApiException e) {
-            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
-                    "communicating with the cluster.", e);
+            return kubernetesClient.retrieveResults(executionDetails);
+        } catch (ApiException | IOException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Results couldn't be found.", e);
         }
-
-        // See if results.tar.gz already exists and delete it if true
-        boolean successfulDeletion = searchAndDeleteExistingResultsTar(resultStoragePath.toFile());
-        if (!successfulDeletion) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "The existing results.tar.gz file " +
-                    "couldn't be deleted.");
-        }
-
-        // Zip results
-        String sourceDirectory = resultStoragePath.toString();
-        FileOutputStream fos;
-        try {
-            fos = new FileOutputStream(resultStoragePath.toString() + "/results.tar.gz");
-        } catch (FileNotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ResultStoragePath couldn't be found.", e);
-        }
-
-        ZipOutputStream zipOut = new ZipOutputStream(fos);
-        File directoryToZip = new File(sourceDirectory);
-        try {
-            zipFile(directoryToZip, directoryToZip.getName(), zipOut);
-            zipOut.close();
-            fos.close();
-        } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Directory to zip couldn't be found.", e);
-        }
-
-        // Get zipped results as a bytearray
-        InputStream in = getClass().getResourceAsStream(resultStoragePath.toString() + "/results.tar.gz");
-        byte[] results;
-        try {
-            results = IOUtils.toByteArray(in);
-        } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "There were no results found at the " +
-                    "resultStorageLocation.", e);
-        }
-
-        return results;
-    }
-
-    private boolean searchAndDeleteExistingResultsTar(File directory) {
-        File[] files = directory.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                if (file.getName().equals("results.tar.gz")) {
-                    return file.delete();
-                }
-            }
-        }
-        return true;
-    }
-    
-    private static void zipFile(File fileToZip, String fileName, ZipOutputStream zipOut) throws IOException {
-        if (fileToZip.isDirectory()) {
-            if (fileName.endsWith("/")) {
-                zipOut.putNextEntry(new ZipEntry(fileName));
-            } else {
-                zipOut.putNextEntry(new ZipEntry(fileName + "/"));
-                zipOut.closeEntry();
-            }
-            File[] children = fileToZip.listFiles();
-            if (children != null) {
-                for (File childFile : children) {
-                    if (!childFile.getName().equals("results.tar.gz")) {
-                        zipFile(childFile, fileName + "/" + childFile.getName(), zipOut);
-                    }
-                }
-            }
-        }
-
-        FileInputStream fis = new FileInputStream(fileToZip);
-        ZipEntry zipEntry = new ZipEntry(fileName);
-        zipOut.putNextEntry(zipEntry);
-        byte[] bytes = new byte[1024];
-        int length;
-
-        while ((length = fis.read(bytes)) >= 0) {
-            zipOut.write(bytes, 0, length);
-        }
-
-        fis.close();
     }
     
     /**

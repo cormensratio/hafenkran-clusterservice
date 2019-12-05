@@ -9,6 +9,8 @@ import io.kubernetes.client.models.*;
 import io.kubernetes.client.util.Config;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Base64InputStream;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -16,8 +18,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,9 +32,6 @@ import java.util.stream.Collectors;
 public class KubernetesClientImpl implements KubernetesClient {
 
     private CoreV1Api api;
-
-    @Value("${resultsStorageLocation}")
-    private String path;
 
     @Value("${dockerHubRepoPath}")
     private String DOCKER_HUB_REPO_PATH;
@@ -169,19 +166,22 @@ public class KubernetesClientImpl implements KubernetesClient {
      * {@inheritDoc}
      */
     @Override
-    public Path retrieveResults(@NonNull ExecutionDetails executionDetails) throws ApiException, IOException {
-        Copy copy = new Copy();
-
+    public String retrieveResults(@NonNull ExecutionDetails executionDetails) throws ApiException, IOException {
         String namespace = executionDetails.getExperimentDetails().getId().toString();
         String podName = executionDetails.getPodName();
+        Exec exec = new Exec();
 
-        // Configure exact naming of resultStorageLocation-path
-        Path resultStorageLocation = Paths.get(String.format("%s/%s", path, executionDetails.getId())).toAbsolutePath().normalize();
+        final Process proc =
+                exec.exec(
+                        namespace,
+                        podName,
+                        new String[]{"sh", "-c", "tar cf - " + "/results" + " | base64"},
+                        null,
+                        false,
+                        false);
 
-        V1Pod pod = api.readNamespacedPod(podName, namespace, "pretty", null, null);
-        copy.copyDirectoryFromPod(pod, podName, resultStorageLocation);
-
-        return resultStorageLocation;
+        InputStream is = new Base64InputStream(new BufferedInputStream(proc.getInputStream()));
+        return IOUtils.toString(is, StandardCharsets.UTF_8);
     }
 
     /**

@@ -22,7 +22,6 @@ spring:
       max-request-size: 1420MB
 
 experimentsFileUploadLocation:
-resultsStorageLocation:
 
 mockdata: false
 mockKubernetesClient: false

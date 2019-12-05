@@ -5,7 +5,6 @@ import io.kubernetes.client.ApiException;
 import lombok.NonNull;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.UUID;
 
 /**
@@ -48,11 +47,11 @@ public interface KubernetesClient {
      * Retrieves the results of the execution from the pod in Kubernetes.
      *
      * @param executionDetails The execution to get the results from.
-     * @return The path where the results were saved.
+     * @return A Base64-String of the results.
      * @throws ApiException if the pod couldn't be found.
      * @throws IOException  if the input couldn't be read.
      */
-    Path retrieveResults(@NonNull ExecutionDetails executionDetails) throws ApiException, IOException;
+    String retrieveResults(@NonNull ExecutionDetails executionDetails) throws ApiException, IOException;
 
     /**
      * Sending an standard-{@code input} to the kubernetes container.
