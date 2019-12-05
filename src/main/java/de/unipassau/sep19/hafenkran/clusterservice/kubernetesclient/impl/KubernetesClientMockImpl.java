@@ -1,11 +1,11 @@
 package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl;
 
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
-import io.kubernetes.client.ApiException;
+import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.UUID;
 
 /**
@@ -20,22 +20,40 @@ public class KubernetesClientMockImpl implements KubernetesClient {
      * Constructor of KubernetesClientMockImpl.
      * <p>
      * Prints out info that mockKubernetesClient is used.
-     *
-     * @throws IOException Exception never thrown
      */
-    public KubernetesClientMockImpl() throws IOException {
-        log.info("Kubernetes Mock Client. Set mockKubernetesClient to false in application-dev.yml" +
+    public KubernetesClientMockImpl() {
+        log.info("Using KubernetesMockClient: Set mockKubernetesClient to false in application-dev.yml" +
                 " if you want to use Kubernetes.");
     }
 
     @Override
-    public String createPod(UUID experimentId, String executionName) throws ApiException {
+    public String createPod(String userName, String experimentName, String executionName, UUID experimentId) {
         log.info("KubernetesClientMockImpl can not create a Pod.");
         return "No Pod created. KubernetesClientMockImpl.";
     }
 
     @Override
-    public void deletePod(UUID experimentId, String executionName) throws ApiException {
+    public void deletePod(String userName, String experimentName, String podName) {
         log.info("KubernetesClientMockImpl can not delete a Pod.");
     }
+
+    @Override
+    public String retrieveLogs(@NonNull String userName, @NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamp) {
+        log.info(String.format(
+                "KubernetesClientMockImpl: Retrieving first %s lines printed to the log since %s for pod %s with id %s from user %s",
+                lines, sinceSeconds, executionDetails.getPodName(), executionDetails.getId(), userName));
+        return String.format("this is a test log for %s \n 1 \n 2", executionDetails.getPodName());
+    }
+
+    @Override
+    public String retrieveResults(@NonNull ExecutionDetails executionDetails) {
+        log.info(String.format("KubernetesClientMockImpl: Results retrieved from execution with id %s", executionDetails.getId()));
+        return "This is the Base64-String";
+    }
+
+    @Override
+    public void sendSTIN(@NonNull String input, @NonNull ExecutionDetails executionDetails) {
+        log.info(String.format("KubernetesClientMockImpl: Sending the following input to execution with id %s: %s", executionDetails.getId(), input));
+    }
+
 }

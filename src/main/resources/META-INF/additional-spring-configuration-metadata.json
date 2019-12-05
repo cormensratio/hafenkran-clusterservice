@@ -34,6 +34,36 @@
       "name": "mockKubernetesClient",
       "type": "java.lang.String",
       "description": "Set false if you want to use the KubernetesClient."
+    },
+    {
+      "name": "kubernetes.defaultLogLines",
+      "type": "java.lang.Integer",
+      "description": "Default amount of lines returned when requesting the logs of an active execution without specifying the amount of lines explicitly."
+    },
+    {
+      "name": "dockerRegistry.username",
+      "type": "java.lang.String",
+      "description": "The users name from which the image should be pulled from the docker registry."
+    },
+    {
+      "name": "dockerRegistry.password",
+      "type": "java.lang.String",
+      "description": "The password of the user."
+    },
+    {
+      "name": "dockerRegistry.email",
+      "type": "java.lang.String",
+      "description": "The email-address of the user."
+    },
+    {
+      "name": "dockerRegistry.authKey",
+      "type": "java.lang.String",
+      "description": "The authentication key of the user."
+    },
+    {
+      "name": "dockerHubRepoPath",
+      "type": "java.lang.String",
+      "description": "The repository name for the hafenkran docker-hub."
     }
   ]
 }

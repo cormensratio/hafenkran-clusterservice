@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.uni-passau.sep19.hafenkran</groupId>
     <artifactId>clusterservice</artifactId>
-    <version>3.0.0</version>
+    <version>4.0.0</version>
     <name>clusterservice</name>
     <description>A web service for managing kubernetes deployments in Hafenkran.</description>
 
@@ -22,6 +22,7 @@
         <jackson.version>2.10.0</jackson.version>
         <jjwt.version>0.9.1</jjwt.version>
         <kubernetes-client.version>5.0.0</kubernetes-client.version>
+        <docker-java.version>3.1.5</docker-java.version>
     </properties>
 
     <dependencies>
@@ -103,6 +104,11 @@
             <artifactId>junit-jupiter-api</artifactId>
             <version>${junit.jupiter.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.docker-java</groupId>
+            <artifactId>docker-java</artifactId>
+            <version>${docker-java.version}</version>
         </dependency>
     </dependencies>
 

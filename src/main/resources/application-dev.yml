@@ -17,8 +17,10 @@ spring:
 
 experimentsFileUploadLocation: /tmp/hafenkran-clusterservice
 
+dockerHubRepoPath: hafenkran/hafenkran-repo
+
 mockdata: true
-mockKubernetesClient: true
+mockKubernetesClient: false
 
 kubernetes:
   deployment:
@@ -26,6 +28,12 @@ kubernetes:
       ram: 1000
       cpu: 10
       bookedTime: 3600
+  defaultLogLines: 500
 
 jwt:
   secret: MCgCIQCAS7IFlSvaBOPXwSBHo+7+6C4RbkvYj3fgI5+Abe4pRwIDAQAB
+
+dockerRegistry.username: hafenkran
+dockerRegistry.password: president encode cold
+dockerRegistry.email: hafenkran@protonmail.com
+dockerRegistry.authKey: aGFmZW5rcmFuOnByZXNpZGVudCBlbmNvZGUgY29sZA==

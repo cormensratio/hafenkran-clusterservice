@@ -3,6 +3,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.config;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl.KubernetesClientImpl;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl.KubernetesClientMockImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -29,6 +30,7 @@ import java.io.IOException;
 @EnableJpaRepositories(basePackages = {
         "de.unipassau.sep19.hafenkran.clusterservice.repository",
 })
+@Slf4j
 @EnableAutoConfiguration
 public class ConfigEntrypoint {
 
@@ -38,7 +40,7 @@ public class ConfigEntrypoint {
             havingValue = "true",
             matchIfMissing = true
     )
-    public KubernetesClient kubernetesMockClient() throws IOException {
+    public KubernetesClient kubernetesMockClient() {
         return new KubernetesClientMockImpl();
     }
 
@@ -56,5 +58,4 @@ public class ConfigEntrypoint {
             MethodArgumentNotValidException ex) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid parameters.", ex);
     }
-
 }

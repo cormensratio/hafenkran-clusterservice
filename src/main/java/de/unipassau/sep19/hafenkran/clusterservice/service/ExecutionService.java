@@ -3,6 +3,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.service;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.StdinDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import lombok.NonNull;
 
@@ -10,6 +11,17 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ExecutionService {
+
+    /**
+     * Retrieves the logs of the execution, but only if the given execution is currently running.
+     *
+     * @param executionId    The id of the target execution.
+     * @param lines          The amount of lines to be returned.
+     * @param sinceSeconds   The time in seconds defining the range from where to start the extraction of logs.
+     * @param withTimestamps Show the timestamp for every line.
+     * @return The string with the lines from the log.
+     */
+    String retrieveLogsForExecutionId(@NonNull UUID executionId, int lines, Integer sinceSeconds, boolean withTimestamps);
 
     /**
      * Converts an {@link ExecutionCreateDTO} to {@link ExecutionDTO}, saves its {@link ExecutionDetails} in the database
@@ -62,5 +74,29 @@ public interface ExecutionService {
      * @return The list of {@link ExecutionDTO}s of the requested {@code userId}.
      */
     List<ExecutionDTO> retrieveExecutionsDTOListForUserId(@NonNull UUID userId);
+
+    /**
+     * Deletes the execution with the given Id.
+     *
+     * @param executionId The {@code executionId} of the execution that should be deleted
+     * @return The boolean according to wether the deletion was successful or not
+     */
+    ExecutionDTO deleteExecution(@NonNull UUID executionId);
+
+    /**
+     * Returns a Base64-String with all results of the execution with the {@code executionId}.
+     *
+     * @param executionId The id of the execution, which results should be returned.
+     * @return A Base64-String with all results from the execution.
+     */
+    byte[] getResults(@NonNull UUID executionId);
+
+    /**
+     * Sends an standardinput {@code stdinDTO} to a specific execution with the {@code executionId}.
+     *
+     * @param executionId The id of the execution, which should receive the input.
+     * @param stdinDTO    The input to be sent.
+     */
+    void sendSTDIN(@NonNull UUID executionId, @NonNull StdinDTO stdinDTO);
 
 }

@@ -12,4 +12,6 @@ import java.util.UUID;
 public interface ExperimentRepository extends CrudRepository<ExperimentDetails, UUID> {
 
     List<ExperimentDetails> findExperimentDetailsByOwnerId(@NonNull UUID ownerId);
+
+    List<ExperimentDetails> findExperimentDetailsByOwnerIdAndName(@NonNull UUID ownerId, @NonNull String name);
 }
