@@ -18,7 +18,6 @@ import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * Provides {@link ExperimentDetails}, {@link ExperimentDTO} and {@link ExperimentDTOList} specific services.
@@ -40,8 +39,9 @@ public class ExperimentServiceImpl implements ExperimentService {
      * {@inheritDoc}
      */
     public ExperimentDetails createExperiment(@Valid @NonNull ExperimentDetails experimentDetails) {
-        if (!checkIfExperimentNameAlreadyUsedByUser(retrieveExperimentsDTOListOfUserId(experimentDetails.getOwnerId()),
-                experimentDetails)) {
+        List<ExperimentDetails> foundExperiments = experimentRepository.findExperimentDetailsByOwnerIdAndName(experimentDetails.getOwnerId(), experimentDetails.getName());
+
+        if (foundExperiments.size() == 0) {
             final ExperimentDetails savedExperimentDetails = experimentRepository.save(experimentDetails);
             log.info(String.format("Experiment with id %s created", savedExperimentDetails.getId()));
             return savedExperimentDetails;
@@ -49,14 +49,6 @@ public class ExperimentServiceImpl implements ExperimentService {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Experimentname: "
                     + experimentDetails.getName() + " already used. Must be unique.");
         }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void createExperimentDatabaseInit(@Valid @NonNull ExperimentDetails experimentDetails) {
-        final ExperimentDetails savedExperimentDetails = experimentRepository.save(experimentDetails);
-        log.info(String.format("Experiment with id %s created", savedExperimentDetails.getId()));
     }
 
     /**
@@ -78,12 +70,4 @@ public class ExperimentServiceImpl implements ExperimentService {
         return ExperimentDTOList.convertExperimentListToDTOList(findExperimentsListOfUserId(userId));
     }
 
-    private boolean checkIfExperimentNameAlreadyUsedByUser(@NonNull List<ExperimentDTO> userExperimentList,
-                                                           @NonNull ExperimentDetails experimentDetails) {
-        List<String> userExperimentNames = userExperimentList
-                .stream()
-                .map(ExperimentDTO::getName)
-                .collect(Collectors.toList());
-        return userExperimentNames.contains(experimentDetails.getName());
-    }
 }

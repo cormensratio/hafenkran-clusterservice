@@ -19,15 +19,6 @@ public interface ExperimentService {
     ExperimentDetails createExperiment(@NonNull ExperimentDetails experimentDetails);
 
     /**
-     * Method just to populate the initial Database.
-     * <p>
-     * Persists a given {@link ExperimentDetails} in the experiment database.
-     *
-     * @param experimentDetails The {@link ExperimentDetails}, which are going to be persisted in the database.
-     */
-    void createExperimentDatabaseInit(@NonNull ExperimentDetails experimentDetails);
-
-    /**
      * Returns the {@link ExperimentDTO} for the specified {@code id}.
      *
      * @param id The UUID of the requested {@link ExperimentDetails}.
