@@ -193,10 +193,10 @@ public class ExecutionServiceImpl implements ExecutionService {
      * {@inheritDoc}
      */
     @Override
-    public String getResults(@NonNull UUID executionId) {
+    public byte[] getResults(@NonNull UUID executionId) {
         ExecutionDetails executionDetails = retrieveExecutionDetailsById(executionId);
         try {
-            return kubernetesClient.retrieveResults(executionDetails);
+            return kubernetesClient.retrieveResults(executionDetails).getBytes();
         } catch (ApiException | IOException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Results couldn't be found.", e);
         }

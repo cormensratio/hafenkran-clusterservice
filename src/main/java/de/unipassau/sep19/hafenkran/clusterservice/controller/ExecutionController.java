@@ -112,7 +112,7 @@ public class ExecutionController {
     @GetMapping(value = "/{executionId}/results", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public String getResultsForExecution(@NonNull @PathVariable UUID executionId) {
+    public byte[] getResultsForExecution(@NonNull @PathVariable UUID executionId) {
         return executionService.getResults(executionId);
     }
 
