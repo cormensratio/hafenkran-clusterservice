@@ -39,7 +39,8 @@ public class ExperimentServiceImpl implements ExperimentService {
      * {@inheritDoc}
      */
     public ExperimentDetails createExperiment(@Valid @NonNull ExperimentDetails experimentDetails) {
-        List<ExperimentDetails> foundExperiments = experimentRepository.findExperimentDetailsByOwnerIdAndName(experimentDetails.getOwnerId(), experimentDetails.getName());
+        List<ExperimentDetails> foundExperiments = experimentRepository.findExperimentDetailsByOwnerIdAndName(
+                experimentDetails.getOwnerId(), experimentDetails.getName());
 
         if (foundExperiments.size() == 0) {
             final ExperimentDetails savedExperimentDetails = experimentRepository.save(experimentDetails);

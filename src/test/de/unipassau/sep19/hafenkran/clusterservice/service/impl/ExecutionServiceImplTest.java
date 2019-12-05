@@ -285,7 +285,8 @@ public class ExecutionServiceImplTest {
                 Optional.empty(), Optional.empty(), Optional.empty());
         ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "Test", "filename", 1L);
         mockExperimentDetails.setId(MOCK_EXPERIMENT_ID);
-        ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, "Test-1", 1L, 1L, 1L);
+        ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, "Test-1", 1L,
+                1L, 1L);
         mockExecutionDetails.setId(MOCK_EXECUTION_ID);
         ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_EXECUTION_ID, MOCK_EXPERIMENT_ID, "Test-1",
                 LocalDateTime.now(), null, null, ExecutionDetails.Status.RUNNING, 1L, 1L, 1L);
@@ -320,7 +321,8 @@ public class ExecutionServiceImplTest {
                 LocalDateTime.now(), null, null, ExecutionDetails.Status.RUNNING, 1L, 1L, 1L);
         ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "Test", "filename", 1L);
         mockExperimentDetails.setId(MOCK_EXPERIMENT_ID);
-        ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, "Test-1", 1L, 1L, 1L);
+        ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, "Test-1", 1L,
+                1L, 1L);
         mockExecutionDetails.setId(MOCK_EXECUTION_ID);
 
         when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
@@ -370,11 +372,13 @@ public class ExecutionServiceImplTest {
                 Optional.of(1L), Optional.of(1L), Optional.of(1L));
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, testExperimentDetails, "Test-1",
                 1L, 1L, 1L);
-        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(Optional.of(testExperimentDetails));
+        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
+                Optional.of(testExperimentDetails));
         when(mockExecutionRepository.save(any(ExecutionDetails.class))).thenReturn(mockExecutionDetails);
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
         when(mockKubernetesClient.createPod(MOCK_USER.getName(), mockExecutionDetails.getExperimentDetails().getName(),
-                mockExecutionDetails.getName(), mockExecutionDetails.getExperimentDetails().getId())).thenThrow(ApiException.class);
+                mockExecutionDetails.getName(), mockExecutionDetails.getExperimentDetails().getId())).thenThrow(
+                ApiException.class);
 
         // Act
         ExecutionDTO actual = subject.createAndStartExecution(executionCreateDTO);
@@ -397,10 +401,12 @@ public class ExecutionServiceImplTest {
         ExecutionCreateDTO executionCreateDTO = new ExecutionCreateDTO(Optional.of("Test.zip"), MOCK_EXPERIMENT_ID,
                 Optional.of(1L), Optional.of(1L), Optional.of(1L));
         expectedEx.expect(ResponseStatusException.class);
-        expectedEx.expectMessage("Must be at least one alphanumeric letter. Username: " + mockUserDTO.getName() + ", Experimentname: "
-                + mockExperimentDetails.getName() + ", Executionname: " + mockExecutionDetails.getName());
+        expectedEx.expectMessage(
+                "Must be at least one alphanumeric letter. Username: " + mockUserDTO.getName() + ", Experimentname: "
+                        + mockExperimentDetails.getName() + ", Executionname: " + mockExecutionDetails.getName());
 
-        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(Optional.of(mockExperimentDetails));
+        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
+                Optional.of(mockExperimentDetails));
         when(mockExecutionRepository.save(any(ExecutionDetails.class))).thenReturn(mockExecutionDetails);
         when(mockContext.getAuthentication()).thenReturn(mockAuthFromNewUserDTO);
 
@@ -429,7 +435,8 @@ public class ExecutionServiceImplTest {
                 + "Must start and end alphanumeric. Username: " + mockUserDTO.getName() + ", Experimentname: "
                 + mockExperimentDetails.getName() + ", Executionname: " + mockExecutionDetails.getName());
 
-        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(Optional.of(mockExperimentDetails));
+        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
+                Optional.of(mockExperimentDetails));
         when(mockExecutionRepository.save(any(ExecutionDetails.class))).thenReturn(mockExecutionDetails);
         when(mockContext.getAuthentication()).thenReturn(mockAuthFromNewUserDTO);
 
@@ -454,7 +461,8 @@ public class ExecutionServiceImplTest {
         expectedEx.expect(ResponseStatusException.class);
         expectedEx.expectMessage("Experimentname must be at least one alphanumeric letter.");
 
-        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(Optional.of(mockExperimentDetails));
+        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
+                Optional.of(mockExperimentDetails));
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
 
         // Act
@@ -478,7 +486,8 @@ public class ExecutionServiceImplTest {
         ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_EXECUTION_ID, MOCK_EXPERIMENT_ID, "Test-1",
                 LocalDateTime.now(), null, null, ExecutionDetails.Status.RUNNING, 1L, 1L, 1L);
 
-        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(Optional.of(mockExperimentDetails));
+        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
+                Optional.of(mockExperimentDetails));
         when(mockExecutionRepository.save(any(ExecutionDetails.class))).thenReturn(mockExecutionDetails);
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
 
@@ -512,7 +521,8 @@ public class ExecutionServiceImplTest {
         expectedEx.expectMessage("You can only use alphanumeric letters and a hyphen for naming. "
                 + "Must start and end alphanumeric.");
 
-        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(Optional.of(mockExperimentDetails));
+        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
+                Optional.of(mockExperimentDetails));
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
 
         // Act
@@ -537,7 +547,8 @@ public class ExecutionServiceImplTest {
         expectedEx.expectMessage("You can only use alphanumeric letters and a hyphen for naming. "
                 + "Must start and end alphanumeric.");
 
-        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(Optional.of(mockExperimentDetails));
+        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
+                Optional.of(mockExperimentDetails));
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
 
         // Act
@@ -562,7 +573,8 @@ public class ExecutionServiceImplTest {
         expectedEx.expectMessage("You can only use alphanumeric letters and a hyphen for naming. "
                 + "Must start and end alphanumeric.");
 
-        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(Optional.of(mockExperimentDetails));
+        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
+                Optional.of(mockExperimentDetails));
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
 
         // Act
@@ -587,7 +599,8 @@ public class ExecutionServiceImplTest {
                 LocalDateTime.now(), null, null, ExecutionDetails.Status.RUNNING, 1L, 1L, 1L);
 
         //when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.of(mockExecutionDetails));
-        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(Optional.of(mockExperimentDetails));
+        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
+                Optional.of(mockExperimentDetails));
         when(mockExecutionRepository.save(any(ExecutionDetails.class))).thenReturn(mockExecutionDetails);
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
 
@@ -621,7 +634,8 @@ public class ExecutionServiceImplTest {
         expectedEx.expectMessage("You can only use alphanumeric letters and a hyphen for naming. "
                 + "Must start and end alphanumeric.");
 
-        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(Optional.of(mockExperimentDetails));
+        when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
+                Optional.of(mockExperimentDetails));
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
 
         // Act
@@ -703,8 +717,9 @@ public class ExecutionServiceImplTest {
                 1L, 1L, 1L);
         mockExecutionDetails.setId(MOCK_EXECUTION_ID);
         expectedEx.expect(ResponseStatusException.class);
-        expectedEx.expectMessage("Must be at least one alphanumeric letter. Username: " + mockUserDTO.getName() + ", Experimentname: "
-                + mockExperimentDetails.getName() + ", Podname: " + mockExecutionDetails.getPodName());
+        expectedEx.expectMessage(
+                "Must be at least one alphanumeric letter. Username: " + mockUserDTO.getName() + ", Experimentname: "
+                        + mockExperimentDetails.getName() + ", Podname: " + mockExecutionDetails.getPodName());
 
         when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.of(mockExecutionDetails));
         when(mockContext.getAuthentication()).thenReturn(mockAuthFromNewUserDTO);
@@ -752,7 +767,8 @@ public class ExecutionServiceImplTest {
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, testExperimentDetails, "Test1",
                 1L, 1L, 1L);
         when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.of(mockExecutionDetails));
-        when(mockKubernetesClient.retrieveLogs(mockUserDTO.getName(), mockExecutionDetails, lines, sinceSeconds, true)).thenReturn(
+        when(mockKubernetesClient.retrieveLogs(mockUserDTO.getName(), mockExecutionDetails, lines, sinceSeconds,
+                true)).thenReturn(
                 expectedLog);
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
 
@@ -762,7 +778,8 @@ public class ExecutionServiceImplTest {
         // Assert
         assertEquals(expectedLog, actual);
         verify(mockExecutionRepository, times(1)).findById(MOCK_EXECUTION_ID);
-        verify(mockKubernetesClient, times(1)).retrieveLogs(mockUserDTO.getName(), mockExecutionDetails, lines, sinceSeconds, true);
+        verify(mockKubernetesClient, times(1)).retrieveLogs(mockUserDTO.getName(), mockExecutionDetails, lines,
+                sinceSeconds, true);
         verify(mockContext, times(2)).getAuthentication();
     }
 
@@ -779,7 +796,8 @@ public class ExecutionServiceImplTest {
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, testExperimentDetails, "Test1",
                 1L, 1L, 1L);
         when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.of(mockExecutionDetails));
-        when(mockKubernetesClient.retrieveLogs(mockUserDTO.getName(), mockExecutionDetails, lines, sinceSeconds, true)).thenThrow(
+        when(mockKubernetesClient.retrieveLogs(mockUserDTO.getName(), mockExecutionDetails, lines, sinceSeconds,
+                true)).thenThrow(
                 ApiException.class);
         when(mockContext.getAuthentication()).thenReturn(MOCK_AUTH);
 

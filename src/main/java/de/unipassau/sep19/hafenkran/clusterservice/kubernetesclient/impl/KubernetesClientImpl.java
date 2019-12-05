@@ -3,22 +3,24 @@ package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl;
 import com.google.gson.JsonSyntaxException;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
-import io.kubernetes.client.ApiClient;
-import io.kubernetes.client.ApiException;
-import io.kubernetes.client.Attach;
-import io.kubernetes.client.Configuration;
+import io.kubernetes.client.*;
 import io.kubernetes.client.apis.CoreV1Api;
 import io.kubernetes.client.models.*;
 import io.kubernetes.client.util.Config;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Base64InputStream;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -168,6 +170,28 @@ public class KubernetesClientImpl implements KubernetesClient {
      * {@inheritDoc}
      */
     @Override
+    public String retrieveResults(@NonNull ExecutionDetails executionDetails) throws ApiException, IOException {
+        String namespace = executionDetails.getExperimentDetails().getId().toString();
+        String podName = executionDetails.getPodName();
+        Exec exec = new Exec();
+
+        final Process proc =
+                exec.exec(
+                        namespace,
+                        podName,
+                        new String[]{"sh", "-c", "tar cf - " + "/results" + " | base64"},
+                        null,
+                        false,
+                        false);
+
+        InputStream is = new Base64InputStream(new BufferedInputStream(proc.getInputStream()));
+        return IOUtils.toString(is, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void sendSTIN(@NonNull String input, @NonNull ExecutionDetails executionDetails) throws IOException, ApiException {
         String namespace = executionDetails.getExperimentDetails().getId().toString();
         String podName = executionDetails.getName().toLowerCase();
@@ -181,7 +205,6 @@ public class KubernetesClientImpl implements KubernetesClient {
         output.close();
         result.close();
     }
-
 
     private List<String> getAllNamespaces() throws ApiException {
         V1NamespaceList listNamespace =

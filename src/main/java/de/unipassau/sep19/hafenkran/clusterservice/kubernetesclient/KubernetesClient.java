@@ -47,6 +47,16 @@ public interface KubernetesClient {
     String retrieveLogs(@NonNull String userName, @NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamps) throws ApiException;
 
     /**
+     * Retrieves the results of the execution from the pod in Kubernetes.
+     *
+     * @param executionDetails The execution to get the results from.
+     * @return A Base64-String of the results.
+     * @throws ApiException if the pod couldn't be found.
+     * @throws IOException  if the input couldn't be read.
+     */
+    String retrieveResults(@NonNull ExecutionDetails executionDetails) throws ApiException, IOException;
+
+    /**
      * Sending an standard-{@code input} to the kubernetes container.
      *
      * @param input            The input to be sent.

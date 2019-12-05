@@ -2,7 +2,6 @@ package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl;
 
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
-import io.kubernetes.client.ApiException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -47,9 +46,14 @@ public class KubernetesClientMockImpl implements KubernetesClient {
     }
 
     @Override
+    public String retrieveResults(@NonNull ExecutionDetails executionDetails) {
+        log.info(String.format("KubernetesClientMockImpl: Results retrieved from execution with id %s", executionDetails.getId()));
+        return "This is the Base64-String";
+    }
+
+    @Override
     public void sendSTIN(@NonNull String input, @NonNull ExecutionDetails executionDetails) {
         log.info(String.format("KubernetesClientMockImpl: Sending the following input to execution with id %s: %s", executionDetails.getId(), input));
     }
-
 
 }

@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -100,6 +101,19 @@ public class ExecutionController {
     @ResponseStatus(HttpStatus.OK)
     public ExecutionDTO deleteExecution(@NonNull @PathVariable UUID executionId) {
         return executionService.deleteExecution(executionId);
+    }
+
+    /**
+     * GET-Endpoint for receiving the results of the execution with the {@code executionId}.
+     *
+     * @param executionId The id from the execution to get the results from.
+     * @return A Base64-String with the results.
+     */
+    @GetMapping(value = "/{executionId}/results", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public byte[] getResultsForExecution(@NonNull @PathVariable UUID executionId) {
+        return executionService.getResults(executionId);
     }
 
     /**

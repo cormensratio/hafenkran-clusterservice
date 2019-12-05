@@ -84,6 +84,14 @@ public interface ExecutionService {
     ExecutionDTO deleteExecution(@NonNull UUID executionId);
 
     /**
+     * Returns a Base64-String with all results of the execution with the {@code executionId}.
+     *
+     * @param executionId The id of the execution, which results should be returned.
+     * @return A Base64-String with all results from the execution.
+     */
+    byte[] getResults(@NonNull UUID executionId);
+
+    /**
      * Sends an standardinput {@code stdinDTO} to a specific execution with the {@code executionId}.
      *
      * @param executionId The id of the execution, which should receive the input.

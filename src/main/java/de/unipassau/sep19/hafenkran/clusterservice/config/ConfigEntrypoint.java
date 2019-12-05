@@ -40,7 +40,7 @@ public class ConfigEntrypoint {
             havingValue = "true",
             matchIfMissing = true
     )
-    public KubernetesClient kubernetesMockClient() throws IOException {
+    public KubernetesClient kubernetesMockClient() {
         return new KubernetesClientMockImpl();
     }
 

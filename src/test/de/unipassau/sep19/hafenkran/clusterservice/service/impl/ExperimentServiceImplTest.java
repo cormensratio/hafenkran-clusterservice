@@ -17,7 +17,10 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -59,14 +62,16 @@ public class ExperimentServiceImplTest {
 
         // Arrange
         when(mockExperimentRepository.save(testExperimentDetails)).thenReturn(testExperimentDetails);
-        when(mockExperimentRepository.findExperimentDetailsByOwnerIdAndName(testExperimentDetails.getOwnerId(), testExperimentDetails.getName())).thenReturn(Collections.emptyList());
+        when(mockExperimentRepository.findExperimentDetailsByOwnerIdAndName(testExperimentDetails.getOwnerId(),
+                testExperimentDetails.getName())).thenReturn(Collections.emptyList());
 
         // Act
         ExperimentDetails actual = subject.createExperiment(testExperimentDetails);
 
         // Assert
         verify(mockExperimentRepository, times(1)).save(testExperimentDetails);
-        verify(mockExperimentRepository, times(1)).findExperimentDetailsByOwnerIdAndName(testExperimentDetails.getOwnerId(), testExperimentDetails.getName());
+        verify(mockExperimentRepository, times(1)).findExperimentDetailsByOwnerIdAndName(
+                testExperimentDetails.getOwnerId(), testExperimentDetails.getName());
         assertEquals(testExperimentDetails, actual);
         verifyNoMoreInteractions(mockExperimentRepository);
     }
@@ -78,7 +83,8 @@ public class ExperimentServiceImplTest {
         expectedEx.expect(ResponseStatusException.class);
         expectedEx.expectMessage("Experimentname: testExperiment already used. Must be unique.");
 
-        when(mockExperimentRepository.findExperimentDetailsByOwnerIdAndName(testExperimentDetails.getOwnerId(), testExperimentDetails.getName())).thenReturn(Arrays.asList(testExperimentDetails));
+        when(mockExperimentRepository.findExperimentDetailsByOwnerIdAndName(testExperimentDetails.getOwnerId(),
+                testExperimentDetails.getName())).thenReturn(Collections.singletonList(testExperimentDetails));
 
         // Act
         ExperimentDetails actual = subject.createExperiment(testExperimentDetails);

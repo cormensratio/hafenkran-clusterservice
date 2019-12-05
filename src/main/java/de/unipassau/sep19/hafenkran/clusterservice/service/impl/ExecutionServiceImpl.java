@@ -20,7 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.*;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
@@ -61,7 +61,8 @@ public class ExecutionServiceImpl implements ExecutionService {
         final String userName = SecurityContextUtil.getCurrentUserDTO().getName();
         final String logs;
         try {
-            logs = kubernetesClient.retrieveLogs(userName, retrieveExecutionDetailsById(id), lines, sinceSeconds, withTimestamps);
+            logs = kubernetesClient.retrieveLogs(userName, retrieveExecutionDetailsById(id), lines, sinceSeconds,
+                    withTimestamps);
         } catch (ApiException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
                     "communicating with the cluster.", e);
@@ -113,7 +114,8 @@ public class ExecutionServiceImpl implements ExecutionService {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                     "Must be at least one alphanumeric letter. Username: " + userName + ", Experimentname: "
                             + experimentName + ", Podname: " + podName);
-        } else if (Pattern.matches(regex, userName.toLowerCase()) && Pattern.matches(regex, experimentName.toLowerCase())
+        } else if (Pattern.matches(regex, userName.toLowerCase()) && Pattern.matches(regex,
+                experimentName.toLowerCase())
                 && Pattern.matches(regex, podName.toLowerCase())) {
             try {
                 kubernetesClient.deletePod(userName, experimentName, podName);
@@ -191,6 +193,19 @@ public class ExecutionServiceImpl implements ExecutionService {
      * {@inheritDoc}
      */
     @Override
+    public byte[] getResults(@NonNull UUID executionId) {
+        ExecutionDetails executionDetails = retrieveExecutionDetailsById(executionId);
+        try {
+            return kubernetesClient.retrieveResults(executionDetails).getBytes();
+        } catch (ApiException | IOException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Results couldn't be found.", e);
+        }
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void sendSTDIN(@NonNull UUID executionId, @NonNull StdinDTO stdinDTO) {
         ExecutionDetails executionDetails = retrieveExecutionDetailsById(executionId);
         try {
@@ -216,7 +231,8 @@ public class ExecutionServiceImpl implements ExecutionService {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                     "Must be at least one alphanumeric letter. Username: " + userName + ", Experimentname: "
                             + experimentName + ", Executionname: " + executionName);
-        } else if (Pattern.matches(regex, userName.toLowerCase()) && Pattern.matches(regex, experimentName.toLowerCase())
+        } else if (Pattern.matches(regex, userName.toLowerCase()) && Pattern.matches(regex,
+                experimentName.toLowerCase())
                 && Pattern.matches(regex, executionName.toLowerCase())) {
             try {
                 podName = kubernetesClient.createPod(userName, experimentName, executionName, experimentId);
