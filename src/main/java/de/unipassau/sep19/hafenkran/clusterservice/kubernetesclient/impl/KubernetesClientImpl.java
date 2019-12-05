@@ -72,13 +72,19 @@ public class KubernetesClientImpl implements KubernetesClient {
      * {@inheritDoc}
      */
     @Override
-    public String createPod(@NonNull UUID experimentId, @NonNull String executionName) throws ApiException {
-        String namespaceString = experimentId.toString();
+    public String createPod(@NonNull String userName, @NonNull String experimentName, @NonNull String executionName, @NonNull UUID experimentId) throws ApiException {
+        if (experimentName.contains(String.valueOf('.'))) {
+            experimentName = experimentName.substring(0, experimentName.indexOf('.'));
+        }
+        String namespaceString = userName.toLowerCase() + "-" + experimentName.toLowerCase();
         String image = DOCKER_HUB_REPO_PATH + ":" + experimentId;
         String podName = executionName.toLowerCase();
 
-        if (namespaceString.isEmpty()) {
-            throw new IllegalArgumentException("Namespace is empty");
+        if (userName.isEmpty()) {
+            throw new IllegalArgumentException("Username is empty");
+        }
+        if (experimentName.isEmpty()) {
+            throw new IllegalArgumentException("Experimentname is empty");
         }
         if (podName.isEmpty()) {
             throw new IllegalArgumentException("Podname is empty");
@@ -98,13 +104,18 @@ public class KubernetesClientImpl implements KubernetesClient {
      * {@inheritDoc}
      */
     @Override
-    public void deletePod(@NonNull UUID experimentId, @NonNull String executionName) throws ApiException {
-        String namespaceString = experimentId.toString();
-        String podName = executionName.toLowerCase();
+    public void deletePod(@NonNull String userName, String experimentName, @NonNull String podName) throws ApiException {
+        if (experimentName.contains(String.valueOf('.'))) {
+            experimentName = experimentName.substring(0, experimentName.indexOf('.'));
+        }
+        String namespaceString = userName.toLowerCase() + "-" + experimentName.toLowerCase();
         List<String> allPodsInNamespace = getAllPodsFromNamespace(namespaceString);
 
-        if (namespaceString.isEmpty()) {
-            throw new IllegalArgumentException("Namespace is empty.");
+        if (userName.isEmpty()) {
+            throw new IllegalArgumentException("Username is empty.");
+        }
+        if (experimentName.isEmpty()) {
+            throw new IllegalArgumentException("Experimentname is empty");
         }
         if (podName.isEmpty()) {
             throw new IllegalArgumentException("Podname is empty");
@@ -134,16 +145,19 @@ public class KubernetesClientImpl implements KubernetesClient {
      * {@inheritDoc}
      */
     @Override
-    public String retrieveLogs(@NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamps) throws ApiException {
+    public String retrieveLogs(@NonNull String userName, @NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamps) throws ApiException {
 
         if (!executionDetails.getStatus().equals(ExecutionDetails.Status.RUNNING)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                     String.format("Found execution for id %s, but with status %s.", executionDetails.getId(),
                             executionDetails.getStatus()));
         }
-
-        final String namespace = executionDetails.getExperimentDetails().getId().toString();
-        final String podName = executionDetails.getPodName();
+        String experimentName = executionDetails.getExperimentDetails().getName();
+        if (experimentName.contains(String.valueOf('.'))) {
+            experimentName = experimentName.substring(0, experimentName.indexOf('.'));
+        }
+        final String namespace = userName.toLowerCase() + "-" + experimentName.toLowerCase();
+        final String podName = executionDetails.getName().toLowerCase();
 
         return api.readNamespacedPodLog(podName, namespace, null, false, null, null, false, sinceSeconds, lines,
                 withTimestamps);
@@ -234,7 +248,8 @@ public class KubernetesClientImpl implements KubernetesClient {
                 .endMetadata()
                 .withNewSpec()
                 .withContainers(container)
-                .withImagePullSecrets(imagePullSecret) //sets the secret for accessing docker registry
+                .withRestartPolicy("Never")
+                .withImagePullSecrets(imagePullSecret)//sets the secret for accessing docker registry
                 .withHostNetwork(true)
                 .endSpec()
                 .build();

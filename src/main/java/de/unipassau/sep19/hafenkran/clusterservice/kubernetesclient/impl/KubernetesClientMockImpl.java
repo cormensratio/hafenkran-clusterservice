@@ -2,6 +2,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl;
 
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
+import io.kubernetes.client.ApiException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -27,21 +28,21 @@ public class KubernetesClientMockImpl implements KubernetesClient {
     }
 
     @Override
-    public String createPod(@NonNull UUID experimentId, @NonNull String executionName) {
-        log.info("KubernetesClientMockImpl: Creating pod with name " + executionName);
+    public String createPod(String userName, String experimentName, String executionName, UUID experimentId) {
+        log.info("KubernetesClientMockImpl can not create a Pod.");
         return "No Pod created. KubernetesClientMockImpl.";
     }
 
     @Override
-    public void deletePod(@NonNull UUID experimentId, @NonNull String executionName) {
-        log.info("KubernetesClientMockImpl: Deleting pod for execution " + executionName);
+    public void deletePod(String userName, String experimentName, String podName) {
+        log.info("KubernetesClientMockImpl can not delete a Pod.");
     }
 
     @Override
-    public String retrieveLogs(@NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamp) {
+    public String retrieveLogs(@NonNull String userName, @NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamp) {
         log.info(String.format(
-                "KubernetesClientMockImpl: Retrieving first %s lines printed to the log since %s for pod %s with id %s",
-                lines, sinceSeconds, executionDetails.getPodName(), executionDetails.getId()));
+                "KubernetesClientMockImpl: Retrieving first %s lines printed to the log since %s for pod %s with id %s from user %s",
+                lines, sinceSeconds, executionDetails.getPodName(), executionDetails.getId(), userName));
         return String.format("this is a test log for %s \n 1 \n 2", executionDetails.getPodName());
     }
 

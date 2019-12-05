@@ -3,7 +3,6 @@ package de.unipassau.sep19.hafenkran.clusterservice.controller;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.StdinDTO;
-import de.unipassau.sep19.hafenkran.clusterservice.model.*;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
 import lombok.NonNull;
@@ -12,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.transaction.annotation.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -88,10 +86,10 @@ public class ExecutionController {
     public ExecutionDTO terminateExecution(@NonNull @PathVariable UUID executionId) {
         return executionService.terminateExecution(executionId);
     }
-    
+
     /**
      * DELETE-Endpoint for deleting an execution from an experiment.
-     * 
+     *
      * @param executionId The id from the execution, which should be deleted.
      * @return An {@link ExecutionDTO} from the deleted execution.
      */

@@ -28,7 +28,7 @@ public class InitDatabase implements CommandLineRunner {
     @Override
     public void run(String... args) {
 
-        if (! mockdata) {
+        if (!mockdata) {
             return;
         }
 
@@ -36,14 +36,14 @@ public class InitDatabase implements CommandLineRunner {
                 new ExperimentDetails(UUID.fromString(
                         "00000000-0000-0000-0000-000000000001"),
                         "ColdFusionAlgorithm",
-                        "ColdFusionAlgorithm.tar", 300);
+                        "ColdFusionAlgorithm", 300);
         experimentDetails1.setId(UUID.fromString("00000000-0000-0000-0000-000000000001"));
         experimentService.createExperiment(experimentDetails1);
 
         final ExperimentDetails experimentDetails2 =
                 new ExperimentDetails(UUID.fromString("00000000-0000-0000-0000-000000000001"),
                         "CompletePI",
-                        "CompletePI.tar", 1024);
+                        "CompletePI", 1024);
         experimentDetails2.setId(UUID.fromString("00000000-0000-0000-0000-000000000002"));
         experimentService.createExperiment(experimentDetails2);
 

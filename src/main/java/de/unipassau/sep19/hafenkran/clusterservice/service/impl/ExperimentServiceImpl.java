@@ -10,7 +10,9 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -37,9 +39,16 @@ public class ExperimentServiceImpl implements ExperimentService {
      * {@inheritDoc}
      */
     public ExperimentDetails createExperiment(@Valid @NonNull ExperimentDetails experimentDetails) {
-        final ExperimentDetails savedExperimentDetails = experimentRepository.save(experimentDetails);
-        log.info(String.format("Experiment with id %s created", savedExperimentDetails.getId()));
-        return savedExperimentDetails;
+        List<ExperimentDetails> foundExperiments = experimentRepository.findExperimentDetailsByOwnerIdAndName(experimentDetails.getOwnerId(), experimentDetails.getName());
+
+        if (foundExperiments.size() == 0) {
+            final ExperimentDetails savedExperimentDetails = experimentRepository.save(experimentDetails);
+            log.info(String.format("Experiment with id %s created", savedExperimentDetails.getId()));
+            return savedExperimentDetails;
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Experimentname: "
+                    + experimentDetails.getName() + " already used. Must be unique.");
+        }
     }
 
     /**
@@ -60,4 +69,5 @@ public class ExperimentServiceImpl implements ExperimentService {
     public List<ExperimentDTO> retrieveExperimentsDTOListOfUserId(@NonNull UUID userId) {
         return ExperimentDTOList.convertExperimentListToDTOList(findExperimentsListOfUserId(userId));
     }
+
 }

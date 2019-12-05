@@ -15,33 +15,36 @@ public interface KubernetesClient {
     /**
      * Creates Kubernetes Pod.
      *
-     * @param experimentId  Id of the experiment where the execution is stored.
-     * @param executionName The name of the execution which should be deployed as a pod in kubernetes.
-     * @return The name of the pod in kubernetes.
-     * @throws ApiException if the communication with the api results in an error.
+     * @param userName       name of the user who creates the pod
+     * @param experimentName name of the experiment which should be deployed
+     * @param executionName  name of the execution which should be deployed as a pod in kubernetes
+     * @return the name of the pod in kubernetes
+     * @throws ApiException if the communication with the api results in an error
      */
-    String createPod(@NonNull UUID experimentId, @NonNull String executionName) throws ApiException;
+    String createPod(String userName, String experimentName, String executionName, UUID experimentId) throws ApiException;
 
     /**
      * Deletes Kubernetes Pod.
      *
-     * @param experimentId  id of the experiment where the execution is stored
-     * @param executionName the name of the execution which pod should be deleted from kubernetes.
+     * @param userName       name of the user who is owner of the pod
+     * @param experimentName name of the experiment where the execution is stored
+     * @param podName        name of the pod which should be deleted from kubernetes
      * @throws ApiException if the communication with the api results in an error
      */
-    void deletePod(@NonNull UUID experimentId, @NonNull String executionName) throws ApiException;
+    void deletePod(@NonNull String userName, @NonNull String experimentName, @NonNull String podName) throws ApiException;
 
     /**
      * Retrieves the logs of the execution, but only if the given execution is currently running.
      *
-     * @param executionDetails    The id of the target execution.
-     * @param lines          The amount of lines to be returned.
-     * @param sinceSeconds   The time in seconds defining the range from where to start the extraction of logs.
-     * @param withTimestamps Show the timestamp for every line.
+     * @param userName         name of the user who is owner of the pod
+     * @param executionDetails The id of the target execution.
+     * @param lines            The amount of lines to be returned.
+     * @param sinceSeconds     The time in seconds defining the range from where to start the extraction of logs.
+     * @param withTimestamps   Show the timestamp for every line.
      * @return The string with the lines from the log.
      * @throws ApiException if the pod can't be found.
      */
-    String retrieveLogs(@NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamps) throws ApiException;
+    String retrieveLogs(@NonNull String userName, @NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamps) throws ApiException;
 
     /**
      * Sending an standard-{@code input} to the kubernetes container.
