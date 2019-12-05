@@ -27,29 +27,29 @@ public class KubernetesClientMockImpl implements KubernetesClient {
                 " if you want to use Kubernetes.");
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public String createPod(String userName, String experimentName, String executionName, UUID experimentId) throws ApiException {
+    @Override
+    public String createPod(String userName, String experimentName, String executionName, UUID experimentId) {
         log.info("KubernetesClientMockImpl can not create a Pod.");
         return "No Pod created. KubernetesClientMockImpl.";
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public void deletePod(String userName, String experimentName, String podName) throws ApiException {
+    @Override
+    public void deletePod(String userName, String experimentName, String podName) {
         log.info("KubernetesClientMockImpl can not delete a Pod.");
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public String retrieveLogs(@NonNull String userName, @NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamp) {
         log.info(String.format(
                 "KubernetesClientMockImpl: Retrieving first %s lines printed to the log since %s for pod %s with id %s from user %s",
                 lines, sinceSeconds, executionDetails.getPodName(), executionDetails.getId(), userName));
         return String.format("this is a test log for %s \n 1 \n 2", executionDetails.getPodName());
     }
+
+    @Override
+    public void sendSTIN(@NonNull String input, @NonNull ExecutionDetails executionDetails) {
+        log.info(String.format("KubernetesClientMockImpl: Sending the following input to execution with id %s: %s", executionDetails.getId(), input));
+    }
+
 
 }
