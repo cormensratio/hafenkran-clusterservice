@@ -1,6 +1,8 @@
 package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.core.DefaultDockerClientConfig;
+import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.command.PushImageResultCallback;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceStorageException;
@@ -45,9 +47,6 @@ public class UploadServiceImpl implements UploadService {
 
     @Value("${experimentsFileUploadLocation}")
     private String path;
-
-    @Autowired
-    private DockerClient dockerClient;
 
     private Path getFileStoragePath(@NonNull ExperimentDetails experimentDetails) {
         return Paths.get(String
@@ -134,6 +133,18 @@ public class UploadServiceImpl implements UploadService {
         return tarStream;
     }
 
+    private DockerClient initializeDockerClient() {
+        DefaultDockerClientConfig.Builder config = DefaultDockerClientConfig
+                .createDefaultConfigBuilder();
+
+        DockerClient dockerClient = DockerClientBuilder
+                .getInstance(config)
+                .build();
+        log.debug("Created default docker client");
+
+        return dockerClient;
+    }
+
     private String extractImageIdFromTar(@NonNull ExperimentDetails experimentDetails) {
         TarArchiveInputStream tarStream = getTarInputStream(experimentDetails);
         TarArchiveEntry tarEntry;
@@ -174,6 +185,8 @@ public class UploadServiceImpl implements UploadService {
 
     private void pushImageToDockerHub(@NonNull InputStream inputStream,
                                       @NonNull ExperimentDetails experimentDetails) {
+
+        final DockerClient dockerClient = initializeDockerClient();
 
         String imageId = extractImageIdFromTar(experimentDetails);
         String tag = experimentDetails.getId().toString();
