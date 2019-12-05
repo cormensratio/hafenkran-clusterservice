@@ -3,10 +3,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl;
 import com.google.gson.JsonSyntaxException;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
-import io.kubernetes.client.ApiClient;
-import io.kubernetes.client.ApiException;
-import io.kubernetes.client.Configuration;
-import io.kubernetes.client.PodLogs;
+import io.kubernetes.client.*;
 import io.kubernetes.client.apis.CoreV1Api;
 import io.kubernetes.client.models.*;
 import io.kubernetes.client.util.Config;
@@ -72,6 +69,7 @@ public class KubernetesClientImpl implements KubernetesClient {
     /**
      * {@inheritDoc}
      */
+    @Override
     public String createPod(@NonNull String userName, @NonNull String experimentName, @NonNull String executionName, @NonNull UUID experimentId) throws ApiException {
         if (experimentName.contains(String.valueOf('.'))) {
             experimentName = experimentName.substring(0, experimentName.indexOf('.'));
@@ -103,6 +101,7 @@ public class KubernetesClientImpl implements KubernetesClient {
     /**
      * {@inheritDoc}
      */
+    @Override
     public void deletePod(@NonNull String userName, String experimentName, @NonNull String podName) throws ApiException {
         if (experimentName.contains(String.valueOf('.'))) {
             experimentName = experimentName.substring(0, experimentName.indexOf('.'));
@@ -140,6 +139,9 @@ public class KubernetesClientImpl implements KubernetesClient {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String retrieveLogs(@NonNull String userName, @NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamps) throws ApiException {
 
@@ -172,6 +174,20 @@ public class KubernetesClientImpl implements KubernetesClient {
         final BufferedReader br = new BufferedReader(r);
         return br.lines().collect(Collectors.joining("\n"));
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void sendSTIN(@NonNull String input, @NonNull ExecutionDetails executionDetails) throws IOException, ApiException {
+        Exec exec = new Exec();
+
+        String namespace = executionDetails.getExperimentDetails().getId().toString();
+        String podName = executionDetails.getName().toLowerCase();
+
+        exec.exec(namespace, podName, new String[]{input}, false, false);
+    }
+
 
     private List<String> getAllNamespaces() throws ApiException {
         V1NamespaceList listNamespace =
