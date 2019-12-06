@@ -27,21 +27,21 @@ public class KubernetesClientMockImpl implements KubernetesClient {
     }
 
     @Override
-    public String createPod(String userName, String experimentName, String executionName, UUID experimentId) {
+    public String createPod(@NonNull ExecutionDetails executionDetails) {
         log.info("KubernetesClientMockImpl can not create a Pod.");
         return "No Pod created. KubernetesClientMockImpl.";
     }
 
     @Override
-    public void deletePod(String userName, String experimentName, String podName) {
+    public void deletePod(@NonNull ExecutionDetails executionDetails) {
         log.info("KubernetesClientMockImpl can not delete a Pod.");
     }
 
     @Override
-    public String retrieveLogs(@NonNull String userName, @NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamp) {
+    public String retrieveLogs(@NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamp) {
         log.info(String.format(
-                "KubernetesClientMockImpl: Retrieving first %s lines printed to the log since %s for pod %s with id %s from user %s",
-                lines, sinceSeconds, executionDetails.getPodName(), executionDetails.getId(), userName));
+                "KubernetesClientMockImpl: Retrieving first %s lines printed to the log since %s for pod %s with id %s",
+                lines, sinceSeconds, executionDetails.getPodName(), executionDetails.getId()));
         return String.format("this is a test log for %s \n 1 \n 2", executionDetails.getPodName());
     }
 

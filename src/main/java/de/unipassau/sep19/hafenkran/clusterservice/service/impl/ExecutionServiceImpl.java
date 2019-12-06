@@ -51,17 +51,14 @@ public class ExecutionServiceImpl implements ExecutionService {
     @Value("${kubernetes.deployment.defaults.bookedTime}")
     private long bookedTimeDefault;
 
-    private final String regex = "[a-z0-9]([-a-z0-9]*[a-z0-9])?";
-
     /**
      * {@inheritDoc}
      */
     @Override
     public String retrieveLogsForExecutionId(@NonNull UUID id, int lines, Integer sinceSeconds, boolean withTimestamps) {
-        final String userName = SecurityContextUtil.getCurrentUserDTO().getName();
         final String logs;
         try {
-            logs = kubernetesClient.retrieveLogs(userName, retrieveExecutionDetailsById(id), lines, sinceSeconds,
+            logs = kubernetesClient.retrieveLogs(retrieveExecutionDetailsById(id), lines, sinceSeconds,
                     withTimestamps);
         } catch (ApiException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
@@ -106,28 +103,12 @@ public class ExecutionServiceImpl implements ExecutionService {
     public ExecutionDTO terminateExecution(@NonNull UUID executionId) {
 
         ExecutionDetails executionDetails = getExecutionDetails(executionId);
-        String userName = SecurityContextUtil.getCurrentUserDTO().getName();
-        String experimentName = executionDetails.getExperimentDetails().getName();
-        String podName = executionDetails.getPodName();
 
-        if (userName.isEmpty() || experimentName.isEmpty() || podName.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                    "Must be at least one alphanumeric letter. Username: " + userName + ", Experimentname: "
-                            + experimentName + ", Podname: " + podName);
-        } else if (Pattern.matches(regex, userName.toLowerCase()) && Pattern.matches(regex,
-                experimentName.toLowerCase())
-                && Pattern.matches(regex, podName.toLowerCase())) {
-            try {
-                kubernetesClient.deletePod(userName, experimentName, podName);
-            } catch (ApiException e) {
-                throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while "
-                        + "communicating with the cluster.");
-            }
-        } else {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                    "You can only use alphanumeric letters and a hyphen for naming. "
-                            + "Must start and end alphanumeric. Username: " + userName + ", Experimentname: "
-                            + experimentName + ", Podname: " + podName);
+        try {
+            kubernetesClient.deletePod(executionDetails);
+        } catch (ApiException e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while "
+                    + "communicating with the cluster.");
         }
 
         executionDetails.setStatus(ExecutionDetails.Status.CANCELED);
@@ -201,7 +182,7 @@ public class ExecutionServiceImpl implements ExecutionService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Results couldn't be found.", e);
         }
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -217,34 +198,12 @@ public class ExecutionServiceImpl implements ExecutionService {
     }
 
     private ExecutionDetails startExecution(@NonNull ExecutionDetails executionDetails) {
-        String podName;
-        String userName = SecurityContextUtil.getCurrentUserDTO().getName();
-        String experimentName = executionDetails.getExperimentDetails().getName();
-
-        if (experimentName.contains(String.valueOf('.'))) {
-            experimentName = experimentName.substring(0, experimentName.indexOf('.'));
-        }
-        String executionName = executionDetails.getName();
-        UUID experimentId = executionDetails.getExperimentDetails().getId();
-
-        if (userName.isEmpty() || experimentName.isEmpty() || executionName.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                    "Must be at least one alphanumeric letter. Username: " + userName + ", Experimentname: "
-                            + experimentName + ", Executionname: " + executionName);
-        } else if (Pattern.matches(regex, userName.toLowerCase()) && Pattern.matches(regex,
-                experimentName.toLowerCase())
-                && Pattern.matches(regex, executionName.toLowerCase())) {
-            try {
-                podName = kubernetesClient.createPod(userName, experimentName, executionName, experimentId);
-            } catch (ApiException e) {
-                throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while "
-                        + "communicating with the cluster.");
-            }
-        } else {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                    "You can only use alphanumeric letters and a hyphen for naming. "
-                            + "Must start and end alphanumeric. Username: " + userName + ", Experimentname: "
-                            + experimentName + ", Executionname: " + executionName);
+        String podName = null;
+        try {
+            podName = kubernetesClient.createPod(executionDetails);
+        } catch (ApiException e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while "
+                    + "communicating with the cluster.");
         }
 
         executionDetails.setPodName(podName);
@@ -302,6 +261,7 @@ public class ExecutionServiceImpl implements ExecutionService {
         }
 
         // Check if the name matches the regex
+        String regex = "[a-z0-9]([-a-z0-9]*[a-z0-9])?";
         if (Pattern.matches(regex, inputName.toLowerCase())) {
             name = inputName + "-" + (experiment.getExecutionDetails().size() + 1);
         } else {
