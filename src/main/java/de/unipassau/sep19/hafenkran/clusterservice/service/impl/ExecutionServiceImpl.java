@@ -51,8 +51,6 @@ public class ExecutionServiceImpl implements ExecutionService {
     @Value("${kubernetes.deployment.defaults.bookedTime}")
     private long bookedTimeDefault;
 
-    private final String regex = "[a-z0-9]([-a-z0-9]*[a-z0-9])?";
-
     /**
      * {@inheritDoc}
      */
@@ -185,7 +183,7 @@ public class ExecutionServiceImpl implements ExecutionService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Results couldn't be found.", e);
         }
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -264,6 +262,7 @@ public class ExecutionServiceImpl implements ExecutionService {
         }
 
         // Check if the name matches the regex
+        String regex = "[a-z0-9]([-a-z0-9]*[a-z0-9])?";
         if (Pattern.matches(regex, inputName.toLowerCase())) {
             name = inputName + "-" + (experiment.getExecutionDetails().size() + 1);
         } else {
