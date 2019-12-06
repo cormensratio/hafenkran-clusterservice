@@ -56,7 +56,6 @@ public class ExecutionServiceImpl implements ExecutionService {
      */
     @Override
     public String retrieveLogsForExecutionId(@NonNull UUID id, int lines, Integer sinceSeconds, boolean withTimestamps) {
-        final String userName = SecurityContextUtil.getCurrentUserDTO().getName();
         final String logs;
         try {
             logs = kubernetesClient.retrieveLogs(retrieveExecutionDetailsById(id), lines, sinceSeconds,

@@ -77,7 +77,7 @@ public class KubernetesClientImpl implements KubernetesClient {
     public String createPod(@NonNull ExecutionDetails executionDetails) throws ApiException {
         String namespaceString = executionDetails.getExperimentDetails().getId().toString();
         String image = DOCKER_HUB_REPO_PATH + ":" + executionDetails.getExperimentDetails().getId();
-        String podName = executionDetails.getId().toString();
+        String podName = executionDetails.getName();
 
         List<String> allNamespaces = getAllNamespaces();
         if (!allNamespaces.contains(namespaceString)) {
@@ -96,7 +96,7 @@ public class KubernetesClientImpl implements KubernetesClient {
     @Override
     public void deletePod(@NonNull ExecutionDetails executionDetails) throws ApiException {
         String namespaceString = executionDetails.getExperimentDetails().getId().toString();
-        String podName = executionDetails.getId().toString();
+        String podName = executionDetails.getPodName();
 
         List<String> allPodsInNamespace = getAllPodsFromNamespace(namespaceString);
 
@@ -134,7 +134,7 @@ public class KubernetesClientImpl implements KubernetesClient {
         }
 
         final String namespace = executionDetails.getExperimentDetails().getId().toString();
-        final String podName = executionDetails.getName().toLowerCase();
+        final String podName = executionDetails.getPodName();
 
         return api.readNamespacedPodLog(podName, namespace, null, false, null, "pretty", false, sinceSeconds,
                 lines,
@@ -169,7 +169,7 @@ public class KubernetesClientImpl implements KubernetesClient {
     @Override
     public void sendSTIN(@NonNull String input, @NonNull ExecutionDetails executionDetails) throws IOException, ApiException {
         String namespace = executionDetails.getExperimentDetails().getId().toString();
-        String podName = executionDetails.getId().toString();
+        String podName = executionDetails.getPodName();
 
         Attach attach = new Attach();
         final Attach.AttachResult result = attach.attach(namespace, podName, true);
