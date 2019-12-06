@@ -74,23 +74,11 @@ public class KubernetesClientImpl implements KubernetesClient {
      * {@inheritDoc}
      */
     @Override
-    public String createPod(@NonNull String userName, @NonNull String experimentName, @NonNull String executionName, @NonNull UUID experimentId) throws ApiException {
-        if (experimentName.contains(String.valueOf('.'))) {
-            experimentName = experimentName.substring(0, experimentName.indexOf('.'));
-        }
-        String namespaceString = userName.toLowerCase() + "-" + experimentName.toLowerCase();
-        String image = DOCKER_HUB_REPO_PATH + ":" + experimentId;
-        String podName = executionName.toLowerCase();
+    public String createPod(@NonNull ExecutionDetails executionDetails) throws ApiException {
+        String namespaceString = executionDetails.getExperimentDetails().getId().toString();
+        String image = DOCKER_HUB_REPO_PATH + ":" + executionDetails.getExperimentDetails().getId();
+        String podName = executionDetails.getId().toString();
 
-        if (userName.isEmpty()) {
-            throw new IllegalArgumentException("Username is empty");
-        }
-        if (experimentName.isEmpty()) {
-            throw new IllegalArgumentException("Experimentname is empty");
-        }
-        if (podName.isEmpty()) {
-            throw new IllegalArgumentException("Podname is empty");
-        }
         List<String> allNamespaces = getAllNamespaces();
         if (!allNamespaces.contains(namespaceString)) {
             createNamespace(namespaceString);
@@ -106,22 +94,12 @@ public class KubernetesClientImpl implements KubernetesClient {
      * {@inheritDoc}
      */
     @Override
-    public void deletePod(@NonNull String userName, String experimentName, @NonNull String podName) throws ApiException {
-        if (experimentName.contains(String.valueOf('.'))) {
-            experimentName = experimentName.substring(0, experimentName.indexOf('.'));
-        }
-        String namespaceString = userName.toLowerCase() + "-" + experimentName.toLowerCase();
+    public void deletePod(@NonNull ExecutionDetails executionDetails) throws ApiException {
+        String namespaceString = executionDetails.getExperimentDetails().getId().toString();
+        String podName = executionDetails.getId().toString();
+
         List<String> allPodsInNamespace = getAllPodsFromNamespace(namespaceString);
 
-        if (userName.isEmpty()) {
-            throw new IllegalArgumentException("Username is empty.");
-        }
-        if (experimentName.isEmpty()) {
-            throw new IllegalArgumentException("Experimentname is empty");
-        }
-        if (podName.isEmpty()) {
-            throw new IllegalArgumentException("Podname is empty");
-        }
         if (allPodsInNamespace == null) {
             throw new IllegalArgumentException("This namespace doesnt exist");
         }
@@ -147,18 +125,15 @@ public class KubernetesClientImpl implements KubernetesClient {
      * {@inheritDoc}
      */
     @Override
-    public String retrieveLogs(@NonNull String userName, @NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamps) throws ApiException {
+    public String retrieveLogs(@NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamps) throws ApiException {
 
         if (!executionDetails.getStatus().equals(ExecutionDetails.Status.RUNNING)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                     String.format("Found execution for id %s, but with status %s.", executionDetails.getId(),
                             executionDetails.getStatus()));
         }
-        String experimentName = executionDetails.getExperimentDetails().getName();
-        if (experimentName.contains(String.valueOf('.'))) {
-            experimentName = experimentName.substring(0, experimentName.indexOf('.'));
-        }
-        final String namespace = userName.toLowerCase() + "-" + experimentName.toLowerCase();
+
+        final String namespace = executionDetails.getExperimentDetails().getId().toString();
         final String podName = executionDetails.getName().toLowerCase();
 
         return api.readNamespacedPodLog(podName, namespace, null, false, null, "pretty", false, sinceSeconds,
@@ -194,7 +169,8 @@ public class KubernetesClientImpl implements KubernetesClient {
     @Override
     public void sendSTIN(@NonNull String input, @NonNull ExecutionDetails executionDetails) throws IOException, ApiException {
         String namespace = executionDetails.getExperimentDetails().getId().toString();
-        String podName = executionDetails.getName().toLowerCase();
+        String podName = executionDetails.getId().toString();
+
         Attach attach = new Attach();
         final Attach.AttachResult result = attach.attach(namespace, podName, true);
         OutputStream output = result.getStandardInputStream();

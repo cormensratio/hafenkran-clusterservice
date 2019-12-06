@@ -21,7 +21,7 @@ public interface KubernetesClient {
      * @return the name of the pod in kubernetes
      * @throws ApiException if the communication with the api results in an error
      */
-    String createPod(String userName, String experimentName, String executionName, UUID experimentId) throws ApiException;
+    String createPod(@NonNull ExecutionDetails executionDetails) throws ApiException;
 
     /**
      * Deletes Kubernetes Pod.
@@ -31,7 +31,7 @@ public interface KubernetesClient {
      * @param podName        name of the pod which should be deleted from kubernetes
      * @throws ApiException if the communication with the api results in an error
      */
-    void deletePod(@NonNull String userName, @NonNull String experimentName, @NonNull String podName) throws ApiException;
+    void deletePod(@NonNull ExecutionDetails executionDetails) throws ApiException;
 
     /**
      * Retrieves the logs of the execution, but only if the given execution is currently running.
@@ -44,7 +44,7 @@ public interface KubernetesClient {
      * @return The string with the lines from the log.
      * @throws ApiException if the pod can't be found.
      */
-    String retrieveLogs(@NonNull String userName, @NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamps) throws ApiException;
+    String retrieveLogs(@NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamps) throws ApiException;
 
     /**
      * Retrieves the results of the execution from the pod in Kubernetes.
