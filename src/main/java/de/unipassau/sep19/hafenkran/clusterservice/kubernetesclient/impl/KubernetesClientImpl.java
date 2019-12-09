@@ -8,7 +8,6 @@ import io.kubernetes.client.apis.CoreV1Api;
 import io.kubernetes.client.informer.ResourceEventHandler;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
-import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.models.*;
 import io.kubernetes.client.util.CallGeneratorParams;
 import io.kubernetes.client.util.Config;
@@ -94,7 +93,7 @@ public class KubernetesClientImpl implements KubernetesClient {
         Map<String, String> labels = new HashMap<>();
         labels.put("run", podName);
         createPodInNamespace(namespaceString, podName, image, labels);
-        createNodeInformer();
+        createPodInformer();
         return api.readNamespacedPod(podName, namespaceString, "pretty", false, false).getMetadata().getName();
     }
 
@@ -306,12 +305,12 @@ public class KubernetesClientImpl implements KubernetesClient {
         log.info("Deleted pod {}", podName);
     }
 
-    private void createNodeInformer() {
-        SharedIndexInformer<V1Node> nodeInformer =
+    private void createPodInformer() {
+        SharedIndexInformer<V1Pod> podInformer =
                 factory.sharedIndexInformerFor(
                         (CallGeneratorParams params) -> {
                             try {
-                                return api.listNodeCall(
+                                return api.listPodForAllNamespacesCall(
                                         null,
                                         null,
                                         null,
@@ -328,31 +327,31 @@ public class KubernetesClientImpl implements KubernetesClient {
                                         "updates for experiments.", e);
                             }
                         },
-                        V1Node.class,
-                        V1NodeList.class);
+                        V1Pod.class,
+                        V1PodList.class);
 
-        nodeInformer.addEventHandler(
-                new ResourceEventHandler<V1Node>() {
+        podInformer.addEventHandler(
+                new ResourceEventHandler<V1Pod>() {
                     @Override
-                    public void onAdd(V1Node node) {
-                        System.out.printf("%s node added!\n", node.getMetadata().getName());
+                    public void onAdd(V1Pod pod) {
+                        System.out.printf("%s pod added!\n", pod.getMetadata().getName());
                     }
 
                     @Override
-                    public void onUpdate(V1Node oldNode, V1Node newNode) {
+                    public void onUpdate(V1Pod oldPod, V1Pod newPod) {
                         System.out.printf(
-                                "%s => %s node updated!\n",
-                                oldNode.getMetadata().getName(), newNode.getMetadata().getName());
+                                "%s => %s pod updated!\n",
+                                oldPod.getMetadata().getName(), newPod.getMetadata().getName());
                     }
 
                     @Override
-                    public void onDelete(V1Node node, boolean deletedFinalStateUnknown) {
-                        System.out.printf("%s node deleted!\n", node.getMetadata().getName());
+                    public void onDelete(V1Pod pod, boolean deletedFinalStateUnknown) {
+                        System.out.printf("%s pod deleted!\n", pod.getMetadata().getName());
                     }
                 });
 
         factory.startAllRegisteredInformers();
-
+/*
         V1Node nodeToCreate = new V1Node();
         V1ObjectMeta metadata = new V1ObjectMeta();
         metadata.setName("noxu");
@@ -378,6 +377,6 @@ public class KubernetesClientImpl implements KubernetesClient {
             e.printStackTrace();
         }
         System.out.println("informer stopped..");
+ */
     }
-
 }
