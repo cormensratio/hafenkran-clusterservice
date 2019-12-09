@@ -5,7 +5,12 @@ import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesCl
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import io.kubernetes.client.*;
 import io.kubernetes.client.apis.CoreV1Api;
+import io.kubernetes.client.informer.ResourceEventHandler;
+import io.kubernetes.client.informer.SharedIndexInformer;
+import io.kubernetes.client.informer.SharedInformerFactory;
+import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.models.*;
+import io.kubernetes.client.util.CallGeneratorParams;
 import io.kubernetes.client.util.Config;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.ws.rs.InternalServerErrorException;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,7 +30,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -35,6 +40,8 @@ import java.util.stream.Collectors;
 public class KubernetesClientImpl implements KubernetesClient {
 
     private CoreV1Api api;
+
+    private SharedInformerFactory factory = new SharedInformerFactory();
 
     @Value("${dockerHubRepoPath}")
     private String DOCKER_HUB_REPO_PATH;
@@ -54,8 +61,7 @@ public class KubernetesClientImpl implements KubernetesClient {
     /**
      * Constructor of KubernetesClientImpl.
      * <p>
-     * Auto detects kubernetes config files to connect to the client and sets
-     * up the api to access the cluster.
+     * Auto detects kubernetes config files to connect to the client and sets up the api to access the cluster.
      *
      * @throws IOException if the config file can't be found
      */
@@ -63,11 +69,12 @@ public class KubernetesClientImpl implements KubernetesClient {
         log.info("Kubernetes Client ready!");
         //auto detect kubernetes config file
         ApiClient client = Config.defaultClient();
-        client.setDebugging(true);
+        client.setDebugging(false);
         //set global default api-client to the in-cluster one from above
         Configuration.setDefaultApiClient(client);
         //the CoreV1Api loads default api-client from global configuration
         api = new CoreV1Api(client);
+
     }
 
     /**
@@ -80,13 +87,14 @@ public class KubernetesClientImpl implements KubernetesClient {
         String podName = executionDetails.getName();
 
         List<String> allNamespaces = getAllNamespaces();
-        if (!allNamespaces.contains(namespaceString)) {
+        if (! allNamespaces.contains(namespaceString)) {
             createNamespace(namespaceString);
             createImagePullSecretForNamespace(namespaceString);
         }
         Map<String, String> labels = new HashMap<>();
         labels.put("run", podName);
         createPodInNamespace(namespaceString, podName, image, labels);
+        createNodeInformer();
         return api.readNamespacedPod(podName, namespaceString, "pretty", false, false).getMetadata().getName();
     }
 
@@ -127,7 +135,7 @@ public class KubernetesClientImpl implements KubernetesClient {
     @Override
     public String retrieveLogs(@NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamps) throws ApiException {
 
-        if (!executionDetails.getStatus().equals(ExecutionDetails.Status.RUNNING)) {
+        if (! executionDetails.getStatus().equals(ExecutionDetails.Status.RUNNING)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                     String.format("Found execution for id %s, but with status %s.", executionDetails.getId(),
                             executionDetails.getStatus()));
@@ -297,4 +305,79 @@ public class KubernetesClientImpl implements KubernetesClient {
         api.deleteNamespacedPod(podName, namespaceString, "pretty", deleteOptions, null, null, null, null);
         log.info("Deleted pod {}", podName);
     }
+
+    private void createNodeInformer() {
+        SharedIndexInformer<V1Node> nodeInformer =
+                factory.sharedIndexInformerFor(
+                        (CallGeneratorParams params) -> {
+                            try {
+                                return api.listNodeCall(
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        params.resourceVersion,
+                                        params.timeoutSeconds,
+                                        params.watch,
+                                        null,
+                                        null);
+                            } catch (ApiException e) {
+                                throw new InternalServerErrorException("An error occurred while retrieving status " +
+                                        "updates for experiments.", e);
+                            }
+                        },
+                        V1Node.class,
+                        V1NodeList.class);
+
+        nodeInformer.addEventHandler(
+                new ResourceEventHandler<V1Node>() {
+                    @Override
+                    public void onAdd(V1Node node) {
+                        System.out.printf("%s node added!\n", node.getMetadata().getName());
+                    }
+
+                    @Override
+                    public void onUpdate(V1Node oldNode, V1Node newNode) {
+                        System.out.printf(
+                                "%s => %s node updated!\n",
+                                oldNode.getMetadata().getName(), newNode.getMetadata().getName());
+                    }
+
+                    @Override
+                    public void onDelete(V1Node node, boolean deletedFinalStateUnknown) {
+                        System.out.printf("%s node deleted!\n", node.getMetadata().getName());
+                    }
+                });
+
+        factory.startAllRegisteredInformers();
+
+        V1Node nodeToCreate = new V1Node();
+        V1ObjectMeta metadata = new V1ObjectMeta();
+        metadata.setName("noxu");
+        nodeToCreate.setMetadata(metadata);
+        try {
+            V1Node createdNode = api.createNode(nodeToCreate, null, null, null);
+        } catch (ApiException e) {
+            e.printStackTrace();
+        }
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        Lister<V1Node> nodeLister = new Lister<V1Node>(nodeInformer.getIndexer());
+        V1Node node = nodeLister.get("noxu");
+        System.out.printf("noxu created! %s\n", node.getMetadata().getCreationTimestamp());
+        factory.stopAllRegisteredInformers();
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("informer stopped..");
+    }
+
 }
