@@ -93,7 +93,7 @@ public class KubernetesClientImpl implements KubernetesClient {
         Map<String, String> labels = new HashMap<>();
         labels.put("run", podName);
         createPodInNamespace(namespaceString, podName, image, labels);
-        createPodInformer();
+        createPodInformerForNamespace(namespaceString);
         return api.readNamespacedPod(podName, namespaceString, "pretty", false, false).getMetadata().getName();
     }
 
@@ -305,12 +305,13 @@ public class KubernetesClientImpl implements KubernetesClient {
         log.info("Deleted pod {}", podName);
     }
 
-    private void createPodInformer() {
+    private void createPodInformerForNamespace(@NonNull String namespace) {
         SharedIndexInformer<V1Pod> podInformer =
                 factory.sharedIndexInformerFor(
                         (CallGeneratorParams params) -> {
                             try {
-                                return api.listPodForAllNamespacesCall(
+                                return api.listNamespacedPodCall(
+                                        namespace,
                                         null,
                                         null,
                                         null,
@@ -322,6 +323,7 @@ public class KubernetesClientImpl implements KubernetesClient {
                                         params.watch,
                                         null,
                                         null);
+
                             } catch (ApiException e) {
                                 throw new InternalServerErrorException("An error occurred while retrieving status " +
                                         "updates for experiments.", e);
@@ -329,7 +331,6 @@ public class KubernetesClientImpl implements KubernetesClient {
                         },
                         V1Pod.class,
                         V1PodList.class);
-
         podInformer.addEventHandler(
                 new ResourceEventHandler<V1Pod>() {
                     @Override
