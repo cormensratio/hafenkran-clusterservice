@@ -96,7 +96,7 @@ public class KubernetesClientImpl implements KubernetesClient {
         Map<String, String> labels = new HashMap<>();
         labels.put("run", podName);
         createPodInNamespace(namespaceString, podName, image, labels);
-        createPodInformerForNamespace(namespaceString);
+        createPodInformerForNamespace(executionDetails);
         return api.readNamespacedPod(podName, namespaceString, "pretty", false, false).getMetadata().getName();
     }
 
@@ -308,7 +308,9 @@ public class KubernetesClientImpl implements KubernetesClient {
         log.info("Deleted pod {}", podName);
     }
 
-    private void createPodInformerForNamespace(@NonNull String namespace) {
+    private void createPodInformerForNamespace(@NonNull ExecutionDetails executionDetails) {
+        final String namespace = executionDetails.getExperimentDetails().getId().toString();
+
         SharedIndexInformer<V1Pod> podInformer =
                 factory.sharedIndexInformerFor(
                         (CallGeneratorParams params) -> {
@@ -335,12 +337,13 @@ public class KubernetesClientImpl implements KubernetesClient {
                         V1Pod.class,
                         V1PodList.class);
 
-        addEventHandlerToPodInformer(podInformer);
+        addEventHandlerToPodInformer(podInformer, executionDetails);
 
         factory.startAllRegisteredInformers();
     }
 
-    private void addEventHandlerToPodInformer(SharedIndexInformer<V1Pod> podInformer) {
+    private void addEventHandlerToPodInformer(@NonNull SharedIndexInformer<V1Pod> podInformer,
+                                              @NonNull ExecutionDetails executionDetails) {
         podInformer.addEventHandler(
                 new ResourceEventHandler<V1Pod>() {
                     @Override
@@ -352,6 +355,7 @@ public class KubernetesClientImpl implements KubernetesClient {
 
                     @Override
                     public void onUpdate(V1Pod oldPod, V1Pod newPod) {
+                        setExecutionStatus(newPod, executionDetails);
                         log.info(String.format(
                                 "Pod with name \"%s\" and status \"%s\" updated to pod with name \"%s\" and status \"%s\"",
                                 oldPod.getMetadata().getName(), oldPod.getStatus().getPhase(),
@@ -360,8 +364,37 @@ public class KubernetesClientImpl implements KubernetesClient {
 
                     @Override
                     public void onDelete(V1Pod pod, boolean deletedFinalStateUnknown) {
+                        setExecutionStatus(pod, executionDetails);
+                        log.info(String.format("Pod with name \"%s\" has status \"%s\"",
+                                pod.getMetadata().getName(), pod.getStatus().getPhase()));
                         log.info(String.format("Pod with name \"%s\" deleted!\n", pod.getMetadata().getName()));
+
+
                     }
                 });
+    }
+
+    // TODO: differentiate btw. failed, canceled and aborted
+    private void setExecutionStatus(@NonNull V1Pod newPod, @NonNull ExecutionDetails executionDetails) {
+
+        // Handles all possible statuses for a kubernetes pod
+        switch (newPod.getStatus().getPhase()) {
+            case "Pending":
+                executionDetails.setStatus(ExecutionDetails.Status.WAITING);
+                break;
+            case "Running":
+                executionDetails.setStatus(ExecutionDetails.Status.RUNNING);
+                break;
+            case "Succeeded":
+                executionDetails.setStatus(ExecutionDetails.Status.FINISHED);
+                break;
+            case "Failed":
+                executionDetails.setStatus(ExecutionDetails.Status.CANCELED);
+                break;
+            case "Unknown":
+                throw new InternalServerErrorException(
+                        String.format("The state of the pod \"%s\" could not be obtained!",
+                                newPod.getMetadata().getName()));
+        }
     }
 }
