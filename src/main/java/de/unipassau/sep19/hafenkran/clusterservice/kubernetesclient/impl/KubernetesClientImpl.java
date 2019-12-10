@@ -29,6 +29,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -68,7 +69,9 @@ public class KubernetesClientImpl implements KubernetesClient {
         log.info("Kubernetes Client ready!");
         //auto detect kubernetes config file
         ApiClient client = Config.defaultClient();
+        // debugging must be set to false for pod informer
         client.setDebugging(false);
+        client.getHttpClient().setReadTimeout(0, TimeUnit.SECONDS);
         //set global default api-client to the in-cluster one from above
         Configuration.setDefaultApiClient(client);
         //the CoreV1Api loads default api-client from global configuration
@@ -331,53 +334,34 @@ public class KubernetesClientImpl implements KubernetesClient {
                         },
                         V1Pod.class,
                         V1PodList.class);
+
+        addEventHandlerToPodInformer(podInformer);
+
+        factory.startAllRegisteredInformers();
+    }
+
+    private void addEventHandlerToPodInformer(SharedIndexInformer<V1Pod> podInformer) {
         podInformer.addEventHandler(
                 new ResourceEventHandler<V1Pod>() {
                     @Override
                     public void onAdd(V1Pod pod) {
-                        System.out.printf("%s pod added!\n", pod.getMetadata().getName());
+                        log.info(String.format("Pod \"%s\" added!", pod.getMetadata().getName()));
+                        log.info(String.format("Namespace of pod with name \"%s\" is: \"%s\"\n",
+                                pod.getMetadata().getName(), pod.getMetadata().getNamespace()));
                     }
 
                     @Override
                     public void onUpdate(V1Pod oldPod, V1Pod newPod) {
-                        System.out.printf(
-                                "%s => %s pod updated!\n",
-                                oldPod.getMetadata().getName(), newPod.getMetadata().getName());
+                        log.info(String.format(
+                                "Pod with name \"%s\" and status \"%s\" updated to pod with name \"%s\" and status \"%s\"",
+                                oldPod.getMetadata().getName(), oldPod.getStatus().getPhase(),
+                                newPod.getMetadata().getName(), newPod.getStatus().getPhase()));
                     }
 
                     @Override
                     public void onDelete(V1Pod pod, boolean deletedFinalStateUnknown) {
-                        System.out.printf("%s pod deleted!\n", pod.getMetadata().getName());
+                        log.info(String.format("Pod with name \"%s\" deleted!\n", pod.getMetadata().getName()));
                     }
                 });
-
-        factory.startAllRegisteredInformers();
-/*
-        V1Node nodeToCreate = new V1Node();
-        V1ObjectMeta metadata = new V1ObjectMeta();
-        metadata.setName("noxu");
-        nodeToCreate.setMetadata(metadata);
-        try {
-            V1Node createdNode = api.createNode(nodeToCreate, null, null, null);
-        } catch (ApiException e) {
-            e.printStackTrace();
-        }
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        Lister<V1Node> nodeLister = new Lister<V1Node>(nodeInformer.getIndexer());
-        V1Node node = nodeLister.get("noxu");
-        System.out.printf("noxu created! %s\n", node.getMetadata().getCreationTimestamp());
-        factory.stopAllRegisteredInformers();
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        System.out.println("informer stopped..");
- */
     }
 }
