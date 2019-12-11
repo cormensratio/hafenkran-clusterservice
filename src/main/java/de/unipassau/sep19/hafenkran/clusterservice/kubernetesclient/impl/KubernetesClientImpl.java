@@ -75,13 +75,13 @@ public class KubernetesClientImpl implements KubernetesClient {
      */
     @Override
     public void createNamespace(@NonNull ExperimentDetails experimentDetails) throws ApiException {
-        String namespaceString = experimentDetails.getId().toString();
+        String namespace = experimentDetails.getId().toString();
 
         List<String> allNamespaces = getAllNamespaces();
 
-        if (!allNamespaces.contains(namespaceString)) {
-            createNamespace(namespaceString);
-            createImagePullSecretForNamespace(namespaceString);
+        if (!allNamespaces.contains(namespace)) {
+            createNamespace(namespace);
+            createImagePullSecretForNamespace(namespace);
         }
     }
 
@@ -90,14 +90,14 @@ public class KubernetesClientImpl implements KubernetesClient {
      */
     @Override
     public String createPod(@NonNull ExecutionDetails executionDetails) throws ApiException {
-        String namespaceString = executionDetails.getExperimentDetails().getId().toString();
-        String image = DOCKER_HUB_REPO_PATH + ":" + executionDetails.getExperimentDetails().getId();
+        String namespace = executionDetails.getExperimentDetails().getId().toString();
+        String image = DOCKER_HUB_REPO_PATH + ":" + namespace;
         String podName = executionDetails.getName();
 
         Map<String, String> labels = new HashMap<>();
         labels.put("run", podName);
-        createPodInNamespace(namespaceString, podName, image, labels);
-        return api.readNamespacedPod(podName, namespaceString, "pretty", false, false).getMetadata().getName();
+        createPodInNamespace(namespace, podName, image, labels);
+        return api.readNamespacedPod(podName, namespace, "pretty", false, false).getMetadata().getName();
     }
 
     /**
@@ -105,17 +105,17 @@ public class KubernetesClientImpl implements KubernetesClient {
      */
     @Override
     public void deletePod(@NonNull ExecutionDetails executionDetails) throws ApiException {
-        String namespaceString = executionDetails.getExperimentDetails().getId().toString();
-        String podName = executionDetails.getPodName();
+        String namespace = getNamespace(executionDetails);
+        String podName = getPodName(executionDetails);
 
-        List<String> allPodsInNamespace = getAllPodsFromNamespace(namespaceString);
+        List<String> allPodsInNamespace = getAllPodsFromNamespace(namespace);
 
         if (allPodsInNamespace == null) {
             throw new IllegalArgumentException("This namespace doesnt exist");
         }
         try {
             if (allPodsInNamespace.contains(podName)) {
-                deletePodInNamespace(namespaceString, podName);
+                deletePodInNamespace(namespace, podName);
             }
         } catch (JsonSyntaxException e) {
             if (e.getCause() instanceof IllegalStateException) {
@@ -141,8 +141,8 @@ public class KubernetesClientImpl implements KubernetesClient {
                             executionDetails.getStatus()));
         }
 
-        final String namespace = executionDetails.getExperimentDetails().getId().toString();
-        final String podName = executionDetails.getPodName();
+        final String namespace = getNamespace(executionDetails);
+        final String podName = getPodName(executionDetails);
 
         return api.readNamespacedPodLog(podName, namespace, null, false, null, "pretty", false, sinceSeconds,
                 lines,
@@ -154,8 +154,8 @@ public class KubernetesClientImpl implements KubernetesClient {
      */
     @Override
     public String retrieveResults(@NonNull ExecutionDetails executionDetails) throws ApiException, IOException {
-        String namespace = executionDetails.getExperimentDetails().getId().toString();
-        String podName = executionDetails.getPodName();
+        String namespace = getNamespace(executionDetails);
+        String podName = getPodName(executionDetails);
         Exec exec = new Exec();
 
         final Process proc =
@@ -176,8 +176,8 @@ public class KubernetesClientImpl implements KubernetesClient {
      */
     @Override
     public void sendSTIN(@NonNull String input, @NonNull ExecutionDetails executionDetails) throws IOException, ApiException {
-        String namespace = executionDetails.getExperimentDetails().getId().toString();
-        String podName = executionDetails.getPodName();
+        String namespace = getNamespace(executionDetails);
+        String podName = getPodName(executionDetails);
 
         Attach attach = new Attach();
         final Attach.AttachResult result = attach.attach(namespace, podName, true);
@@ -200,9 +200,9 @@ public class KubernetesClientImpl implements KubernetesClient {
                 .collect(Collectors.toList());
     }
 
-    private List<String> getAllPodsFromNamespace(@NonNull String namespaceString) throws ApiException {
+    private List<String> getAllPodsFromNamespace(@NonNull String namespace) throws ApiException {
         V1PodList podList =
-                api.listNamespacedPod(namespaceString, true, "pretty", null, null, null, 0, null, Integer.MAX_VALUE,
+                api.listNamespacedPod(namespace, true, "pretty", null, null, null, 0, null, Integer.MAX_VALUE,
                         Boolean.FALSE);
         return podList
                 .getItems()
@@ -211,27 +211,27 @@ public class KubernetesClientImpl implements KubernetesClient {
                 .collect(Collectors.toList());
     }
 
-    private void createNamespace(@NonNull String namespaceString) throws ApiException {
+    private void createNamespace(@NonNull String namespace) throws ApiException {
         V1Namespace experimentNamespace = new V1NamespaceBuilder()
                 .withNewMetadata()
-                .withName(namespaceString)
+                .withName(namespace)
                 .endMetadata()
                 .build();
         api.createNamespace(experimentNamespace, true, "pretty", null);
-        log.info("Created namespace {}", namespaceString);
+        log.info("Created namespace {}", namespace);
 
     }
 
     /**
      * Creates a Kubernetes Pod and sets the Image Pull Secret for it.
      *
-     * @param namespaceString namespace where the pod should be created
-     * @param podName         name of the pod
-     * @param image           name of the image which should be used
-     * @param labels          list of labels which should be used
+     * @param namespace namespace where the pod should be created
+     * @param podName   name of the pod
+     * @param image     name of the image which should be used
+     * @param labels    list of labels which should be used
      * @throws ApiException if the communication with the api results in an error
      */
-    private void createPodInNamespace(@NonNull String namespaceString, @NonNull String podName, @NonNull String
+    private void createPodInNamespace(@NonNull String namespace, @NonNull String podName, @NonNull String
             image,
                                       @NonNull Map<String, String> labels) throws ApiException {
 
@@ -261,21 +261,21 @@ public class KubernetesClientImpl implements KubernetesClient {
                 .withHostNetwork(true)
                 .endSpec()
                 .build();
-        api.createNamespacedPod(namespaceString, pod, true, "pretty", null);
-        log.info("Created pod {} in Namespace {}", podName, namespaceString);
+        api.createNamespacedPod(namespace, pod, true, "pretty", null);
+        log.info("Created pod {} in Namespace {}", podName, namespace);
     }
 
     /**
      * Creates Image Pull Secret for a Namespace. All created Pods in the same namespace can access it.
      *
-     * @param namespaceString namespace where the secret should be created
+     * @param namespace namespace where the secret should be created
      * @throws ApiException if the communication with the api results in an error
      */
-    private void createImagePullSecretForNamespace(@NonNull String namespaceString) throws ApiException {
+    private void createImagePullSecretForNamespace(@NonNull String namespace) throws ApiException {
         V1Secret imagePullSecret = new V1SecretBuilder()
                 .withNewMetadata()
                 .withName("image-pull-secret")
-                .withNamespace(namespaceString)
+                .withNamespace(namespace)
                 .endMetadata()
                 .build();
         imagePullSecret.setType("kubernetes.io/dockerconfigjson");
@@ -289,20 +289,28 @@ public class KubernetesClientImpl implements KubernetesClient {
         Map<String, byte[]> data = new HashMap<>();
         data.put(".dockerconfigjson", dockerCfg.getBytes());
         imagePullSecret.setData(data);
-        api.createNamespacedSecret(namespaceString, imagePullSecret, true, "pretty", null);
+        api.createNamespacedSecret(namespace, imagePullSecret, true, "pretty", null);
         log.info("Created Image-Pull-Secret {} for Namespace {}", imagePullSecret.getMetadata().getName(),
-                namespaceString);
+                namespace);
     }
 
-    private void deleteNamespace(@NonNull String namespaceString) throws ApiException {
+    private void deleteNamespace(@NonNull String namespace) throws ApiException {
         V1DeleteOptions deleteOptions = new V1DeleteOptions();
-        api.deleteNamespace(namespaceString, "pretty", deleteOptions, null, null, null, null);
-        log.info("Deleted namespace {}", namespaceString);
+        api.deleteNamespace(namespace, "pretty", deleteOptions, null, null, null, null);
+        log.info("Deleted namespace {}", namespace);
     }
 
-    private void deletePodInNamespace(@NonNull String namespaceString, @NonNull String podName) throws ApiException {
+    private void deletePodInNamespace(@NonNull String namespace, @NonNull String podName) throws ApiException {
         V1DeleteOptions deleteOptions = new V1DeleteOptions();
-        api.deleteNamespacedPod(podName, namespaceString, "pretty", deleteOptions, null, null, null, null);
+        api.deleteNamespacedPod(podName, namespace, "pretty", deleteOptions, null, null, null, null);
         log.info("Deleted pod {}", podName);
+    }
+
+    private String getNamespace(@NonNull ExecutionDetails executionDetails) {
+        return executionDetails.getExperimentDetails().getId().toString();
+    }
+
+    private String getPodName(@NonNull ExecutionDetails executionDetails) {
+        return executionDetails.getPodName();
     }
 }
