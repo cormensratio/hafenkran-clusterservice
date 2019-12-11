@@ -74,7 +74,7 @@ public class KubernetesClientImpl implements KubernetesClient {
      * {@inheritDoc}
      */
     @Override
-    public void createNamespace(ExperimentDetails experimentDetails) throws ApiException {
+    public void createNamespace(@NonNull ExperimentDetails experimentDetails) throws ApiException {
         String namespaceString = experimentDetails.getId().toString();
 
         List<String> allNamespaces = getAllNamespaces();
