@@ -637,7 +637,7 @@ public class ExecutionServiceImplTest {
         verify(mockExecutionRepository, times(1)).findById(MOCK_EXECUTION_ID);
         verify(mockKubernetesClient, times(1)).retrieveLogs(mockExecutionDetails, lines,
                 sinceSeconds, true);
-        verify(mockContext, times(2)).getAuthentication();
+        verify(mockContext, times(1)).getAuthentication();
     }
 
     @Test

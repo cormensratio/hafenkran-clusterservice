@@ -2,6 +2,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl;
 
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
+import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -24,6 +25,11 @@ public class KubernetesClientMockImpl implements KubernetesClient {
     public KubernetesClientMockImpl() {
         log.info("Using KubernetesMockClient: Set mockKubernetesClient to false in application-dev.yml" +
                 " if you want to use Kubernetes.");
+    }
+
+    @Override
+    public void createNamespace(@NonNull ExperimentDetails experimentDetails) {
+        log.info("KubernetesClientMockImpl can not create a namespace.");
     }
 
     @Override
