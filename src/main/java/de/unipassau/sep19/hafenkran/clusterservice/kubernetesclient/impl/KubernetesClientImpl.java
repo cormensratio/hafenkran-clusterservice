@@ -18,6 +18,7 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.ws.rs.InternalServerErrorException;
@@ -41,7 +42,7 @@ public class KubernetesClientImpl implements KubernetesClient {
 
     private CoreV1Api api;
 
-    private SharedInformerFactory factory = new SharedInformerFactory();
+    private SharedInformerFactory factory;
 
     @Value("${dockerHubRepoPath}")
     private String DOCKER_HUB_REPO_PATH;
@@ -76,7 +77,7 @@ public class KubernetesClientImpl implements KubernetesClient {
         Configuration.setDefaultApiClient(client);
         //the CoreV1Api loads default api-client from global configuration
         api = new CoreV1Api(client);
-
+        factory = new SharedInformerFactory();
     }
 
     /**
@@ -360,6 +361,10 @@ public class KubernetesClientImpl implements KubernetesClient {
                                 "Pod with name \"%s\" and status \"%s\" updated to pod with name \"%s\" and status \"%s\"",
                                 oldPod.getMetadata().getName(), oldPod.getStatus().getPhase(),
                                 newPod.getMetadata().getName(), newPod.getStatus().getPhase()));
+                        System.out.println("__________");
+                        log.info(newPod.getStatus().getMessage());
+                        System.out.println("__________");
+
                     }
 
                     @Override
@@ -368,17 +373,18 @@ public class KubernetesClientImpl implements KubernetesClient {
                         log.info(String.format("Pod with name \"%s\" has status \"%s\"",
                                 pod.getMetadata().getName(), pod.getStatus().getPhase()));
                         log.info(String.format("Pod with name \"%s\" deleted!\n", pod.getMetadata().getName()));
-
-
                     }
                 });
     }
 
-    // TODO: differentiate btw. failed, canceled and aborted
-    private void setExecutionStatus(@NonNull V1Pod newPod, @NonNull ExecutionDetails executionDetails) {
+    @Transactional
+    void setExecutionStatus(@NonNull V1Pod pod, @NonNull ExecutionDetails executionDetails) {
 
-        // Handles all possible statuses for a kubernetes pod
-        switch (newPod.getStatus().getPhase()) {
+        /*
+         Handles most status for a kubernetes pod. The "Failed" status is not handled because it is too imprecise
+         for handling the needed status "CANCELED", "ABORTED" and "FAILED" for an execution.
+        */
+        switch (pod.getStatus().getPhase()) {
             case "Pending":
                 executionDetails.setStatus(ExecutionDetails.Status.WAITING);
                 break;
@@ -388,13 +394,10 @@ public class KubernetesClientImpl implements KubernetesClient {
             case "Succeeded":
                 executionDetails.setStatus(ExecutionDetails.Status.FINISHED);
                 break;
-            case "Failed":
-                executionDetails.setStatus(ExecutionDetails.Status.CANCELED);
-                break;
             case "Unknown":
                 throw new InternalServerErrorException(
-                        String.format("The state of the pod \"%s\" could not be obtained!",
-                                newPod.getMetadata().getName()));
+                        String.format("The state of the pod \"%s\" in namespace \"%s\" could not be obtained!",
+                                pod.getMetadata().getName(), pod.getMetadata().getNamespace()));
         }
     }
 }
