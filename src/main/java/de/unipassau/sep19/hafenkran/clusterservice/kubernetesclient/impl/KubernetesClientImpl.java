@@ -3,6 +3,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl;
 import com.google.gson.JsonSyntaxException;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
+import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import io.kubernetes.client.*;
 import io.kubernetes.client.apis.CoreV1Api;
 import io.kubernetes.client.models.*;
@@ -24,7 +25,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -74,16 +74,26 @@ public class KubernetesClientImpl implements KubernetesClient {
      * {@inheritDoc}
      */
     @Override
+    public void createNamespace(ExperimentDetails experimentDetails) throws ApiException {
+        String namespaceString = experimentDetails.getId().toString();
+
+        List<String> allNamespaces = getAllNamespaces();
+
+        if (!allNamespaces.contains(namespaceString)) {
+            createNamespace(namespaceString);
+            createImagePullSecretForNamespace(namespaceString);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public String createPod(@NonNull ExecutionDetails executionDetails) throws ApiException {
         String namespaceString = executionDetails.getExperimentDetails().getId().toString();
         String image = DOCKER_HUB_REPO_PATH + ":" + executionDetails.getExperimentDetails().getId();
         String podName = executionDetails.getName();
 
-        List<String> allNamespaces = getAllNamespaces();
-        if (!allNamespaces.contains(namespaceString)) {
-            createNamespace(namespaceString);
-            createImagePullSecretForNamespace(namespaceString);
-        }
         Map<String, String> labels = new HashMap<>();
         labels.put("run", podName);
         createPodInNamespace(namespaceString, podName, image, labels);
@@ -104,9 +114,7 @@ public class KubernetesClientImpl implements KubernetesClient {
             throw new IllegalArgumentException("This namespace doesnt exist");
         }
         try {
-            if (allPodsInNamespace.size() <= 1 && allPodsInNamespace.contains(podName)) {
-                deleteNamespace(namespaceString);
-            } else {
+            if (allPodsInNamespace.contains(podName)) {
                 deletePodInNamespace(namespaceString, podName);
             }
         } catch (JsonSyntaxException e) {
