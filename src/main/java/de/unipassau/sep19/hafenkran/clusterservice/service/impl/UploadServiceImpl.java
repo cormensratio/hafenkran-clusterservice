@@ -6,10 +6,12 @@ import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.command.PushImageResultCallback;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceStorageException;
+import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
 import de.unipassau.sep19.hafenkran.clusterservice.service.UploadService;
 import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
+import io.kubernetes.client.ApiException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +43,8 @@ public class UploadServiceImpl implements UploadService {
 
     private static final int PUSH_TIMEOUT = 130;
     private final ExperimentService experimentService;
+
+    private final KubernetesClient kubernetesClient;
 
     @Value("${dockerHubRepoPath}")
     private String DOCKER_HUB_REPO_PATH;
@@ -94,6 +98,13 @@ public class UploadServiceImpl implements UploadService {
             pushImageToDockerHub(imageStream, experimentDetails);
 
             experimentService.createExperiment(experimentDetails);
+
+            try {
+                kubernetesClient.createNamespace(experimentDetails);
+            } catch (ApiException e) {
+                throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
+                        "communicating with the cluster.", e);
+            }
 
             return ExperimentDTO.fromExperimentDetails(experimentDetails);
         } catch (IOException e) {
