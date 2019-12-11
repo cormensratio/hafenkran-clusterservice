@@ -5,7 +5,6 @@ import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesCl
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import io.kubernetes.client.*;
 import io.kubernetes.client.apis.CoreV1Api;
-import io.kubernetes.client.informer.ResourceEventHandler;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.models.*;
@@ -18,7 +17,6 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.ws.rs.InternalServerErrorException;
@@ -338,66 +336,7 @@ public class KubernetesClientImpl implements KubernetesClient {
                         V1Pod.class,
                         V1PodList.class);
 
-        addEventHandlerToPodInformer(podInformer, executionDetails);
-
+        podInformer.addEventHandler(new PodEventHandler(executionDetails));
         factory.startAllRegisteredInformers();
-    }
-
-    private void addEventHandlerToPodInformer(@NonNull SharedIndexInformer<V1Pod> podInformer,
-                                              @NonNull ExecutionDetails executionDetails) {
-        podInformer.addEventHandler(
-                new ResourceEventHandler<V1Pod>() {
-                    @Override
-                    public void onAdd(V1Pod pod) {
-                        log.info(String.format("Pod \"%s\" added!", pod.getMetadata().getName()));
-                        log.info(String.format("Namespace of pod with name \"%s\" is: \"%s\"\n",
-                                pod.getMetadata().getName(), pod.getMetadata().getNamespace()));
-                    }
-
-                    @Override
-                    public void onUpdate(V1Pod oldPod, V1Pod newPod) {
-                        setExecutionStatus(newPod, executionDetails);
-                        log.info(String.format(
-                                "Pod with name \"%s\" and status \"%s\" updated to pod with name \"%s\" and status \"%s\"",
-                                oldPod.getMetadata().getName(), oldPod.getStatus().getPhase(),
-                                newPod.getMetadata().getName(), newPod.getStatus().getPhase()));
-                        System.out.println("__________");
-                        log.info(newPod.getStatus().getMessage());
-                        System.out.println("__________");
-
-                    }
-
-                    @Override
-                    public void onDelete(V1Pod pod, boolean deletedFinalStateUnknown) {
-                        setExecutionStatus(pod, executionDetails);
-                        log.info(String.format("Pod with name \"%s\" has status \"%s\"",
-                                pod.getMetadata().getName(), pod.getStatus().getPhase()));
-                        log.info(String.format("Pod with name \"%s\" deleted!\n", pod.getMetadata().getName()));
-                    }
-                });
-    }
-
-    @Transactional
-    void setExecutionStatus(@NonNull V1Pod pod, @NonNull ExecutionDetails executionDetails) {
-
-        /*
-         Handles most status for a kubernetes pod. The "Failed" status is not handled because it is too imprecise
-         for handling the needed status "CANCELED", "ABORTED" and "FAILED" for an execution.
-        */
-        switch (pod.getStatus().getPhase()) {
-            case "Pending":
-                executionDetails.setStatus(ExecutionDetails.Status.WAITING);
-                break;
-            case "Running":
-                executionDetails.setStatus(ExecutionDetails.Status.RUNNING);
-                break;
-            case "Succeeded":
-                executionDetails.setStatus(ExecutionDetails.Status.FINISHED);
-                break;
-            case "Unknown":
-                throw new InternalServerErrorException(
-                        String.format("The state of the pod \"%s\" in namespace \"%s\" could not be obtained!",
-                                pod.getMetadata().getName(), pod.getMetadata().getNamespace()));
-        }
     }
 }

@@ -7,6 +7,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.dto.StdinDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
+import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails.Status;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExecutionRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
@@ -111,7 +112,7 @@ public class ExecutionServiceImpl implements ExecutionService {
                     + "communicating with the cluster.");
         }
 
-        executionDetails.setStatus(ExecutionDetails.Status.CANCELED);
+        executionDetails.setStatus(Status.CANCELED);
         executionDetails.setTerminatedAt(LocalDateTime.now());
 
         executionRepository.save(executionDetails);
@@ -129,15 +130,6 @@ public class ExecutionServiceImpl implements ExecutionService {
     @Override
     public ExecutionDTO retrieveExecutionDTOById(@NonNull UUID id) {
         return ExecutionDTO.fromExecutionDetails(retrieveExecutionDetailsById(id));
-    }
-
-    private ExecutionDetails retrieveExecutionDetailsById(@NonNull UUID id) {
-        final Optional<ExecutionDetails> execution = executionRepository.findById(id);
-        ExecutionDetails executionDetails = execution.orElseThrow(
-                () -> new ResourceNotFoundException(ExecutionDetails.class, "id",
-                        id.toString()));
-        executionDetails.validatePermissions();
-        return executionDetails;
     }
 
     /**
@@ -174,6 +166,24 @@ public class ExecutionServiceImpl implements ExecutionService {
      * {@inheritDoc}
      */
     @Override
+    @Transactional
+    public ExecutionDTO deleteExecution(@NonNull UUID executionId) {
+
+        ExecutionDetails executionDetails = getExecutionDetails(executionId);
+
+        if (executionDetails.getStatus().equals(Status.RUNNING)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Can not delete executions in running or waiting");
+        }
+
+        executionRepository.deleteById(executionId);
+        log.info(String.format("Execution with id %S deleted", executionId));
+        return ExecutionDTO.fromExecutionDetails(executionDetails);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public byte[] getResults(@NonNull UUID executionId) {
         ExecutionDetails executionDetails = retrieveExecutionDetailsById(executionId);
         try {
@@ -197,6 +207,25 @@ public class ExecutionServiceImpl implements ExecutionService {
         }
     }
 
+    @Override
+    public void changeExecutionStatus(@NonNull UUID executionId, @NonNull Status status) {
+        final ExecutionDetails executionDetails =
+                executionRepository.findById(executionId).orElseThrow(
+                        () -> new ResourceNotFoundException(ExecutionDetails.class, "id", executionId.toString()));
+
+        executionDetails.setStatus(status);
+        executionRepository.save(executionDetails);
+    }
+
+    private ExecutionDetails retrieveExecutionDetailsById(@NonNull UUID id) {
+        final Optional<ExecutionDetails> execution = executionRepository.findById(id);
+        ExecutionDetails executionDetails = execution.orElseThrow(
+                () -> new ResourceNotFoundException(ExecutionDetails.class, "id",
+                        id.toString()));
+        executionDetails.validatePermissions();
+        return executionDetails;
+    }
+
     private ExecutionDetails startExecution(@NonNull ExecutionDetails executionDetails) {
         String podName = null;
         try {
@@ -207,7 +236,7 @@ public class ExecutionServiceImpl implements ExecutionService {
         }
 
         executionDetails.setPodName(podName);
-        executionDetails.setStatus(ExecutionDetails.Status.RUNNING);
+        executionDetails.setStatus(Status.RUNNING);
         executionDetails.setStartedAt(LocalDateTime.now());
 
         executionRepository.save(executionDetails);
@@ -245,7 +274,7 @@ public class ExecutionServiceImpl implements ExecutionService {
         String inputName;
 
         // Get name either from the execCreateDTO or from the experiment
-        if (!execCreateDTO.getName().isPresent()) {
+        if (! execCreateDTO.getName().isPresent()) {
             if (experiment.getName().isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                         "Experimentname must be at least one alphanumeric letter.");
@@ -271,19 +300,19 @@ public class ExecutionServiceImpl implements ExecutionService {
         }
 
         // Set variables from the ExecutionDetails
-        if (!execCreateDTO.getRam().isPresent() || execCreateDTO.getRam().get() <= 0) {
+        if (! execCreateDTO.getRam().isPresent() || execCreateDTO.getRam().get() <= 0) {
             ram = ramDefault;
         } else {
             ram = execCreateDTO.getRam().get();
         }
 
-        if (!execCreateDTO.getCpu().isPresent() || execCreateDTO.getCpu().get() <= 0) {
+        if (! execCreateDTO.getCpu().isPresent() || execCreateDTO.getCpu().get() <= 0) {
             cpu = cpuDefault;
         } else {
             cpu = execCreateDTO.getCpu().get();
         }
 
-        if (!execCreateDTO.getBookedTime().isPresent() || execCreateDTO.getBookedTime().get() <= 0) {
+        if (! execCreateDTO.getBookedTime().isPresent() || execCreateDTO.getBookedTime().get() <= 0) {
             bookedTime = bookedTimeDefault;
         } else {
             bookedTime = execCreateDTO.getBookedTime().get();
@@ -291,23 +320,5 @@ public class ExecutionServiceImpl implements ExecutionService {
 
         return new ExecutionDetails(SecurityContextUtil.getCurrentUserDTO().getId(), experiment, name, ram, cpu,
                 bookedTime);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional
-    public ExecutionDTO deleteExecution(@NonNull UUID executionId) {
-
-        ExecutionDetails executionDetails = getExecutionDetails(executionId);
-
-        if (executionDetails.getStatus().equals(ExecutionDetails.Status.RUNNING)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Can not delete executions in running or waiting");
-        }
-
-        executionRepository.deleteById(executionId);
-        log.info(String.format("Execution with id %S deleted", executionId));
-        return ExecutionDTO.fromExecutionDetails(executionDetails);
     }
 }

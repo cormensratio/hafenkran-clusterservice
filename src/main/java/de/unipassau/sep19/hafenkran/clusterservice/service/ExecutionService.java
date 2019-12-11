@@ -10,6 +10,8 @@ import lombok.NonNull;
 import java.util.List;
 import java.util.UUID;
 
+import static de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails.*;
+
 public interface ExecutionService {
 
     /**
@@ -98,5 +100,7 @@ public interface ExecutionService {
      * @param stdinDTO    The input to be sent.
      */
     void sendSTDIN(@NonNull UUID executionId, @NonNull StdinDTO stdinDTO);
+
+    void changeExecutionStatus(@NonNull UUID executionId, @NonNull Status status);
 
 }

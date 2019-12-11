@@ -15,13 +15,11 @@ import javax.ws.rs.InternalServerErrorException;
 @Component
 public class PodEventHandler implements ResourceEventHandler<V1Pod> {
 
+    private final ExecutionDetails executionDetails;
     @Autowired
-    ExecutionService executionService;
+    private ExecutionService executionService;
 
-    ExecutionDetails executionDetails;
-
-
-    PodEventHandler(ExecutionDetails executionDetails){
+    public PodEventHandler(@NonNull ExecutionDetails executionDetails) {
         this.executionDetails = executionDetails;
     }
 
@@ -61,13 +59,13 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
         */
         switch (pod.getStatus().getPhase()) {
             case "Pending":
-                executionDetails.setStatus(ExecutionDetails.Status.WAITING);
+                executionService.changeExecutionStatus(executionDetails.getId(), ExecutionDetails.Status.WAITING);
                 break;
             case "Running":
-                executionDetails.setStatus(ExecutionDetails.Status.RUNNING);
+                executionService.changeExecutionStatus(executionDetails.getId(), ExecutionDetails.Status.RUNNING);
                 break;
             case "Succeeded":
-                executionDetails.setStatus(ExecutionDetails.Status.FINISHED);
+                executionService.changeExecutionStatus(executionDetails.getId(), ExecutionDetails.Status.FINISHED);
                 break;
             case "Unknown":
                 throw new InternalServerErrorException(
