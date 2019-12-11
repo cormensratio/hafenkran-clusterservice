@@ -1,9 +1,6 @@
 package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
-import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
-import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
-import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
-import de.unipassau.sep19.hafenkran.clusterservice.dto.StdinDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.*;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
@@ -110,8 +107,13 @@ public class ExecutionServiceImpl implements ExecutionService {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while "
                     + "communicating with the cluster.");
         }
+        UserDTO user = SecurityContextUtil.getCurrentUserDTO();
 
-        executionDetails.setStatus(ExecutionDetails.Status.CANCELED);
+        if (user.isAdmin() && !user.getId().equals(executionDetails.getOwnerId())) {
+            executionDetails.setStatus(ExecutionDetails.Status.ABORTED);
+        } else {
+            executionDetails.setStatus(ExecutionDetails.Status.CANCELED);
+        }
         executionDetails.setTerminatedAt(LocalDateTime.now());
 
         executionRepository.save(executionDetails);
