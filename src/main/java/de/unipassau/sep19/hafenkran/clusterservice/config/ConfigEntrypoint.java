@@ -22,7 +22,7 @@ import java.io.IOException;
 @ComponentScan(basePackages = {
         "de.unipassau.sep19.hafenkran.clusterservice.controller",
         "de.unipassau.sep19.hafenkran.clusterservice.util",
-        "de.unipassau.sep19.hafenkran.clusterservice.service.impl"
+        "de.unipassau.sep19.hafenkran.clusterservice.service.impl",
 })
 @EntityScan(basePackages = {
         "de.unipassau.sep19.hafenkran.clusterservice.model"
@@ -50,7 +50,8 @@ public class ConfigEntrypoint {
             havingValue = "false"
     )
     public KubernetesClient kubernetesClient() throws IOException {
-        return new KubernetesClientImpl();
+        KubernetesClientImpl kubernetesClient = new KubernetesClientImpl();
+        return kubernetesClient;
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

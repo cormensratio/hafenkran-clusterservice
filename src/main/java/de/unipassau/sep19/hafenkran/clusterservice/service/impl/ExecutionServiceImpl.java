@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +34,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 @Slf4j
+@Order(1)
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class ExecutionServiceImpl implements ExecutionService {
@@ -212,6 +214,11 @@ public class ExecutionServiceImpl implements ExecutionService {
         final ExecutionDetails executionDetails =
                 executionRepository.findById(executionId).orElseThrow(
                         () -> new ResourceNotFoundException(ExecutionDetails.class, "id", executionId.toString()));
+
+        if (executionDetails.getStatus().equals(Status.CANCELED)
+                || executionDetails.getStatus().equals(Status.ABORTED)) {
+            return;
+        }
 
         executionDetails.setStatus(status);
         executionRepository.save(executionDetails);

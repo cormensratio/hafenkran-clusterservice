@@ -1,4 +1,4 @@
-package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl;
+package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.util;
 
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
@@ -6,17 +6,16 @@ import io.kubernetes.client.informer.ResourceEventHandler;
 import io.kubernetes.client.models.V1Pod;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import javax.ws.rs.InternalServerErrorException;
 
 @Slf4j
-@Component
 public class PodEventHandler implements ResourceEventHandler<V1Pod> {
 
+    @NonNull
     private final ExecutionDetails executionDetails;
-    @Autowired
+
+    @NonNull
     private ExecutionService executionService;
 
     public PodEventHandler(@NonNull ExecutionDetails executionDetails) {
@@ -51,22 +50,32 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
         log.info(String.format("Pod with name \"%s\" deleted!\n", pod.getMetadata().getName()));
     }
 
-    void setExecutionStatus(@NonNull V1Pod pod, @NonNull ExecutionDetails executionDetails) {
+    private ExecutionService getExecutionService() {
+        return SpringContext.getBean(ExecutionService.class);
+    }
 
-        /*
-         Handles most status for a kubernetes pod. The "Failed" status is not handled because it is too imprecise
-         for handling the needed status "CANCELED", "ABORTED" and "FAILED" for an execution.
-        */
+    private void setExecutionStatus(@NonNull V1Pod pod, @NonNull ExecutionDetails executionDetails) {
+
+        executionService = getExecutionService();
+
         switch (pod.getStatus().getPhase()) {
+
+            // Kubernetes status --> execution status
+            // Pending --> WAITING
             case "Pending":
                 executionService.changeExecutionStatus(executionDetails.getId(), ExecutionDetails.Status.WAITING);
                 break;
+            // Running --> RUNNING
             case "Running":
                 executionService.changeExecutionStatus(executionDetails.getId(), ExecutionDetails.Status.RUNNING);
                 break;
+            // Succeeded --> FINISHED
             case "Succeeded":
                 executionService.changeExecutionStatus(executionDetails.getId(), ExecutionDetails.Status.FINISHED);
                 break;
+            // Failed --> FAILED
+            case "Failed":
+                executionService.changeExecutionStatus(executionDetails.getId(), ExecutionDetails.Status.FAILED);
             case "Unknown":
                 throw new InternalServerErrorException(
                         String.format("The state of the pod \"%s\" in namespace \"%s\" could not be obtained!",
