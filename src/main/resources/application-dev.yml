@@ -23,6 +23,7 @@ mockdata: true
 mockKubernetesClient: false
 
 kubernetes:
+  debugging: false
   deployment:
     defaults:
       ram: 1000

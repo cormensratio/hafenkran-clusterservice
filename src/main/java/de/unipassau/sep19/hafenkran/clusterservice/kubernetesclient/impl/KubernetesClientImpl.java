@@ -57,6 +57,9 @@ public class KubernetesClientImpl implements KubernetesClient {
     @Value("${dockerRegistry.authKey}")
     private String dockerRegistryAuthKey;
 
+    @Value("${kubernetes.debugging}")
+    private boolean debugMode;
+
     /**
      * Constructor of KubernetesClientImpl.
      * <p>
@@ -66,14 +69,18 @@ public class KubernetesClientImpl implements KubernetesClient {
      */
     public KubernetesClientImpl() throws IOException {
         log.info("Kubernetes Client ready!");
-        //auto detect kubernetes config file
+
+        // auto detect kubernetes config file
         ApiClient client = Config.defaultClient();
+
         // debugging must be set to false for pod informer
-        client.setDebugging(false);
+        client.setDebugging(debugMode);
         client.getHttpClient().setReadTimeout(0, TimeUnit.SECONDS);
-        //set global default api-client to the in-cluster one from above
+
+        // set global default api-client to the in-cluster one from above
         Configuration.setDefaultApiClient(client);
-        //the CoreV1Api loads default api-client from global configuration
+
+        // the CoreV1Api loads default api-client from global configuration
         api = new CoreV1Api(client);
         factory = new SharedInformerFactory();
     }
