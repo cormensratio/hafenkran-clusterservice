@@ -1,11 +1,11 @@
 package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient;
 
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
+import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import io.kubernetes.client.ApiException;
 import lombok.NonNull;
 
 import java.io.IOException;
-import java.util.UUID;
 
 /**
  * Interface providing methods for interacting with a KubernetesClient.
@@ -13,11 +13,17 @@ import java.util.UUID;
 public interface KubernetesClient {
 
     /**
+     * Creates a new namespace for an Experiment.
+     *
+     * @param experimentDetails the details of the new experiment
+     * @throws ApiException if the communication with the api results in an error
+     */
+    void createNamespace(@NonNull ExperimentDetails experimentDetails) throws ApiException;
+
+    /**
      * Creates Kubernetes Pod.
      *
-     * @param userName       name of the user who creates the pod
-     * @param experimentName name of the experiment which should be deployed
-     * @param executionName  name of the execution which should be deployed as a pod in kubernetes
+     * @param executionDetails the details of the new execution
      * @return the name of the pod in kubernetes
      * @throws ApiException if the communication with the api results in an error
      */
@@ -26,9 +32,7 @@ public interface KubernetesClient {
     /**
      * Deletes Kubernetes Pod.
      *
-     * @param userName       name of the user who is owner of the pod
-     * @param experimentName name of the experiment where the execution is stored
-     * @param podName        name of the pod which should be deleted from kubernetes
+     * @param executionDetails the details of the execution
      * @throws ApiException if the communication with the api results in an error
      */
     void deletePod(@NonNull ExecutionDetails executionDetails) throws ApiException;
@@ -36,7 +40,6 @@ public interface KubernetesClient {
     /**
      * Retrieves the logs of the execution, but only if the given execution is currently running.
      *
-     * @param userName         name of the user who is owner of the pod
      * @param executionDetails The id of the target execution.
      * @param lines            The amount of lines to be returned.
      * @param sinceSeconds     The time in seconds defining the range from where to start the extraction of logs.
