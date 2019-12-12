@@ -88,7 +88,7 @@ public class KubernetesClientImpl implements KubernetesClient {
         String podName = executionDetails.getName();
 
         List<String> allNamespaces = getAllNamespaces();
-        if (! allNamespaces.contains(namespaceString)) {
+        if (!allNamespaces.contains(namespaceString)) {
             createNamespace(namespaceString);
             createImagePullSecretForNamespace(namespaceString);
         }
@@ -136,7 +136,7 @@ public class KubernetesClientImpl implements KubernetesClient {
     @Override
     public String retrieveLogs(@NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamps) throws ApiException {
 
-        if (! executionDetails.getStatus().equals(ExecutionDetails.Status.RUNNING)) {
+        if (!executionDetails.getStatus().equals(ExecutionDetails.Status.RUNNING)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                     String.format("Found execution for id %s, but with status %s.", executionDetails.getId(),
                             executionDetails.getStatus()));

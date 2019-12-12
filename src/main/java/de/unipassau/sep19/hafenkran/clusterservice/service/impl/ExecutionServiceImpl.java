@@ -274,7 +274,7 @@ public class ExecutionServiceImpl implements ExecutionService {
         String inputName;
 
         // Get name either from the execCreateDTO or from the experiment
-        if (! execCreateDTO.getName().isPresent()) {
+        if (!execCreateDTO.getName().isPresent()) {
             if (experiment.getName().isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                         "Experimentname must be at least one alphanumeric letter.");
@@ -300,19 +300,19 @@ public class ExecutionServiceImpl implements ExecutionService {
         }
 
         // Set variables from the ExecutionDetails
-        if (! execCreateDTO.getRam().isPresent() || execCreateDTO.getRam().get() <= 0) {
+        if (!execCreateDTO.getRam().isPresent() || execCreateDTO.getRam().get() <= 0) {
             ram = ramDefault;
         } else {
             ram = execCreateDTO.getRam().get();
         }
 
-        if (! execCreateDTO.getCpu().isPresent() || execCreateDTO.getCpu().get() <= 0) {
+        if (!execCreateDTO.getCpu().isPresent() || execCreateDTO.getCpu().get() <= 0) {
             cpu = cpuDefault;
         } else {
             cpu = execCreateDTO.getCpu().get();
         }
 
-        if (! execCreateDTO.getBookedTime().isPresent() || execCreateDTO.getBookedTime().get() <= 0) {
+        if (!execCreateDTO.getBookedTime().isPresent() || execCreateDTO.getBookedTime().get() <= 0) {
             bookedTime = bookedTimeDefault;
         } else {
             bookedTime = execCreateDTO.getBookedTime().get();
