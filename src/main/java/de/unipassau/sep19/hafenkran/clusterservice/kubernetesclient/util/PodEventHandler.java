@@ -7,8 +7,6 @@ import io.kubernetes.client.models.V1Pod;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.ws.rs.InternalServerErrorException;
-
 @Slf4j
 public class PodEventHandler implements ResourceEventHandler<V1Pod> {
 
@@ -36,10 +34,6 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
                 "Pod with name \"%s\" and status \"%s\" updated to pod with name \"%s\" and status \"%s\"",
                 oldPod.getMetadata().getName(), oldPod.getStatus().getPhase(),
                 newPod.getMetadata().getName(), newPod.getStatus().getPhase()));
-        System.out.println("__________");
-        log.info(newPod.getStatus().getMessage());
-        System.out.println("__________");
-
     }
 
     @Override
@@ -76,10 +70,6 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
             // Failed --> FAILED
             case "Failed":
                 executionService.changeExecutionStatus(executionDetails.getId(), ExecutionDetails.Status.FAILED);
-            case "Unknown":
-                throw new InternalServerErrorException(
-                        String.format("The state of the pod \"%s\" in namespace \"%s\" could not be obtained!",
-                                pod.getMetadata().getName(), pod.getMetadata().getNamespace()));
         }
     }
 }
