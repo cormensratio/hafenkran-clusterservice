@@ -23,12 +23,21 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ExecutionServiceImplTest {
@@ -660,5 +669,70 @@ public class ExecutionServiceImplTest {
         subject.retrieveLogsForExecutionId(MOCK_EXECUTION_ID, 5, 5, true);
 
         // Assert -- with logs
+    }
+
+    @Test
+    public void testChangeExecutionStatus_noExistingExecutionId_validStatus_throwsException() throws ResourceNotFoundException {
+        // Arrange
+        ExecutionDetails.Status mockStatus = ExecutionDetails.Status.RUNNING;
+        expectedEx.expect(ResourceNotFoundException.class);
+        when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.empty());
+
+        // Act
+        subject.changeExecutionStatus(MOCK_EXECUTION_ID, mockStatus);
+
+        // Assert - with rule
+    }
+
+    @Test
+    public void testChangeExecutionStatus_validExecutionId_statusIsAlreadyCanceled() {
+        // Arrange
+        ExecutionDetails.Status oldStatus = ExecutionDetails.Status.CANCELED;
+        ExecutionDetails.Status newStatus = ExecutionDetails.Status.WAITING;
+        testExecutionDetails.setStatus(oldStatus);
+        when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.of(testExecutionDetails));
+
+        // Act
+        subject.changeExecutionStatus(MOCK_EXECUTION_ID, newStatus);
+
+        // Assert
+        assertEquals(ExecutionDetails.Status.CANCELED, testExecutionDetails.getStatus());
+        verify(mockExecutionRepository, times(1)).findById(MOCK_EXECUTION_ID);
+        verifyNoMoreInteractions(mockExecutionRepository);
+    }
+
+    @Test
+    public void testChangeExecutionStatus_validExecutionId_statusIsAlreadyAborted() {
+        // Arrange
+        ExecutionDetails.Status oldStatus = ExecutionDetails.Status.ABORTED;
+        ExecutionDetails.Status newStatus = ExecutionDetails.Status.WAITING;
+        testExecutionDetails.setStatus(oldStatus);
+        when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.of(testExecutionDetails));
+
+        // Act
+        subject.changeExecutionStatus(MOCK_EXECUTION_ID, newStatus);
+
+        // Assert
+        assertEquals(ExecutionDetails.Status.ABORTED, testExecutionDetails.getStatus());
+        verify(mockExecutionRepository, times(1)).findById(MOCK_EXECUTION_ID);
+        verifyNoMoreInteractions(mockExecutionRepository);
+    }
+
+    @Test
+    public void testChangeExecutionStatus_validExecutionId_statusIsMutable() {
+        // Arrange
+        ExecutionDetails.Status oldStatus = ExecutionDetails.Status.RUNNING;
+        ExecutionDetails.Status newStatus = ExecutionDetails.Status.FINISHED;
+        testExecutionDetails.setStatus(oldStatus);
+        when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.of(testExecutionDetails));
+
+        // Act
+        subject.changeExecutionStatus(MOCK_EXECUTION_ID, newStatus);
+
+        // Assert
+        assertEquals(ExecutionDetails.Status.FINISHED, testExecutionDetails.getStatus());
+        verify(mockExecutionRepository, times(1)).findById(MOCK_EXECUTION_ID);
+        verify(mockExecutionRepository, times(1)).save(testExecutionDetails);
+        verifyNoMoreInteractions(mockExecutionRepository);
     }
 }
