@@ -209,12 +209,16 @@ public class ExecutionServiceImpl implements ExecutionService {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void changeExecutionStatus(@NonNull UUID executionId, @NonNull Status status) {
         final ExecutionDetails executionDetails =
                 executionRepository.findById(executionId).orElseThrow(
                         () -> new ResourceNotFoundException(ExecutionDetails.class, "id", executionId.toString()));
 
+        // Do not change the status if the execution is already canceled or aborted
         if (executionDetails.getStatus().equals(Status.CANCELED)
                 || executionDetails.getStatus().equals(Status.ABORTED)) {
             return;

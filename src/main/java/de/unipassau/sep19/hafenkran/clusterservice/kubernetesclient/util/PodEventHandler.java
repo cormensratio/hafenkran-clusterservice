@@ -7,6 +7,9 @@ import io.kubernetes.client.models.V1Pod;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * The EventHandler class for a kubernetes pod
+ */
 @Slf4j
 public class PodEventHandler implements ResourceEventHandler<V1Pod> {
 
@@ -49,7 +52,6 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
     }
 
     private void setExecutionStatus(@NonNull V1Pod pod, @NonNull ExecutionDetails executionDetails) {
-
         executionService = getExecutionService();
 
         switch (pod.getStatus().getPhase()) {

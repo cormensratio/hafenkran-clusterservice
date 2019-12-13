@@ -10,7 +10,7 @@ import lombok.NonNull;
 import java.util.List;
 import java.util.UUID;
 
-import static de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails.*;
+import static de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails.Status;
 
 public interface ExecutionService {
 
@@ -101,6 +101,12 @@ public interface ExecutionService {
      */
     void sendSTDIN(@NonNull UUID executionId, @NonNull StdinDTO stdinDTO);
 
+    /**
+     * Sets the status of a {@link ExecutionDetails} to the status of its corresponding kubernetes pod.
+     *
+     * @param executionId The id of the execution, of which the status is going to be changed.
+     * @param status      The status, which is going to be applied.
+     */
     void changeExecutionStatus(@NonNull UUID executionId, @NonNull Status status);
 
 }
