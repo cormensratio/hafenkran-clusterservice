@@ -177,7 +177,7 @@ public class ExecutionServiceImplTest {
                 testUserExecutionDetails.getCreatedAt(),
                 testUserExecutionDetails.getStartedAt(), testUserExecutionDetails.getTerminatedAt(),
                 testUserExecutionDetails.getStatus(), testUserExecutionDetails.getRam(), testUserExecutionDetails.getCpu(),
-                testUserExecutionDetails.getBookedTime()));
+                testUserExecutionDetails.getBookedTime(), testUserExecutionDetails.getOwnerId()));
         testExecutionDetailsList.add(testUserExecutionDetails);
         when(mockExecutionRepository.findAllByExperimentDetails_Id(MOCK_USER_EXPERIMENT_ID)).thenReturn(
                 testExecutionDetailsList);
@@ -248,7 +248,7 @@ public class ExecutionServiceImplTest {
                 testUserExecutionDetails.getCreatedAt(),
                 testUserExecutionDetails.getStartedAt(), testUserExecutionDetails.getTerminatedAt(),
                 testUserExecutionDetails.getStatus(), testUserExecutionDetails.getRam(), testUserExecutionDetails.getCpu(),
-                testUserExecutionDetails.getBookedTime()));
+                testUserExecutionDetails.getBookedTime(), testUserExecutionDetails.getOwnerId()));
         testExecutionDetailsList.add(testUserExecutionDetails);
         when(mockExecutionRepository.findAllByExperimentDetails_OwnerId(MOCK_USER_ID)).thenReturn(
                 testExecutionDetailsList);
@@ -325,7 +325,7 @@ public class ExecutionServiceImplTest {
                 1L, 1L);
         mockExecutionDetails.setId(MOCK_USER_EXECUTION_ID);
         ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_USER_EXECUTION_ID, MOCK_USER_EXPERIMENT_ID, "Test-1",
-                LocalDateTime.now(), null, null, ExecutionDetails.Status.RUNNING, 1L, 1L, 1L);
+                LocalDateTime.now(), null, null, ExecutionDetails.Status.RUNNING, 1L, 1L, 1L, MOCK_USER_ID);
 
         when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
                 Optional.of(mockExperimentDetails));
@@ -354,7 +354,7 @@ public class ExecutionServiceImplTest {
         ExecutionCreateDTO executionCreateDTO = new ExecutionCreateDTO(Optional.of("Test.zip"), MOCK_USER_EXPERIMENT_ID,
                 Optional.of(1L), Optional.of(1L), Optional.of(1L));
         ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_USER_EXECUTION_ID, MOCK_USER_EXPERIMENT_ID, "Test-1",
-                LocalDateTime.now(), null, null, ExecutionDetails.Status.RUNNING, 1L, 1L, 1L);
+                LocalDateTime.now(), null, null, ExecutionDetails.Status.RUNNING, 1L, 1L, 1L, MOCK_USER_ID);
         ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "Test", "filename", 1L);
         mockExperimentDetails.setId(MOCK_USER_EXPERIMENT_ID);
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, "Test-1", 1L,
@@ -458,7 +458,7 @@ public class ExecutionServiceImplTest {
         ExecutionCreateDTO executionCreateDTO = new ExecutionCreateDTO(Optional.empty(), MOCK_USER_EXPERIMENT_ID,
                 Optional.of(1L), Optional.of(1L), Optional.of(1L));
         ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_USER_EXECUTION_ID, MOCK_USER_EXPERIMENT_ID, "Test-1",
-                LocalDateTime.now(), null, null, ExecutionDetails.Status.RUNNING, 1L, 1L, 1L);
+                LocalDateTime.now(), null, null, ExecutionDetails.Status.RUNNING, 1L, 1L, 1L, MOCK_USER_ID);
 
         when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
                 Optional.of(mockExperimentDetails));
@@ -570,7 +570,7 @@ public class ExecutionServiceImplTest {
         ExecutionCreateDTO executionCreateDTO = new ExecutionCreateDTO(Optional.of("Test"), MOCK_USER_EXPERIMENT_ID,
                 Optional.of(1L), Optional.of(1L), Optional.of(1L));
         ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_USER_EXECUTION_ID, MOCK_USER_EXPERIMENT_ID, "Test-1",
-                LocalDateTime.now(), null, null, ExecutionDetails.Status.RUNNING, 1L, 1L, 1L);
+                LocalDateTime.now(), null, null, ExecutionDetails.Status.RUNNING, 1L, 1L, 1L, MOCK_USER_ID);
 
         //when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.of(mockExecutionDetails));
         when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
@@ -598,7 +598,7 @@ public class ExecutionServiceImplTest {
 
         // Arrange
         ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_USER_EXECUTION_ID, MOCK_USER_EXPERIMENT_ID, "Test1",
-                LocalDateTime.now(), null, LocalDateTime.now(), ExecutionDetails.Status.CANCELED, 1L, 1L, 1L);
+                LocalDateTime.now(), null, LocalDateTime.now(), ExecutionDetails.Status.CANCELED, 1L, 1L, 1L, MOCK_USER_ID);
         testUserExecutionDetails.setPodName("Test1");
         when(mockExecutionRepository.findById(MOCK_USER_EXECUTION_ID)).thenReturn(Optional.of(testUserExecutionDetails));
         when(mockContext.getAuthentication()).thenReturn(MOCK_USER_AUTH);
@@ -620,7 +620,7 @@ public class ExecutionServiceImplTest {
 
         // Arrange
         ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_ADMIN_EXECUTION_ID, MOCK_ADMIN_EXPERIMENT_ID, "Test1",
-                LocalDateTime.now(), null, LocalDateTime.now(), ExecutionDetails.Status.CANCELED, 1L, 1L, 1L);
+                LocalDateTime.now(), null, LocalDateTime.now(), ExecutionDetails.Status.CANCELED, 1L, 1L, 1L, MOCK_USER_ID);
         testAdminExecutionDetails.setPodName("Test1");
         when(mockExecutionRepository.findById(MOCK_ADMIN_EXECUTION_ID)).thenReturn(Optional.of(testAdminExecutionDetails));
         when(mockContext.getAuthentication()).thenReturn(MOCK_ADMIN_AUTH);
@@ -642,7 +642,7 @@ public class ExecutionServiceImplTest {
 
         // Arrange
         ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_USER_EXECUTION_ID, MOCK_USER_EXPERIMENT_ID, "Test1",
-                LocalDateTime.now(), null, LocalDateTime.now(), ExecutionDetails.Status.ABORTED, 1L, 1L, 1L);
+                LocalDateTime.now(), null, LocalDateTime.now(), ExecutionDetails.Status.ABORTED, 1L, 1L, 1L, MOCK_USER_ID);
         testUserExecutionDetails.setPodName("Test1");
         when(mockExecutionRepository.findById(MOCK_USER_EXECUTION_ID)).thenReturn(Optional.of(testUserExecutionDetails));
         when(mockContext.getAuthentication()).thenReturn(MOCK_ADMIN_AUTH);
@@ -666,7 +666,7 @@ public class ExecutionServiceImplTest {
         expectedEx.expect(ResourceNotFoundException.class);
         ExecutionDTO executionDTO = new ExecutionDTO(MOCK_USER_EXECUTION_ID, MOCK_USER_EXPERIMENT_ID, "Test1",
                 LocalDateTime.now(), null, null, ExecutionDetails.Status.WAITING,
-                1L, 1L, 1L);
+                1L, 1L, 1L, MOCK_USER_ID);
         when(mockExecutionRepository.findById(executionDTO.getId())).thenReturn(Optional.empty());
 
         // Act
