@@ -39,13 +39,17 @@ public class ExperimentDTO {
     @JsonProperty("size")
     private final Long size;
 
+    @JsonProperty("ownerId")
+    private final UUID ownerId;
+
     public static ExperimentDTO fromExperimentDetails(@NonNull final ExperimentDetails experimentDetails) {
         return new ExperimentDTO(
                 experimentDetails.getId(),
                 experimentDetails.getName(),
                 experimentDetails.getOwnerId(),
                 experimentDetails.getCreatedAt(),
-                experimentDetails.getSize()
+                experimentDetails.getSize(),
+                experimentDetails.getOwnerId()
         );
     }
 }
