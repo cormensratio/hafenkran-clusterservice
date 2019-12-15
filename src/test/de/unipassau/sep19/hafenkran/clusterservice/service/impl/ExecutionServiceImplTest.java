@@ -270,7 +270,7 @@ public class ExecutionServiceImplTest {
         // Arrange
         ExecutionDTO mockUserExecution = ExecutionDTO.fromExecutionDetails(testUserExecutionDetails);
         ExecutionDTO mockAdminExecution = ExecutionDTO.fromExecutionDetails(testAdminExecutionDetails);
-        Iterable<ExecutionDetails> list = Arrays.asList(testUserExecutionDetails, testAdminExecutionDetails);
+        List<ExecutionDetails> list = Arrays.asList(testUserExecutionDetails, testAdminExecutionDetails);
         when(mockExecutionRepository.findAll()).thenReturn(list);
         when(mockContext.getAuthentication()).thenReturn(MOCK_ADMIN_AUTH);
 
