@@ -1,5 +1,6 @@
 package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.util;
 
+import de.unipassau.sep19.hafenkran.clusterservice.config.SpringContext;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import io.kubernetes.client.informer.ResourceEventHandler;
@@ -25,15 +26,15 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
 
     @Override
     public void onAdd(V1Pod pod) {
-        log.info(String.format("Pod \"%s\" added!", pod.getMetadata().getName()));
-        log.info(String.format("Namespace of pod with name \"%s\" is: \"%s\"\n",
+        log.debug(String.format("Pod \"%s\" added!", pod.getMetadata().getName()));
+        log.debug(String.format("Namespace of pod with name \"%s\" is: \"%s\"\n",
                 pod.getMetadata().getName(), pod.getMetadata().getNamespace()));
     }
 
     @Override
     public void onUpdate(V1Pod oldPod, V1Pod newPod) {
         setExecutionStatus(newPod, executionDetails);
-        log.info(String.format(
+        log.debug(String.format(
                 "Pod with name \"%s\" and status \"%s\" updated to pod with name \"%s\" and status \"%s\"",
                 oldPod.getMetadata().getName(), oldPod.getStatus().getPhase(),
                 newPod.getMetadata().getName(), newPod.getStatus().getPhase()));
@@ -42,9 +43,9 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
     @Override
     public void onDelete(V1Pod pod, boolean deletedFinalStateUnknown) {
         setExecutionStatus(pod, executionDetails);
-        log.info(String.format("Pod with name \"%s\" has status \"%s\"",
+        log.debug(String.format("Pod with name \"%s\" has status \"%s\"",
                 pod.getMetadata().getName(), pod.getStatus().getPhase()));
-        log.info(String.format("Pod with name \"%s\" deleted!\n", pod.getMetadata().getName()));
+        log.debug(String.format("Pod with name \"%s\" deleted!\n", pod.getMetadata().getName()));
     }
 
     private ExecutionService getExecutionService() {

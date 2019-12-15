@@ -1,4 +1,4 @@
-package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.util;
+package de.unipassau.sep19.hafenkran.clusterservice.config;
 
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
