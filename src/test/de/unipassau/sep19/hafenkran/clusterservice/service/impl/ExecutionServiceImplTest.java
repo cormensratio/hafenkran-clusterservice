@@ -26,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -260,6 +261,26 @@ public class ExecutionServiceImplTest {
         verify(mockExecutionRepository, times(1)).findAllByExperimentDetails_OwnerId(MOCK_USER_ID);
         verify(mockContext, times(1)).getAuthentication();
         assertEquals(testExecutionDTOS, actual);
+        verifyNoMoreInteractions(mockExecutionRepository, mockContext);
+    }
+
+    @Test
+    public void testRetrieveAllExecutionDTOList_isAdmin_validExecutionDTOList() {
+
+        // Arrange
+        ExecutionDTO mockUserExecution = ExecutionDTO.fromExecutionDetails(testUserExecutionDetails);
+        ExecutionDTO mockAdminExecution = ExecutionDTO.fromExecutionDetails(testAdminExecutionDetails);
+        Iterable<ExecutionDetails> list = Arrays.asList(testUserExecutionDetails, testAdminExecutionDetails);
+        when(mockExecutionRepository.findAll()).thenReturn(list);
+        when(mockContext.getAuthentication()).thenReturn(MOCK_ADMIN_AUTH);
+
+        // Act
+        List<ExecutionDTO> actual = subject.retrieveAllExecutionsDTOs();
+
+        // Assert
+        verify(mockExecutionRepository, times(1)).findAll();
+        verify(mockContext, times(2)).getAuthentication();
+        assertThat(actual, containsInAnyOrder(mockUserExecution, mockAdminExecution));
         verifyNoMoreInteractions(mockExecutionRepository, mockContext);
     }
 
