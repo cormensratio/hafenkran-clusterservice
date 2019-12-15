@@ -2,7 +2,6 @@ package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTOList;
-import de.unipassau.sep19.hafenkran.clusterservice.dto.UserDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
@@ -16,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,9 +36,7 @@ public class ExperimentServiceImpl implements ExperimentService {
     }
 
     private List<ExperimentDetails> findAllExperiments() {
-        List<ExperimentDetails> allExperimentsList = new ArrayList<>();
-        Iterable<ExperimentDetails> allExperiments = experimentRepository.findAll();
-        allExperiments.forEach(allExperimentsList::add);
+        List<ExperimentDetails> allExperimentsList = experimentRepository.findAll();
         allExperimentsList.forEach(ExperimentDetails::validatePermissions);
         return allExperimentsList;
     }
