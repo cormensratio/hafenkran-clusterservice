@@ -174,10 +174,7 @@ public class ExecutionServiceImpl implements ExecutionService {
      */
     @Override
     public List<ExecutionDTO> retrieveAllExecutionsDTOs() {
-        List<ExecutionDetails> executionDetailsList = new ArrayList<>();
-
-        Iterable<ExecutionDetails> executionDetails = executionRepository.findAll();
-        executionDetails.forEach(executionDetailsList::add);
+        List<ExecutionDetails> executionDetailsList = executionRepository.findAll();
 
         if (executionDetailsList.isEmpty()) {
             return Collections.emptyList();
