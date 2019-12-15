@@ -197,7 +197,7 @@ public class ExperimentServiceImplTest {
         // Arrange
         ExperimentDTO mockUserExperimentDTO = ExperimentDTO.fromExperimentDetails(testUserExperimentDetails);
         ExperimentDTO mockAdminExperimentDTO = ExperimentDTO.fromExperimentDetails(testAdminExperimentDetails);
-        Iterable<ExperimentDetails> list = Arrays.asList(testUserExperimentDetails, testAdminExperimentDetails);
+        List<ExperimentDetails> list = Arrays.asList(testUserExperimentDetails, testAdminExperimentDetails);
         when(mockExperimentRepository.findAll()).thenReturn(list);
         when(mockContext.getAuthentication()).thenReturn(MOCK_ADMIN_AUTH);
 
