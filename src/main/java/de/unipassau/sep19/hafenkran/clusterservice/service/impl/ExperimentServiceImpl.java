@@ -41,6 +41,7 @@ public class ExperimentServiceImpl implements ExperimentService {
         List<ExperimentDetails> allExperimentsList = new ArrayList<>();
         Iterable<ExperimentDetails> allExperiments = experimentRepository.findAll();
         allExperiments.forEach(allExperimentsList::add);
+        allExperimentsList.forEach(ExperimentDetails::validatePermissions);
         return allExperimentsList;
     }
 
