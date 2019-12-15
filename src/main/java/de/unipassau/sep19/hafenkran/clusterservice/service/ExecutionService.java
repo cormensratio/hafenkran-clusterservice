@@ -76,6 +76,13 @@ public interface ExecutionService {
     List<ExecutionDTO> retrieveExecutionsDTOListForUserId(@NonNull UUID userId);
 
     /**
+     * Returns a list with all {@link ExecutionDTO}s stored in the database.
+     *
+     * @return The list with all {@link ExecutionDTO}s stored in the database.
+     */
+    List<ExecutionDTO> retrieveAllExecutionsDTOs();
+
+    /**
      * Deletes the execution with the given Id.
      *
      * @param executionId The {@code executionId} of the execution that should be deleted
