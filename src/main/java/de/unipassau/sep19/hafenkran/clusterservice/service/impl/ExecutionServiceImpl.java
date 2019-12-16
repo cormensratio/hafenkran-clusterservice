@@ -4,6 +4,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.StdinDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.UserDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
@@ -110,8 +111,13 @@ public class ExecutionServiceImpl implements ExecutionService {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while "
                     + "communicating with the cluster.");
         }
+        UserDTO user = SecurityContextUtil.getCurrentUserDTO();
 
-        executionDetails.setStatus(Status.CANCELED);
+        if (user.isAdmin() && !user.getId().equals(executionDetails.getOwnerId())) {
+            executionDetails.setStatus(ExecutionDetails.Status.ABORTED);
+        } else {
+            executionDetails.setStatus(ExecutionDetails.Status.CANCELED);
+        }
         executionDetails.setTerminatedAt(LocalDateTime.now());
 
         executionRepository.save(executionDetails);
@@ -129,6 +135,15 @@ public class ExecutionServiceImpl implements ExecutionService {
     @Override
     public ExecutionDTO retrieveExecutionDTOById(@NonNull UUID id) {
         return ExecutionDTO.fromExecutionDetails(retrieveExecutionDetailsById(id));
+    }
+
+    private ExecutionDetails retrieveExecutionDetailsById(@NonNull UUID id) {
+        final Optional<ExecutionDetails> execution = executionRepository.findById(id);
+        ExecutionDetails executionDetails = execution.orElseThrow(
+                () -> new ResourceNotFoundException(ExecutionDetails.class, "id",
+                        id.toString()));
+        executionDetails.validatePermissions();
+        return executionDetails;
     }
 
     /**
@@ -222,15 +237,6 @@ public class ExecutionServiceImpl implements ExecutionService {
 
         executionDetails.setStatus(status);
         executionRepository.save(executionDetails);
-    }
-
-    private ExecutionDetails retrieveExecutionDetailsById(@NonNull UUID id) {
-        final Optional<ExecutionDetails> execution = executionRepository.findById(id);
-        ExecutionDetails executionDetails = execution.orElseThrow(
-                () -> new ResourceNotFoundException(ExecutionDetails.class, "id",
-                        id.toString()));
-        executionDetails.validatePermissions();
-        return executionDetails;
     }
 
     private ExecutionDetails startExecution(@NonNull ExecutionDetails executionDetails) {
