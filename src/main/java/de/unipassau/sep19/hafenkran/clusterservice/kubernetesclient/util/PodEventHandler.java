@@ -8,6 +8,8 @@ import io.kubernetes.client.models.V1Pod;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.UUID;
+
 /**
  * The EventHandler class for a kubernetes pod
  */
@@ -15,13 +17,13 @@ import lombok.extern.slf4j.Slf4j;
 public class PodEventHandler implements ResourceEventHandler<V1Pod> {
 
     @NonNull
-    private final ExecutionDetails executionDetails;
+    private final UUID executionId;
 
     @NonNull
     private ExecutionService executionService;
 
-    public PodEventHandler(@NonNull ExecutionDetails executionDetails) {
-        this.executionDetails = executionDetails;
+    public PodEventHandler(@NonNull UUID executionId) {
+        this.executionId = executionId;
     }
 
     @Override
@@ -33,7 +35,7 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
 
     @Override
     public void onUpdate(V1Pod oldPod, V1Pod newPod) {
-        setExecutionStatus(newPod, executionDetails);
+        setExecutionStatus(newPod, executionId);
         log.debug(String.format(
                 "Pod with name \"%s\" and status \"%s\" updated to pod with name \"%s\" and status \"%s\"",
                 oldPod.getMetadata().getName(), oldPod.getStatus().getPhase(),
@@ -42,7 +44,7 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
 
     @Override
     public void onDelete(V1Pod pod, boolean deletedFinalStateUnknown) {
-        setExecutionStatus(pod, executionDetails);
+        setExecutionStatus(pod, executionId);
         log.debug(String.format("Pod with name \"%s\" has status \"%s\"",
                 pod.getMetadata().getName(), pod.getStatus().getPhase()));
         log.debug(String.format("Pod with name \"%s\" deleted!\n", pod.getMetadata().getName()));
@@ -52,7 +54,7 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
         return SpringContext.getBean(ExecutionService.class);
     }
 
-    private void setExecutionStatus(@NonNull V1Pod pod, @NonNull ExecutionDetails executionDetails) {
+    private void setExecutionStatus(@NonNull V1Pod pod, @NonNull UUID executionId) {
         executionService = getExecutionService();
 
         switch (pod.getStatus().getPhase()) {
@@ -60,19 +62,19 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
             // Kubernetes status --> execution status
             // Pending --> WAITING
             case "Pending":
-                executionService.changeExecutionStatus(executionDetails.getId(), ExecutionDetails.Status.WAITING);
+                executionService.changeExecutionStatus(executionId, ExecutionDetails.Status.WAITING);
                 break;
             // Running --> RUNNING
             case "Running":
-                executionService.changeExecutionStatus(executionDetails.getId(), ExecutionDetails.Status.RUNNING);
+                executionService.changeExecutionStatus(executionId, ExecutionDetails.Status.RUNNING);
                 break;
             // Succeeded --> FINISHED
             case "Succeeded":
-                executionService.changeExecutionStatus(executionDetails.getId(), ExecutionDetails.Status.FINISHED);
+                executionService.changeExecutionStatus(executionId, ExecutionDetails.Status.FINISHED);
                 break;
             // Failed --> FAILED
             case "Failed":
-                executionService.changeExecutionStatus(executionDetails.getId(), ExecutionDetails.Status.FAILED);
+                executionService.changeExecutionStatus(executionId, ExecutionDetails.Status.FAILED);
         }
     }
 }

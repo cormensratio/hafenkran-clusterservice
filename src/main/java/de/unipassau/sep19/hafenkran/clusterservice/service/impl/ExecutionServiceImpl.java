@@ -105,12 +105,6 @@ public class ExecutionServiceImpl implements ExecutionService {
 
         ExecutionDetails executionDetails = getExecutionDetails(executionId);
 
-        try {
-            kubernetesClient.deletePod(executionDetails);
-        } catch (ApiException e) {
-            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while "
-                    + "communicating with the cluster.");
-        }
         UserDTO user = SecurityContextUtil.getCurrentUserDTO();
 
         if (user.isAdmin() && !user.getId().equals(executionDetails.getOwnerId())) {
@@ -123,6 +117,13 @@ public class ExecutionServiceImpl implements ExecutionService {
         executionRepository.save(executionDetails);
 
         ExecutionDTO terminatedExecutionDTO = ExecutionDTO.fromExecutionDetails(executionDetails);
+
+        try {
+            kubernetesClient.deletePod(executionDetails);
+        } catch (ApiException e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while "
+                    + "communicating with the cluster.");
+        }
 
         log.info(String.format("Execution with id %S terminated", executionId));
 
@@ -229,14 +230,12 @@ public class ExecutionServiceImpl implements ExecutionService {
                 executionRepository.findById(executionId).orElseThrow(
                         () -> new ResourceNotFoundException(ExecutionDetails.class, "id", executionId.toString()));
 
-        // Do not change the status if the execution is already canceled or aborted
-        if (executionDetails.getStatus().equals(Status.CANCELED)
-                || executionDetails.getStatus().equals(Status.ABORTED)) {
-            return;
+        // Only change the status if the execution is running or waiting
+        if (executionDetails.getStatus().equals(Status.RUNNING) || executionDetails.getStatus().equals(Status.WAITING)
+                || executionDetails.getStatus().equals(Status.FAILED)) {
+            executionDetails.setStatus(status);
+            executionRepository.save(executionDetails);
         }
-
-        executionDetails.setStatus(status);
-        executionRepository.save(executionDetails);
     }
 
     private ExecutionDetails startExecution(@NonNull ExecutionDetails executionDetails) {

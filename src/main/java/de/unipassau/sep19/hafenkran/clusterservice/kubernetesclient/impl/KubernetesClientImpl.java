@@ -46,6 +46,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -57,6 +58,8 @@ import java.util.stream.Collectors;
 public class KubernetesClientImpl implements KubernetesClient {
 
     private CoreV1Api api;
+
+    private Map<String, SharedIndexInformer<V1Pod>> namespacePodInformerMapping;
 
     private SharedInformerFactory factory;
 
@@ -77,6 +80,7 @@ public class KubernetesClientImpl implements KubernetesClient {
 
     @Value("${kubernetes.debugging}")
     private boolean debugMode;
+
 
     /**
      * Constructor of KubernetesClientImpl.
@@ -102,6 +106,7 @@ public class KubernetesClientImpl implements KubernetesClient {
         // the CoreV1Api loads default api-client from global configuration
         api = new CoreV1Api(client);
         factory = new SharedInformerFactory();
+        namespacePodInformerMapping = new HashMap<>();
     }
 
     /**
@@ -116,6 +121,7 @@ public class KubernetesClientImpl implements KubernetesClient {
         if (!allNamespaces.contains(namespace)) {
             createNamespace(namespace);
             createImagePullSecretForNamespace(namespace);
+            createAndStartPodInformerForNamespace(namespace);
         }
     }
 
@@ -131,7 +137,7 @@ public class KubernetesClientImpl implements KubernetesClient {
         Map<String, String> labels = new HashMap<>();
         labels.put("run", podName);
         createPodInNamespace(namespace, podName, image, labels);
-        createPodInformerForNamespace(executionDetails);
+        addPodEventHandlerForExecution(namespace, executionDetails.getId());
         return api.readNamespacedPod(podName, namespace, "pretty", false, false).getMetadata().getName();
     }
 
@@ -345,13 +351,14 @@ public class KubernetesClientImpl implements KubernetesClient {
 
     private void deletePodInNamespace(@NonNull String namespace, @NonNull String podName) throws ApiException {
         V1DeleteOptions deleteOptions = new V1DeleteOptions();
+        V1Pod toBeDeleted = api.readNamespacedPod(podName, namespace, null, null, null);
+        namespacePodInformerMapping.get(namespace).getIndexer().delete(toBeDeleted);
         api.deleteNamespacedPod(podName, namespace, "pretty", deleteOptions, null, null, null, null);
         log.info("Deleted pod {}", podName);
     }
 
 
-    private void createPodInformerForNamespace(@NonNull ExecutionDetails executionDetails) {
-        final String namespace = executionDetails.getExperimentDetails().getId().toString();
+    private void createAndStartPodInformerForNamespace(@NonNull String namespace) {
 
         SharedIndexInformer<V1Pod> podInformer =
                 factory.sharedIndexInformerFor(
@@ -379,7 +386,12 @@ public class KubernetesClientImpl implements KubernetesClient {
                         V1Pod.class,
                         V1PodList.class);
 
-        podInformer.addEventHandler(new PodEventHandler(executionDetails));
+        namespacePodInformerMapping.put(namespace, podInformer);
         factory.startAllRegisteredInformers();
+    }
+
+    private void addPodEventHandlerForExecution(@NonNull String namespace, @NonNull UUID executionId) {
+        SharedIndexInformer<V1Pod> namespaceInformer = namespacePodInformerMapping.get(namespace);
+        namespaceInformer.addEventHandler(new PodEventHandler(executionId));
     }
 }
