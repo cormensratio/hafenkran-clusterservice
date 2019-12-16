@@ -243,7 +243,6 @@ public class ExecutionServiceImpl implements ExecutionService {
         }
 
         executionDetails.setPodName(podName);
-        executionDetails.setStatus(Status.RUNNING);
         executionDetails.setStartedAt(LocalDateTime.now());
 
         executionRepository.save(executionDetails);
