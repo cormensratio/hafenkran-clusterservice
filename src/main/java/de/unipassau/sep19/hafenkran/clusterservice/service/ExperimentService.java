@@ -34,4 +34,11 @@ public interface ExperimentService {
      */
     List<ExperimentDTO> retrieveExperimentsDTOListOfUserId(@NonNull UUID userId);
 
+    /**
+     * Returns a list with all {@link ExperimentDTO}s stored in the database.
+     *
+     * @return The list with all {@link ExperimentDTO}s stored in the database.
+     */
+    List<ExperimentDTO> retrieveAllExperimentDTOs();
+
 }

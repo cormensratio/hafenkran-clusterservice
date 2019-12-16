@@ -14,4 +14,7 @@ public interface ExperimentRepository extends CrudRepository<ExperimentDetails, 
     List<ExperimentDetails> findExperimentDetailsByOwnerId(@NonNull UUID ownerId);
 
     List<ExperimentDetails> findExperimentDetailsByOwnerIdAndName(@NonNull UUID ownerId, @NonNull String name);
+
+    @org.springframework.lang.NonNull
+    List<ExperimentDetails> findAll();
 }

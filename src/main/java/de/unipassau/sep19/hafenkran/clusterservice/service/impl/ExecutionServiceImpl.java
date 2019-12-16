@@ -22,10 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -163,6 +160,21 @@ public class ExecutionServiceImpl implements ExecutionService {
     @Override
     public List<ExecutionDTO> retrieveExecutionsDTOListForUserId(@NonNull UUID userId) {
         List<ExecutionDetails> executionDetailsList = executionRepository.findAllByExperimentDetails_OwnerId(userId);
+
+        if (executionDetailsList.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        executionDetailsList.forEach(ExecutionDetails::validatePermissions);
+        return ExecutionDTOList.fromExecutionDetailsList(executionDetailsList);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<ExecutionDTO> retrieveAllExecutionsDTOs() {
+        List<ExecutionDetails> executionDetailsList = executionRepository.findAll();
 
         if (executionDetailsList.isEmpty()) {
             return Collections.emptyList();

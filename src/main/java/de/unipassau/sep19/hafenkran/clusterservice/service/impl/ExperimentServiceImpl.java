@@ -35,6 +35,12 @@ public class ExperimentServiceImpl implements ExperimentService {
         return experimentDetailsByUserId;
     }
 
+    private List<ExperimentDetails> findAllExperiments() {
+        List<ExperimentDetails> allExperimentsList = experimentRepository.findAll();
+        allExperimentsList.forEach(ExperimentDetails::validatePermissions);
+        return allExperimentsList;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -69,6 +75,13 @@ public class ExperimentServiceImpl implements ExperimentService {
      */
     public List<ExperimentDTO> retrieveExperimentsDTOListOfUserId(@NonNull UUID userId) {
         return ExperimentDTOList.convertExperimentListToDTOList(findExperimentsListOfUserId(userId));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public List<ExperimentDTO> retrieveAllExperimentDTOs() {
+        return ExperimentDTOList.convertExperimentListToDTOList(findAllExperiments());
     }
 
 }

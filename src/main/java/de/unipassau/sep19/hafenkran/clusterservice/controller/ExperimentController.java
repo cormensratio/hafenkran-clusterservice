@@ -56,7 +56,11 @@ public class ExperimentController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public List<ExperimentDTO> getExperimentDTOListOfCurrentUser() {
-        return experimentService.retrieveExperimentsDTOListOfUserId(SecurityContextUtil.getCurrentUserDTO().getId());
+        if (SecurityContextUtil.getCurrentUserDTO().isAdmin()) {
+            return experimentService.retrieveAllExperimentDTOs();
+        } else {
+            return experimentService.retrieveExperimentsDTOListOfUserId(SecurityContextUtil.getCurrentUserDTO().getId());
+        }
     }
 
     /**

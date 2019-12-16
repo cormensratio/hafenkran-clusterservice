@@ -66,15 +66,19 @@ public class ExecutionController {
     }
 
     /**
-     * GET-Endpoint for receiving an {@link ExecutionDTOList} of the current experiment.
+     * GET-Endpoint for receiving an {@link ExecutionDTOList} of the current user.
      *
-     * @return The list of {@link ExecutionDTO}s of the current experiment.
+     * @return The list of {@link ExecutionDTO}s of the current user.
      */
     @GetMapping
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public List<ExecutionDTO> getExecutionDTOListForCurrentId() {
-        return executionService.retrieveExecutionsDTOListForUserId(SecurityContextUtil.getCurrentUserDTO().getId());
+        if (SecurityContextUtil.getCurrentUserDTO().isAdmin()) {
+            return executionService.retrieveAllExecutionsDTOs();
+        } else {
+            return executionService.retrieveExecutionsDTOListForUserId(SecurityContextUtil.getCurrentUserDTO().getId());
+        }
     }
 
     /**
