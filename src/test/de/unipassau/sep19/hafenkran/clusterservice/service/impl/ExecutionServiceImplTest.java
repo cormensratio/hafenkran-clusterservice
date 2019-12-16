@@ -313,7 +313,7 @@ public class ExecutionServiceImplTest {
                 1L, 1L);
         mockExecutionDetails.setId(MOCK_USER_EXECUTION_ID);
         ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_USER_EXECUTION_ID, MOCK_USER_EXPERIMENT_ID, "Test-1",
-                LocalDateTime.now(), null, null, ExecutionDetails.Status.RUNNING, 1L, 1L, 1L);
+                LocalDateTime.now(), null, null, ExecutionDetails.Status.WAITING, 1L, 1L, 1L);
 
         when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
                 Optional.of(mockExperimentDetails));
@@ -342,7 +342,7 @@ public class ExecutionServiceImplTest {
         ExecutionCreateDTO executionCreateDTO = new ExecutionCreateDTO(Optional.of("Test.zip"), MOCK_USER_EXPERIMENT_ID,
                 Optional.of(1L), Optional.of(1L), Optional.of(1L));
         ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_USER_EXECUTION_ID, MOCK_USER_EXPERIMENT_ID, "Test-1",
-                LocalDateTime.now(), null, null, ExecutionDetails.Status.RUNNING, 1L, 1L, 1L);
+                LocalDateTime.now(), null, null, ExecutionDetails.Status.WAITING, 1L, 1L, 1L);
         ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "Test", "filename", 1L);
         mockExperimentDetails.setId(MOCK_USER_EXPERIMENT_ID);
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, "Test-1", 1L,
@@ -446,7 +446,7 @@ public class ExecutionServiceImplTest {
         ExecutionCreateDTO executionCreateDTO = new ExecutionCreateDTO(Optional.empty(), MOCK_USER_EXPERIMENT_ID,
                 Optional.of(1L), Optional.of(1L), Optional.of(1L));
         ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_USER_EXECUTION_ID, MOCK_USER_EXPERIMENT_ID, "Test-1",
-                LocalDateTime.now(), null, null, ExecutionDetails.Status.RUNNING, 1L, 1L, 1L);
+                LocalDateTime.now(), null, null, ExecutionDetails.Status.WAITING, 1L, 1L, 1L);
 
         when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
                 Optional.of(mockExperimentDetails));
@@ -558,7 +558,7 @@ public class ExecutionServiceImplTest {
         ExecutionCreateDTO executionCreateDTO = new ExecutionCreateDTO(Optional.of("Test"), MOCK_USER_EXPERIMENT_ID,
                 Optional.of(1L), Optional.of(1L), Optional.of(1L));
         ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_USER_EXECUTION_ID, MOCK_USER_EXPERIMENT_ID, "Test-1",
-                LocalDateTime.now(), null, null, ExecutionDetails.Status.RUNNING, 1L, 1L, 1L);
+                LocalDateTime.now(), null, null, ExecutionDetails.Status.WAITING, 1L, 1L, 1L);
 
         //when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.of(mockExecutionDetails));
         when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
