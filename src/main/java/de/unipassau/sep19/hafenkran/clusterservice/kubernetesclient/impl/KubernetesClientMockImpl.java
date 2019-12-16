@@ -7,7 +7,9 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.UUID;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
 
 /**
  * Implementation of Kubernetes Mock Client for test purposes,
@@ -29,18 +31,18 @@ public class KubernetesClientMockImpl implements KubernetesClient {
 
     @Override
     public void createNamespace(@NonNull ExperimentDetails experimentDetails) {
-        log.info("KubernetesClientMockImpl can not create a namespace.");
+        log.info(String.format("KubernetesClientMockImpl: Creating namespace for %s", experimentDetails.getId()));
     }
 
     @Override
     public String createPod(@NonNull ExecutionDetails executionDetails) {
-        log.info("KubernetesClientMockImpl can not create a Pod.");
-        return "No Pod created. KubernetesClientMockImpl.";
+        log.info(String.format("KubernetesClientMockImpl: Creating pod for %s", executionDetails.getId()));
+        return executionDetails.getName();
     }
 
     @Override
     public void deletePod(@NonNull ExecutionDetails executionDetails) {
-        log.info("KubernetesClientMockImpl can not delete a Pod.");
+        log.info(String.format("KubernetesClientMockImpl: Creating pod for %s", executionDetails.getId()));
     }
 
     @Override
@@ -48,13 +50,23 @@ public class KubernetesClientMockImpl implements KubernetesClient {
         log.info(String.format(
                 "KubernetesClientMockImpl: Retrieving first %s lines printed to the log since %s for pod %s with id %s",
                 lines, sinceSeconds, executionDetails.getPodName(), executionDetails.getId()));
-        return String.format("this is a test log for %s \n 1 \n 2", executionDetails.getPodName());
+        return String.format("this is a test log for %s \n 1 \n 2 \n 3", executionDetails.getPodName());
     }
 
     @Override
     public String retrieveResults(@NonNull ExecutionDetails executionDetails) {
         log.info(String.format("KubernetesClientMockImpl: Results retrieved from execution with id %s", executionDetails.getId()));
-        return "This is the Base64-String";
+        File file = new File("mockResultsTar");
+        try {
+            StringBuilder sb = new StringBuilder("");
+            Scanner sc = new Scanner(file);
+            sc.forEachRemaining(sb::append);
+            sc.close();
+            return sb.toString();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 
     @Override
