@@ -35,11 +35,13 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
 
     @Override
     public void onUpdate(V1Pod oldPod, V1Pod newPod) {
-        setExecutionStatus(newPod, findExecutionIdOfPod(newPod));
-        log.info(String.format(
-                "Pod with name \"%s\" and status \"%s\" updated to pod with name \"%s\" and status \"%s\"",
-                oldPod.getMetadata().getName(), oldPod.getStatus().getPhase(),
-                newPod.getMetadata().getName(), newPod.getStatus().getPhase()));
+        if(!oldPod.getStatus().getPhase().equals(newPod.getStatus().getPhase())){
+            setExecutionStatus(newPod, findExecutionIdOfPod(newPod));
+            log.info(String.format(
+                    "Pod with name \"%s\" and status \"%s\" updated to pod with name \"%s\" and status \"%s\"",
+                    oldPod.getMetadata().getName(), oldPod.getStatus().getPhase(),
+                    newPod.getMetadata().getName(), newPod.getStatus().getPhase()));
+        }
     }
 
     @Override
