@@ -109,4 +109,5 @@ public interface ExecutionService {
      */
     void changeExecutionStatus(@NonNull UUID executionId, @NonNull Status status);
 
+    UUID getExecutionIdOfPod(@NonNull String podName, @NonNull UUID namepsace);
 }

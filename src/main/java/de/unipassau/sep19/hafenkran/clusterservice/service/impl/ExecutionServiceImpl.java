@@ -105,6 +105,13 @@ public class ExecutionServiceImpl implements ExecutionService {
 
         ExecutionDetails executionDetails = getExecutionDetails(executionId);
 
+        try {
+            kubernetesClient.deletePod(executionDetails);
+        } catch (ApiException e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while "
+                    + "communicating with the cluster.");
+        }
+
         UserDTO user = SecurityContextUtil.getCurrentUserDTO();
 
         if (user.isAdmin() && !user.getId().equals(executionDetails.getOwnerId())) {
@@ -118,12 +125,7 @@ public class ExecutionServiceImpl implements ExecutionService {
 
         ExecutionDTO terminatedExecutionDTO = ExecutionDTO.fromExecutionDetails(executionDetails);
 
-        try {
-            kubernetesClient.deletePod(executionDetails);
-        } catch (ApiException e) {
-            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while "
-                    + "communicating with the cluster.");
-        }
+
 
         log.info(String.format("Execution with id %S terminated", executionId));
 
@@ -331,5 +333,12 @@ public class ExecutionServiceImpl implements ExecutionService {
 
         return new ExecutionDetails(SecurityContextUtil.getCurrentUserDTO().getId(), experiment, name, ram, cpu,
                 bookedTime);
+    }
+
+    public UUID getExecutionIdOfPod(@NonNull String podName, @NonNull UUID namespace) {
+
+        ExperimentDetails experiment = experimentRepository.findById(namespace).orElseThrow(() -> new ResourceNotFoundException(ExperimentDetails.class, "id",
+                namespace.toString()));
+        return executionRepository.findExecutionDetailsByPodNameAndExperimentDetails(podName, experiment).getId();
     }
 }

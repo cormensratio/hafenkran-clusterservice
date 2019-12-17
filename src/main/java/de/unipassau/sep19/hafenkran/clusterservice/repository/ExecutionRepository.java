@@ -1,6 +1,7 @@
 package de.unipassau.sep19.hafenkran.clusterservice.repository;
 
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
+import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import lombok.NonNull;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -16,5 +17,7 @@ public interface ExecutionRepository extends CrudRepository<ExecutionDetails, UU
     List<ExecutionDetails> findAllByExperimentDetails_OwnerId(@NonNull UUID ownerId);
 
     void deleteById(@NonNull UUID executionId);
+
+    ExecutionDetails findExecutionDetailsByPodNameAndExperimentDetails(@NonNull String podName, @NonNull ExperimentDetails experimentDetails);
 
 }

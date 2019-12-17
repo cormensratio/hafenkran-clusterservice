@@ -17,26 +17,26 @@ import java.util.UUID;
 public class PodEventHandler implements ResourceEventHandler<V1Pod> {
 
     @NonNull
-    private final UUID executionId;
+    private String namespace;
 
     @NonNull
     private ExecutionService executionService;
 
-    public PodEventHandler(@NonNull UUID executionId) {
-        this.executionId = executionId;
+    public PodEventHandler(@NonNull String namespace) {
+        this.namespace = namespace;
     }
 
     @Override
     public void onAdd(V1Pod pod) {
-        log.debug(String.format("Pod \"%s\" added!", pod.getMetadata().getName()));
-        log.debug(String.format("Namespace of pod with name \"%s\" is: \"%s\"\n",
+        log.info(String.format("Pod \"%s\" added!", pod.getMetadata().getName()));
+        log.info(String.format("Namespace of pod with name \"%s\" is: \"%s\"\n",
                 pod.getMetadata().getName(), pod.getMetadata().getNamespace()));
     }
 
     @Override
     public void onUpdate(V1Pod oldPod, V1Pod newPod) {
-        setExecutionStatus(newPod, executionId);
-        log.debug(String.format(
+        setExecutionStatus(newPod, findExecutionIdOfPod(newPod));
+        log.info(String.format(
                 "Pod with name \"%s\" and status \"%s\" updated to pod with name \"%s\" and status \"%s\"",
                 oldPod.getMetadata().getName(), oldPod.getStatus().getPhase(),
                 newPod.getMetadata().getName(), newPod.getStatus().getPhase()));
@@ -44,10 +44,10 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
 
     @Override
     public void onDelete(V1Pod pod, boolean deletedFinalStateUnknown) {
-        setExecutionStatus(pod, executionId);
-        log.debug(String.format("Pod with name \"%s\" has status \"%s\"",
+        // setExecutionStatus(pod, findExecutionIdOfPod(pod));
+        log.info(String.format("Pod with name \"%s\" has status \"%s\"",
                 pod.getMetadata().getName(), pod.getStatus().getPhase()));
-        log.debug(String.format("Pod with name \"%s\" deleted!\n", pod.getMetadata().getName()));
+        log.info(String.format("Pod with name \"%s\" deleted!\n", pod.getMetadata().getName()));
     }
 
     private ExecutionService getExecutionService() {
@@ -76,5 +76,11 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
             case "Failed":
                 executionService.changeExecutionStatus(executionId, ExecutionDetails.Status.FAILED);
         }
+    }
+
+    private UUID findExecutionIdOfPod(@NonNull V1Pod pod){
+        executionService = getExecutionService();
+        String podName = pod.getMetadata().getName();
+        return executionService.getExecutionIdOfPod(podName, UUID.fromString(namespace));
     }
 }
