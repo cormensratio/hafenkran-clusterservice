@@ -5,10 +5,12 @@ import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Scanner;
 
 /**
@@ -56,14 +58,16 @@ public class KubernetesClientMockImpl implements KubernetesClient {
     @Override
     public String retrieveResults(@NonNull ExecutionDetails executionDetails) {
         log.info(String.format("KubernetesClientMockImpl: Results retrieved from execution with id %s", executionDetails.getId()));
-        File file = new File("mockResultsTar");
+        Resource resource = new ClassPathResource("mockResultsTar");
+
         try {
-            StringBuilder sb = new StringBuilder("");
+            File file = resource.getFile();
+            StringBuilder sb = new StringBuilder();
             Scanner sc = new Scanner(file);
             sc.forEachRemaining(sb::append);
             sc.close();
             return sb.toString();
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return "";
