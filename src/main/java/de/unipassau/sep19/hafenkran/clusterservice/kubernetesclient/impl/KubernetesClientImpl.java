@@ -58,8 +58,6 @@ public class KubernetesClientImpl implements KubernetesClient {
 
     private CoreV1Api api;
 
-    private Map<String, SharedIndexInformer<V1Pod>> namespacePodInformerMapping;
-
     private SharedInformerFactory factory;
 
     @Value("${dockerHubRepoPath}")
@@ -105,7 +103,7 @@ public class KubernetesClientImpl implements KubernetesClient {
         // the CoreV1Api loads default api-client from global configuration
         api = new CoreV1Api(client);
         factory = new SharedInformerFactory();
-        namespacePodInformerMapping = new HashMap<>();
+        createAndStartPodInformer();
     }
 
     /**
@@ -120,7 +118,6 @@ public class KubernetesClientImpl implements KubernetesClient {
         if (!allNamespaces.contains(namespace)) {
             createNamespace(namespace);
             createImagePullSecretForNamespace(namespace);
-            createAndStartPodInformerForNamespace(namespace);
         }
     }
 
@@ -354,14 +351,13 @@ public class KubernetesClientImpl implements KubernetesClient {
     }
 
 
-    private void createAndStartPodInformerForNamespace(@NonNull String namespace) {
+    private void createAndStartPodInformer() {
 
         SharedIndexInformer<V1Pod> podInformer =
                 factory.sharedIndexInformerFor(
                         (CallGeneratorParams params) -> {
                             try {
-                                return api.listNamespacedPodCall(
-                                        namespace,
+                                return api.listPodForAllNamespacesCall(
                                         null,
                                         null,
                                         null,
@@ -382,8 +378,7 @@ public class KubernetesClientImpl implements KubernetesClient {
                         V1Pod.class,
                         V1PodList.class);
 
-        namespacePodInformerMapping.put(namespace, podInformer);
-        podInformer.addEventHandler(new PodEventHandler(namespace));
+        podInformer.addEventHandler(new PodEventHandler());
         factory.startAllRegisteredInformers();
     }
 /*

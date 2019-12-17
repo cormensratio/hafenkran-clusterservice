@@ -17,13 +17,9 @@ import java.util.UUID;
 public class PodEventHandler implements ResourceEventHandler<V1Pod> {
 
     @NonNull
-    private String namespace;
-
-    @NonNull
     private ExecutionService executionService;
 
-    public PodEventHandler(@NonNull String namespace) {
-        this.namespace = namespace;
+    public PodEventHandler() {
     }
 
     @Override
@@ -35,8 +31,15 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
 
     @Override
     public void onUpdate(V1Pod oldPod, V1Pod newPod) {
-        if(!oldPod.getStatus().getPhase().equals(newPod.getStatus().getPhase())){
-            setExecutionStatus(newPod, findExecutionIdOfPod(newPod));
+        ExecutionDetails execution = findExecutionOfPod(newPod);
+
+        /* Only change the status if the pod-lifecycle-phase changed and the execution status is
+        neither CANCELED nor ABORTED */
+        if (execution != null
+                && !execution.getStatus().equals(ExecutionDetails.Status.CANCELED)
+                && !execution.getStatus().equals(ExecutionDetails.Status.ABORTED)
+                && !oldPod.getStatus().getPhase().equals(newPod.getStatus().getPhase())) {
+            setExecutionStatus(newPod, execution.getId());
             log.info(String.format(
                     "Pod with name \"%s\" and status \"%s\" updated to pod with name \"%s\" and status \"%s\"",
                     oldPod.getMetadata().getName(), oldPod.getStatus().getPhase(),
@@ -46,7 +49,6 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
 
     @Override
     public void onDelete(V1Pod pod, boolean deletedFinalStateUnknown) {
-        // setExecutionStatus(pod, findExecutionIdOfPod(pod));
         log.info(String.format("Pod with name \"%s\" has status \"%s\"",
                 pod.getMetadata().getName(), pod.getStatus().getPhase()));
         log.info(String.format("Pod with name \"%s\" deleted!\n", pod.getMetadata().getName()));
@@ -62,10 +64,6 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
         switch (pod.getStatus().getPhase()) {
 
             // Kubernetes status --> execution status
-            // Pending --> WAITING
-            case "Pending":
-                executionService.changeExecutionStatus(executionId, ExecutionDetails.Status.WAITING);
-                break;
             // Running --> RUNNING
             case "Running":
                 executionService.changeExecutionStatus(executionId, ExecutionDetails.Status.RUNNING);
@@ -80,9 +78,10 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
         }
     }
 
-    private UUID findExecutionIdOfPod(@NonNull V1Pod pod){
+    private ExecutionDetails findExecutionOfPod(@NonNull V1Pod pod) {
         executionService = getExecutionService();
+        String namespace = pod.getMetadata().getNamespace();
         String podName = pod.getMetadata().getName();
-        return executionService.getExecutionIdOfPod(podName, UUID.fromString(namespace));
+        return executionService.getExecutionOfPod(podName, UUID.fromString(namespace));
     }
 }

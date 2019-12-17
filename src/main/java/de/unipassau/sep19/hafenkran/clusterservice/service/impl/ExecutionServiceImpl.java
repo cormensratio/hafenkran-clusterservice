@@ -335,10 +335,10 @@ public class ExecutionServiceImpl implements ExecutionService {
                 bookedTime);
     }
 
-    public UUID getExecutionIdOfPod(@NonNull String podName, @NonNull UUID namespace) {
+    public ExecutionDetails getExecutionOfPod(@NonNull String podName, @NonNull UUID namespace) {
 
         ExperimentDetails experiment = experimentRepository.findById(namespace).orElseThrow(() -> new ResourceNotFoundException(ExperimentDetails.class, "id",
                 namespace.toString()));
-        return executionRepository.findExecutionDetailsByPodNameAndExperimentDetails(podName, experiment).getId();
+        return executionRepository.findExecutionDetailsByPodNameAndExperimentDetails(podName, experiment);
     }
 }
