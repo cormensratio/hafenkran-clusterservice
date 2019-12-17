@@ -246,7 +246,7 @@ public class ExecutionServiceImpl implements ExecutionService {
             podName = kubernetesClient.createPod(executionDetails);
         } catch (ApiException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while "
-                    + "communicating with the cluster.");
+                    + "communicating with the cluster while starting the execution.");
         }
 
         executionDetails.setPodName(podName);
