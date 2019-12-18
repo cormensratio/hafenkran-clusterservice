@@ -51,6 +51,9 @@ public class ExecutionDTO {
     @JsonProperty("bookedTime")
     private long bookedTime;
 
+    @JsonProperty("ownerId")
+    private UUID ownerId;
+
     public static ExecutionDTO fromExecutionDetails(@NonNull final ExecutionDetails executionDetails) {
         return new ExecutionDTO(
                 executionDetails.getId(),
@@ -62,7 +65,8 @@ public class ExecutionDTO {
                 executionDetails.getStatus(),
                 executionDetails.getRam(),
                 executionDetails.getCpu(),
-                executionDetails.getBookedTime()
+                executionDetails.getBookedTime(),
+                executionDetails.getOwnerId()
         );
     }
 }

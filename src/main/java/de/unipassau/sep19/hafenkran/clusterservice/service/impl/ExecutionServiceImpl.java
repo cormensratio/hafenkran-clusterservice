@@ -111,7 +111,6 @@ public class ExecutionServiceImpl implements ExecutionService {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while "
                     + "communicating with the cluster.");
         }
-
         UserDTO user = SecurityContextUtil.getCurrentUserDTO();
 
         if (user.isAdmin() && !user.getId().equals(executionDetails.getOwnerId())) {
@@ -124,8 +123,6 @@ public class ExecutionServiceImpl implements ExecutionService {
         executionRepository.save(executionDetails);
 
         ExecutionDTO terminatedExecutionDTO = ExecutionDTO.fromExecutionDetails(executionDetails);
-
-
 
         log.info(String.format("Execution with id %S terminated", executionId));
 
@@ -182,18 +179,16 @@ public class ExecutionServiceImpl implements ExecutionService {
     /**
      * {@inheritDoc}
      */
-    @Override
-    public ExecutionDTO deleteExecution(@NonNull UUID executionId) {
+    public List<ExecutionDTO> retrieveAllExecutionsDTOs() {
+        List<ExecutionDetails> executionDetailsList = executionRepository.findAll();
 
-        ExecutionDetails executionDetails = getExecutionDetails(executionId);
-
-        if (executionDetails.getStatus().equals(Status.RUNNING)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Can not delete executions in running or waiting");
+        if (executionDetailsList.isEmpty()) {
+            return Collections.emptyList();
         }
 
-        executionRepository.deleteById(executionId);
-        log.info(String.format("Execution with id %S deleted", executionId));
-        return ExecutionDTO.fromExecutionDetails(executionDetails);
+        executionDetailsList.forEach(ExecutionDetails::validatePermissions);
+        return ExecutionDTOList.fromExecutionDetailsList(executionDetailsList);
+
     }
 
     /**
@@ -247,7 +242,7 @@ public class ExecutionServiceImpl implements ExecutionService {
         } catch (ApiException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while "
                     + "communicating with the cluster while starting the execution.\n\n"
-            + e.getResponseBody());
+                    + e.getResponseBody());
         }
 
         executionDetails.setPodName(podName);
@@ -280,6 +275,8 @@ public class ExecutionServiceImpl implements ExecutionService {
 
         experiment.validatePermissions();
 
+        experiment.setTotalNumberOfExecutionsStarted(experiment.getTotalNumberOfExecutionsStarted() + 1);
+
         final String name;
         final long ram;
         final long cpu;
@@ -306,7 +303,7 @@ public class ExecutionServiceImpl implements ExecutionService {
         // Check if the name matches the regex
         String regex = "[a-z0-9]([-a-z0-9]*[a-z0-9])?";
         if (Pattern.matches(regex, inputName.toLowerCase())) {
-            name = inputName + "-" + (experiment.getExecutionDetails().size() + 1);
+            name = inputName + "-" + (experiment.getTotalNumberOfExecutionsStarted());
         } else {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                     "You can only use alphanumeric letters and a hyphen for naming. "
@@ -336,15 +333,33 @@ public class ExecutionServiceImpl implements ExecutionService {
                 bookedTime);
     }
 
+
     public ExecutionDetails getExecutionOfPod(@NonNull String podName, @NonNull UUID namespace) {
 
         ExperimentDetails experiment = experimentRepository.findById(namespace).orElseThrow(() -> new ResourceNotFoundException(ExperimentDetails.class, "id",
                 namespace.toString()));
         List<ExecutionDetails> executionDetailsList = executionRepository.findExecutionDetailsByPodNameAndExperimentDetails(podName, experiment);
-        if(executionDetailsList.size() > 0){
+        if (executionDetailsList.size() > 0) {
             return executionDetailsList.get(0);
-        }else{
+        } else {
             return null;
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ExecutionDTO deleteExecution(@NonNull UUID executionId) {
+
+        ExecutionDetails executionDetails = getExecutionDetails(executionId);
+
+        if (executionDetails.getStatus().equals(Status.RUNNING)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Can not delete executions in running or waiting");
+        }
+
+        executionRepository.deleteById(executionId);
+        log.info(String.format("Execution with id %S deleted", executionId));
+        return ExecutionDTO.fromExecutionDetails(executionDetails);
     }
 }
