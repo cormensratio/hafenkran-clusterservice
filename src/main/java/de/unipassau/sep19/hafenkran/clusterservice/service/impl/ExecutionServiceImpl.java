@@ -246,7 +246,8 @@ public class ExecutionServiceImpl implements ExecutionService {
             podName = kubernetesClient.createPod(executionDetails);
         } catch (ApiException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while "
-                    + "communicating with the cluster while starting the execution.");
+                    + "communicating with the cluster while starting the execution.\n\n"
+            + e.getResponseBody());
         }
 
         executionDetails.setPodName(podName);
@@ -339,6 +340,11 @@ public class ExecutionServiceImpl implements ExecutionService {
 
         ExperimentDetails experiment = experimentRepository.findById(namespace).orElseThrow(() -> new ResourceNotFoundException(ExperimentDetails.class, "id",
                 namespace.toString()));
-        return executionRepository.findExecutionDetailsByPodNameAndExperimentDetails(podName, experiment);
+        List<ExecutionDetails> executionDetailsList = executionRepository.findExecutionDetailsByPodNameAndExperimentDetails(podName, experiment);
+        if(executionDetailsList.size() > 0){
+            return executionDetailsList.get(0);
+        }else{
+            return null;
+        }
     }
 }
