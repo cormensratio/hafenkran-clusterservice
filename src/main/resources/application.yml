@@ -37,6 +37,12 @@ kubernetes:
       bookedTime: 3600
   defaultLogLines: 500
   debugging: false
+  excludedNamespaces:
+    - default
+    - kube-node-lease
+    - kube-public
+    - kube-system
+    - kubernetes-dashboard
 
 dockerRegistry.username:
 dockerRegistry.password:

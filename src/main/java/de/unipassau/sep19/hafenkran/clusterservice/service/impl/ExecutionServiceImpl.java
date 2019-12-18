@@ -113,9 +113,16 @@ public class ExecutionServiceImpl implements ExecutionService {
         }
         UserDTO user = SecurityContextUtil.getCurrentUserDTO();
 
-        if (user.isAdmin() && !user.getId().equals(executionDetails.getOwnerId())) {
+        if (user.isAdmin()
+                && !user.getId().equals(executionDetails.getOwnerId())
+                && !executionDetails.getStatus().equals(Status.CANCELED)
+                && !executionDetails.getStatus().equals(Status.FINISHED)) {
+
             executionDetails.setStatus(ExecutionDetails.Status.ABORTED);
-        } else {
+
+        } else if (!executionDetails.getStatus().equals(Status.ABORTED)
+                && !executionDetails.getStatus().equals(Status.FINISHED)) {
+
             executionDetails.setStatus(ExecutionDetails.Status.CANCELED);
         }
         executionDetails.setTerminatedAt(LocalDateTime.now());
@@ -227,8 +234,13 @@ public class ExecutionServiceImpl implements ExecutionService {
                 executionRepository.findById(executionId).orElseThrow(
                         () -> new ResourceNotFoundException(ExecutionDetails.class, "id", executionId.toString()));
 
-        // Only change the status if the execution is running or waiting
-        if (executionDetails.getStatus().equals(Status.RUNNING) || executionDetails.getStatus().equals(Status.WAITING)
+        if (status.equals(Status.FINISHED)) {
+            executionDetails.setTerminatedAt(LocalDateTime.now());
+        }
+
+        // Only change the status if the execution is RUNNING or WAITING
+        if (executionDetails.getStatus().equals(Status.RUNNING)
+                || executionDetails.getStatus().equals(Status.WAITING)
                 || executionDetails.getStatus().equals(Status.FAILED)) {
             executionDetails.setStatus(status);
             executionRepository.save(executionDetails);
@@ -241,8 +253,7 @@ public class ExecutionServiceImpl implements ExecutionService {
             podName = kubernetesClient.createPod(executionDetails);
         } catch (ApiException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while "
-                    + "communicating with the cluster while starting the execution.\n\n"
-                    + e.getResponseBody());
+                    + "communicating with the cluster while starting the execution.");
         }
 
         executionDetails.setPodName(podName);

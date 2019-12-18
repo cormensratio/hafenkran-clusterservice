@@ -78,7 +78,6 @@ public class KubernetesClientImpl implements KubernetesClient {
     @Value("${kubernetes.debugging}")
     private boolean debugMode;
 
-
     /**
      * Constructor of KubernetesClientImpl.
      * <p>
@@ -381,11 +380,4 @@ public class KubernetesClientImpl implements KubernetesClient {
         podInformer.addEventHandler(new PodEventHandler());
         factory.startAllRegisteredInformers();
     }
-/*
-    private void addPodEventHandlerForNamespace(@NonNull String namespace, @NonNull UUID executionId) {
-        SharedIndexInformer<V1Pod> namespaceInformer = namespacePodInformerMapping.get(namespace);
-        namespaceInformer.addEventHandler(new PodEventHandler(executionId));
-    }
-
- */
 }
