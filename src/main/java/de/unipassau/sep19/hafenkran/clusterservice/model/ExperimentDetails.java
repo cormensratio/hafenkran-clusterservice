@@ -39,6 +39,8 @@ public class ExperimentDetails extends Resource {
 
     private long size;
 
+    private long totalNumberOfExecutionsStarted;
+
     public ExperimentDetails(@NonNull UUID ownerId, @NonNull String name,
                              @NonNull String fileName, long size) {
         super(ownerId);

@@ -251,6 +251,8 @@ public class ExecutionServiceImpl implements ExecutionService {
 
         experiment.validatePermissions();
 
+        experiment.setTotalNumberOfExecutionsStarted(experiment.getTotalNumberOfExecutionsStarted() + 1);
+
         final String name;
         final long ram;
         final long cpu;
@@ -277,7 +279,7 @@ public class ExecutionServiceImpl implements ExecutionService {
         // Check if the name matches the regex
         String regex = "[a-z0-9]([-a-z0-9]*[a-z0-9])?";
         if (Pattern.matches(regex, inputName.toLowerCase())) {
-            name = inputName + "-" + (experiment.getExecutionDetails().size() + 1);
+            name = inputName + "-" + (experiment.getTotalNumberOfExecutionsStarted());
         } else {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                     "You can only use alphanumeric letters and a hyphen for naming. "
