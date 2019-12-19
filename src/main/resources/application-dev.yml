@@ -30,7 +30,6 @@ kubernetes:
       bookedTime: 3600
   defaultLogLines: 500
   debugging: false
-  excludedNamespaces: default, kube-node-lease, kube-public, kube-system, kubernetes-dashboard
 
 jwt:
   secret: MCgCIQCAS7IFlSvaBOPXwSBHo+7+6C4RbkvYj3fgI5+Abe4pRwIDAQAB
