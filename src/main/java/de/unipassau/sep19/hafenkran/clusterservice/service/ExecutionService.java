@@ -116,5 +116,13 @@ public interface ExecutionService {
      */
     void changeExecutionStatus(@NonNull UUID executionId, @NonNull Status status);
 
-    ExecutionDetails getExecutionOfPod(@NonNull String podName, @NonNull UUID namepsace);
+
+    /**
+     * Identifies the execution by the pods name and namespace
+     *
+     * @param podName The name of the pod.
+     * @param namespace The namespace of the pod a.k.a. the experiment id of the executions experiment.
+     * @return The {@link ExecutionDetails} of the kubernetes pod.
+     */
+    ExecutionDetails getExecutionOfPod(@NonNull String podName, @NonNull UUID namespace);
 }

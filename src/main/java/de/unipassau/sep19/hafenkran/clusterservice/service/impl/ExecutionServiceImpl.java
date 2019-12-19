@@ -238,7 +238,7 @@ public class ExecutionServiceImpl implements ExecutionService {
             executionDetails.setTerminatedAt(LocalDateTime.now());
         }
 
-        // Only change the status if the execution is RUNNING or WAITING
+        // Only change the status if the execution is RUNNING, WAITING or FAILED
         if (executionDetails.getStatus().equals(Status.RUNNING)
                 || executionDetails.getStatus().equals(Status.WAITING)
                 || executionDetails.getStatus().equals(Status.FAILED)) {
@@ -344,17 +344,14 @@ public class ExecutionServiceImpl implements ExecutionService {
                 bookedTime);
     }
 
-
+    /**
+     * {@inheritDoc}
+     */
     public ExecutionDetails getExecutionOfPod(@NonNull String podName, @NonNull UUID namespace) {
 
         ExperimentDetails experiment = experimentRepository.findById(namespace).orElseThrow(() -> new ResourceNotFoundException(ExperimentDetails.class, "id",
                 namespace.toString()));
-        List<ExecutionDetails> executionDetailsList = executionRepository.findExecutionDetailsByPodNameAndExperimentDetails(podName, experiment);
-        if (executionDetailsList.size() > 0) {
-            return executionDetailsList.get(0);
-        } else {
-            return null;
-        }
+        return executionRepository.findByPodNameAndExperimentDetails(podName, experiment);
     }
 
     /**
@@ -366,7 +363,7 @@ public class ExecutionServiceImpl implements ExecutionService {
         ExecutionDetails executionDetails = getExecutionDetails(executionId);
 
         if (executionDetails.getStatus().equals(Status.RUNNING)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Can not delete executions in running or waiting");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Can not delete executions in running");
         }
 
         executionRepository.deleteById(executionId);

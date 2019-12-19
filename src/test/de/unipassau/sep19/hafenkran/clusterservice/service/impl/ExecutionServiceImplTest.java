@@ -817,4 +817,34 @@ public class ExecutionServiceImplTest {
         verify(mockExecutionRepository, times(1)).save(testUserExecutionDetails);
         verifyNoMoreInteractions(mockExecutionRepository);
     }
+
+    @Test
+    public void testGetExecutionOfPod_validPodName_validNamespace() {
+        // Arrange
+        String testPodName = "Test";
+        when(mockExperimentRepository.findById(MOCK_USER_EXPERIMENT_ID)).thenReturn(Optional.of(testUserExperimentDetails));
+        when(mockExecutionRepository.findByPodNameAndExperimentDetails(testPodName, testUserExperimentDetails)).thenReturn(testUserExecutionDetails);
+
+        // Act
+        ExecutionDetails actual = subject.getExecutionOfPod(testPodName, MOCK_USER_EXPERIMENT_ID);
+
+        // Assert
+        assertEquals(testUserExecutionDetails, actual);
+        verify(mockExperimentRepository, times(1)).findById(MOCK_USER_EXPERIMENT_ID);
+        verify(mockExecutionRepository, times(1)).findByPodNameAndExperimentDetails(testPodName, testUserExperimentDetails);
+        verifyNoMoreInteractions(mockExperimentRepository);
+        verifyNoMoreInteractions(mockExecutionRepository);
+    }
+
+    @Test
+    public void testGetExecutionOfPod_invalidPodName_invalidNamespace_throwsException() {
+        // Arrange
+        String testPodName = "Test";
+        expectedEx.expect(ResourceNotFoundException.class);
+
+        // Act
+        subject.getExecutionOfPod(testPodName, MOCK_USER_EXPERIMENT_ID);
+
+        // Assert - with rule
+    }
 }

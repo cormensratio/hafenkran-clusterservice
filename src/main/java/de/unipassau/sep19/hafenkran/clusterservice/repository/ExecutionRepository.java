@@ -21,6 +21,6 @@ public interface ExecutionRepository extends CrudRepository<ExecutionDetails, UU
 
     void deleteById(@NonNull UUID executionId);
 
-    List<ExecutionDetails> findExecutionDetailsByPodNameAndExperimentDetails(@NonNull String podName, @NonNull ExperimentDetails experimentDetails);
+    ExecutionDetails findByPodNameAndExperimentDetails(@NonNull String podName, @NonNull ExperimentDetails experimentDetails);
 
 }

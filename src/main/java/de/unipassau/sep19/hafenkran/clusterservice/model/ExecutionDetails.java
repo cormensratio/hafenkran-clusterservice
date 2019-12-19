@@ -5,7 +5,15 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
-import javax.persistence.*;
+import javax.persistence.Basic;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotEmpty;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -17,7 +25,10 @@ import java.util.UUID;
  * ExperimentDetails} with additional data.
  */
 @Data
-@Table(name = "executiondetails")
+@Table(
+        name = "executiondetails",
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"podName", "experiment_id"})}
+)
 @Entity
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)

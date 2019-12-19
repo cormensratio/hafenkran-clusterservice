@@ -60,6 +60,8 @@ public class KubernetesClientImpl implements KubernetesClient {
 
     private SharedInformerFactory factory;
 
+    private SharedIndexInformer<V1Pod> podInformer;
+
     @Value("${dockerHubRepoPath}")
     private String DOCKER_HUB_REPO_PATH;
 
@@ -352,7 +354,11 @@ public class KubernetesClientImpl implements KubernetesClient {
 
     private void createAndStartPodInformer() {
 
-        SharedIndexInformer<V1Pod> podInformer =
+        if (podInformer != null) {
+            return;
+        }
+
+        podInformer =
                 factory.sharedIndexInformerFor(
                         (CallGeneratorParams params) -> {
                             try {

@@ -9,6 +9,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,10 +30,7 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
     }
 
     private void buildNamespaceExclusionList() {
-        excludedNamespaceList.add("kube-node-lease");
-        excludedNamespaceList.add("kube-public");
-        excludedNamespaceList.add("kube-system");
-        excludedNamespaceList.add("kubernetes-dashboard");
+        excludedNamespaceList = Arrays.asList("kube-node-lease", "kube-public", "kube-system", "kubernetes-dashboard");
     }
 
     @Override
