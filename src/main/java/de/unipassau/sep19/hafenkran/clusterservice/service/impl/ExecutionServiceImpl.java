@@ -26,10 +26,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -205,7 +202,7 @@ public class ExecutionServiceImpl implements ExecutionService {
     public byte[] getResults(@NonNull UUID executionId) {
         ExecutionDetails executionDetails = retrieveExecutionDetailsById(executionId);
         try {
-            return kubernetesClient.retrieveResults(executionDetails).getBytes();
+            return Base64.getEncoder().encode(kubernetesClient.retrieveResults(executionDetails).getBytes());
         } catch (ApiException | IOException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Results couldn't be found.", e);
         }
