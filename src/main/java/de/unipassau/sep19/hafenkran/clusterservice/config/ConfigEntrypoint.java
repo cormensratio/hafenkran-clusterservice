@@ -22,7 +22,7 @@ import java.io.IOException;
 @ComponentScan(basePackages = {
         "de.unipassau.sep19.hafenkran.clusterservice.controller",
         "de.unipassau.sep19.hafenkran.clusterservice.util",
-        "de.unipassau.sep19.hafenkran.clusterservice.service.impl"
+        "de.unipassau.sep19.hafenkran.clusterservice.service.impl",
 })
 @EntityScan(basePackages = {
         "de.unipassau.sep19.hafenkran.clusterservice.model"

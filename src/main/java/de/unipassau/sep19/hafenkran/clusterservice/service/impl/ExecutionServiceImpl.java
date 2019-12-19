@@ -1,9 +1,14 @@
 package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
-import de.unipassau.sep19.hafenkran.clusterservice.dto.*;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.StdinDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.UserDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
+import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails.Status;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExecutionRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
@@ -17,12 +22,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -106,9 +113,16 @@ public class ExecutionServiceImpl implements ExecutionService {
         }
         UserDTO user = SecurityContextUtil.getCurrentUserDTO();
 
-        if (user.isAdmin() && !user.getId().equals(executionDetails.getOwnerId())) {
+        if (user.isAdmin()
+                && !user.getId().equals(executionDetails.getOwnerId())
+                && !executionDetails.getStatus().equals(Status.CANCELED)
+                && !executionDetails.getStatus().equals(Status.FINISHED)) {
+
             executionDetails.setStatus(ExecutionDetails.Status.ABORTED);
-        } else {
+
+        } else if (!executionDetails.getStatus().equals(Status.ABORTED)
+                && !executionDetails.getStatus().equals(Status.FINISHED)) {
+
             executionDetails.setStatus(ExecutionDetails.Status.CANCELED);
         }
         executionDetails.setTerminatedAt(LocalDateTime.now());
@@ -172,7 +186,6 @@ public class ExecutionServiceImpl implements ExecutionService {
     /**
      * {@inheritDoc}
      */
-    @Override
     public List<ExecutionDTO> retrieveAllExecutionsDTOs() {
         List<ExecutionDetails> executionDetailsList = executionRepository.findAll();
 
@@ -182,6 +195,7 @@ public class ExecutionServiceImpl implements ExecutionService {
 
         executionDetailsList.forEach(ExecutionDetails::validatePermissions);
         return ExecutionDTOList.fromExecutionDetailsList(executionDetailsList);
+
     }
 
     /**
@@ -211,17 +225,38 @@ public class ExecutionServiceImpl implements ExecutionService {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void changeExecutionStatus(@NonNull UUID executionId, @NonNull Status status) {
+        final ExecutionDetails executionDetails =
+                executionRepository.findById(executionId).orElseThrow(
+                        () -> new ResourceNotFoundException(ExecutionDetails.class, "id", executionId.toString()));
+
+        if (status.equals(Status.FINISHED)) {
+            executionDetails.setTerminatedAt(LocalDateTime.now());
+        }
+
+        // Only change the status if the execution is RUNNING, WAITING or FAILED
+        if (executionDetails.getStatus().equals(Status.RUNNING)
+                || executionDetails.getStatus().equals(Status.WAITING)
+                || executionDetails.getStatus().equals(Status.FAILED)) {
+            executionDetails.setStatus(status);
+            executionRepository.save(executionDetails);
+        }
+    }
+
     private ExecutionDetails startExecution(@NonNull ExecutionDetails executionDetails) {
         String podName = null;
         try {
             podName = kubernetesClient.createPod(executionDetails);
         } catch (ApiException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while "
-                    + "communicating with the cluster.");
+                    + "communicating with the cluster while starting the execution.");
         }
 
         executionDetails.setPodName(podName);
-        executionDetails.setStatus(ExecutionDetails.Status.RUNNING);
         executionDetails.setStartedAt(LocalDateTime.now());
 
         executionRepository.save(executionDetails);
@@ -312,14 +347,23 @@ public class ExecutionServiceImpl implements ExecutionService {
     /**
      * {@inheritDoc}
      */
+    public ExecutionDetails getExecutionOfPod(@NonNull String podName, @NonNull UUID namespace) {
+
+        ExperimentDetails experiment = experimentRepository.findById(namespace).orElseThrow(() -> new ResourceNotFoundException(ExperimentDetails.class, "id",
+                namespace.toString()));
+        return executionRepository.findByPodNameAndExperimentDetails(podName, experiment);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    @Transactional
     public ExecutionDTO deleteExecution(@NonNull UUID executionId) {
 
         ExecutionDetails executionDetails = getExecutionDetails(executionId);
 
-        if (executionDetails.getStatus().equals(ExecutionDetails.Status.RUNNING)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Can not delete executions in running or waiting");
+        if (executionDetails.getStatus().equals(Status.RUNNING)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Can not delete executions in running");
         }
 
         executionRepository.deleteById(executionId);

@@ -2,11 +2,31 @@ package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl;
 
 import com.google.gson.JsonSyntaxException;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
+import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.util.PodEventHandler;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
-import io.kubernetes.client.*;
+import io.kubernetes.client.ApiClient;
+import io.kubernetes.client.ApiException;
+import io.kubernetes.client.Attach;
+import io.kubernetes.client.Configuration;
+import io.kubernetes.client.Exec;
 import io.kubernetes.client.apis.CoreV1Api;
-import io.kubernetes.client.models.*;
+import io.kubernetes.client.informer.SharedIndexInformer;
+import io.kubernetes.client.informer.SharedInformerFactory;
+import io.kubernetes.client.models.V1Container;
+import io.kubernetes.client.models.V1ContainerBuilder;
+import io.kubernetes.client.models.V1DeleteOptions;
+import io.kubernetes.client.models.V1LocalObjectReference;
+import io.kubernetes.client.models.V1LocalObjectReferenceBuilder;
+import io.kubernetes.client.models.V1Namespace;
+import io.kubernetes.client.models.V1NamespaceBuilder;
+import io.kubernetes.client.models.V1NamespaceList;
+import io.kubernetes.client.models.V1Pod;
+import io.kubernetes.client.models.V1PodBuilder;
+import io.kubernetes.client.models.V1PodList;
+import io.kubernetes.client.models.V1Secret;
+import io.kubernetes.client.models.V1SecretBuilder;
+import io.kubernetes.client.util.CallGeneratorParams;
 import io.kubernetes.client.util.Config;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +37,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.ws.rs.InternalServerErrorException;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +46,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -35,6 +57,10 @@ import java.util.stream.Collectors;
 public class KubernetesClientImpl implements KubernetesClient {
 
     private CoreV1Api api;
+
+    private SharedInformerFactory factory;
+
+    private SharedIndexInformer<V1Pod> podInformer;
 
     @Value("${dockerHubRepoPath}")
     private String DOCKER_HUB_REPO_PATH;
@@ -51,6 +77,9 @@ public class KubernetesClientImpl implements KubernetesClient {
     @Value("${dockerRegistry.authKey}")
     private String dockerRegistryAuthKey;
 
+    @Value("${kubernetes.debugging}")
+    private boolean debugMode;
+
     /**
      * Constructor of KubernetesClientImpl.
      * <p>
@@ -61,13 +90,21 @@ public class KubernetesClientImpl implements KubernetesClient {
      */
     public KubernetesClientImpl() throws IOException {
         log.info("Kubernetes Client ready!");
-        //auto detect kubernetes config file
+
+        // auto detect kubernetes config file
         ApiClient client = Config.defaultClient();
-        client.setDebugging(true);
-        //set global default api-client to the in-cluster one from above
+
+        // debugging must be set to false for pod informer
+        client.setDebugging(debugMode);
+        client.getHttpClient().setReadTimeout(0, TimeUnit.SECONDS);
+
+        // set global default api-client to the in-cluster one from above
         Configuration.setDefaultApiClient(client);
-        //the CoreV1Api loads default api-client from global configuration
+
+        // the CoreV1Api loads default api-client from global configuration
         api = new CoreV1Api(client);
+        factory = new SharedInformerFactory();
+        createAndStartPodInformer();
     }
 
     /**
@@ -300,17 +337,53 @@ public class KubernetesClientImpl implements KubernetesClient {
         log.info("Deleted namespace {}", namespace);
     }
 
-    private void deletePodInNamespace(@NonNull String namespace, @NonNull String podName) throws ApiException {
-        V1DeleteOptions deleteOptions = new V1DeleteOptions();
-        api.deleteNamespacedPod(podName, namespace, "pretty", deleteOptions, null, null, null, null);
-        log.info("Deleted pod {}", podName);
-    }
-
     private String getNamespace(@NonNull ExecutionDetails executionDetails) {
         return executionDetails.getExperimentDetails().getId().toString();
     }
 
     private String getPodName(@NonNull ExecutionDetails executionDetails) {
         return executionDetails.getPodName();
+    }
+
+    private void deletePodInNamespace(@NonNull String namespace, @NonNull String podName) throws ApiException {
+        V1DeleteOptions deleteOptions = new V1DeleteOptions();
+        api.deleteNamespacedPod(podName, namespace, "pretty", deleteOptions, null, null, null, null);
+        log.info("Deleted pod {}", podName);
+    }
+
+
+    private void createAndStartPodInformer() {
+
+        if (podInformer != null) {
+            return;
+        }
+
+        podInformer =
+                factory.sharedIndexInformerFor(
+                        (CallGeneratorParams params) -> {
+                            try {
+                                return api.listPodForAllNamespacesCall(
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        params.resourceVersion,
+                                        params.timeoutSeconds,
+                                        params.watch,
+                                        null,
+                                        null);
+
+                            } catch (ApiException e) {
+                                throw new InternalServerErrorException("An error occurred while retrieving status " +
+                                        "updates for experiments.", e);
+                            }
+                        },
+                        V1Pod.class,
+                        V1PodList.class);
+
+        podInformer.addEventHandler(new PodEventHandler());
+        factory.startAllRegisteredInformers();
     }
 }

@@ -64,6 +64,16 @@
       "name": "dockerHubRepoPath",
       "type": "java.lang.String",
       "description": "The repository name for the hafenkran docker-hub."
+    },
+    {
+      "name": "kubernetes.debugging",
+      "type": "java.lang.Boolean",
+      "description": "Set debugging to false in order to use the kubernetes pod informer. If debugging is set to true, kubernetes will throw an exception that it cannot use the pod informer."
+    },
+    {
+      "name": "kubernetes.excludedNamespaces",
+      "type": "java.util.List",
+      "description": "The list of namespaces in String representation that are going to be excluded from the kubernetes pod informer update method."
     }
   ]
 }

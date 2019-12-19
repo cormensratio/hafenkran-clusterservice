@@ -23,13 +23,23 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ExecutionServiceImplTest {
@@ -325,7 +335,7 @@ public class ExecutionServiceImplTest {
                 1L, 1L);
         mockExecutionDetails.setId(MOCK_USER_EXECUTION_ID);
         ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_USER_EXECUTION_ID, MOCK_USER_EXPERIMENT_ID, "Test-1",
-                LocalDateTime.now(), null, null, ExecutionDetails.Status.RUNNING, 1L, 1L, 1L, MOCK_USER_ID);
+                LocalDateTime.now(), null, null, ExecutionDetails.Status.WAITING, 1L, 1L, 1L, MOCK_USER_ID);
 
         when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
                 Optional.of(mockExperimentDetails));
@@ -354,7 +364,7 @@ public class ExecutionServiceImplTest {
         ExecutionCreateDTO executionCreateDTO = new ExecutionCreateDTO(Optional.of("Test.zip"), MOCK_USER_EXPERIMENT_ID,
                 Optional.of(1L), Optional.of(1L), Optional.of(1L));
         ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_USER_EXECUTION_ID, MOCK_USER_EXPERIMENT_ID, "Test-1",
-                LocalDateTime.now(), null, null, ExecutionDetails.Status.RUNNING, 1L, 1L, 1L, MOCK_USER_ID);
+                LocalDateTime.now(), null, null, ExecutionDetails.Status.WAITING, 1L, 1L, 1L, MOCK_USER_ID);
         ExperimentDetails mockExperimentDetails = new ExperimentDetails(MOCK_USER_ID, "Test", "filename", 1L);
         mockExperimentDetails.setId(MOCK_USER_EXPERIMENT_ID);
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, mockExperimentDetails, "Test-1", 1L,
@@ -458,7 +468,7 @@ public class ExecutionServiceImplTest {
         ExecutionCreateDTO executionCreateDTO = new ExecutionCreateDTO(Optional.empty(), MOCK_USER_EXPERIMENT_ID,
                 Optional.of(1L), Optional.of(1L), Optional.of(1L));
         ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_USER_EXECUTION_ID, MOCK_USER_EXPERIMENT_ID, "Test-1",
-                LocalDateTime.now(), null, null, ExecutionDetails.Status.RUNNING, 1L, 1L, 1L, MOCK_USER_ID);
+                LocalDateTime.now(), null, null, ExecutionDetails.Status.WAITING, 1L, 1L, 1L, MOCK_USER_ID);
 
         when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
                 Optional.of(mockExperimentDetails));
@@ -570,7 +580,7 @@ public class ExecutionServiceImplTest {
         ExecutionCreateDTO executionCreateDTO = new ExecutionCreateDTO(Optional.of("Test"), MOCK_USER_EXPERIMENT_ID,
                 Optional.of(1L), Optional.of(1L), Optional.of(1L));
         ExecutionDTO mockExecutionDTO = new ExecutionDTO(MOCK_USER_EXECUTION_ID, MOCK_USER_EXPERIMENT_ID, "Test-1",
-                LocalDateTime.now(), null, null, ExecutionDetails.Status.RUNNING, 1L, 1L, 1L, MOCK_USER_ID);
+                LocalDateTime.now(), null, null, ExecutionDetails.Status.WAITING, 1L, 1L, 1L, MOCK_USER_ID);
 
         //when(mockExecutionRepository.findById(MOCK_EXECUTION_ID)).thenReturn(Optional.of(mockExecutionDetails));
         when(mockExperimentRepository.findById(executionCreateDTO.getExperimentId())).thenReturn(
@@ -741,5 +751,100 @@ public class ExecutionServiceImplTest {
         subject.retrieveLogsForExecutionId(MOCK_USER_EXECUTION_ID, 5, 5, true);
 
         // Assert -- with logs
+    }
+
+    @Test
+    public void testChangeExecutionStatus_noExistingExecutionId_validStatus_throwsException() throws ResourceNotFoundException {
+        // Arrange
+        ExecutionDetails.Status mockStatus = ExecutionDetails.Status.RUNNING;
+        expectedEx.expect(ResourceNotFoundException.class);
+        when(mockExecutionRepository.findById(MOCK_USER_EXECUTION_ID)).thenReturn(Optional.empty());
+
+        // Act
+        subject.changeExecutionStatus(MOCK_USER_EXECUTION_ID, mockStatus);
+
+        // Assert - with rule
+    }
+
+    @Test
+    public void testChangeExecutionStatus_validExecutionId_statusIsAlreadyCanceled() {
+        // Arrange
+        ExecutionDetails.Status oldStatus = ExecutionDetails.Status.CANCELED;
+        ExecutionDetails.Status newStatus = ExecutionDetails.Status.WAITING;
+        testUserExecutionDetails.setStatus(oldStatus);
+        when(mockExecutionRepository.findById(MOCK_USER_EXECUTION_ID)).thenReturn(Optional.of(testUserExecutionDetails));
+
+        // Act
+        subject.changeExecutionStatus(MOCK_USER_EXECUTION_ID, newStatus);
+
+        // Assert
+        assertEquals(ExecutionDetails.Status.CANCELED, testUserExecutionDetails.getStatus());
+        verify(mockExecutionRepository, times(1)).findById(MOCK_USER_EXECUTION_ID);
+        verifyNoMoreInteractions(mockExecutionRepository);
+    }
+
+    @Test
+    public void testChangeExecutionStatus_validExecutionId_statusIsAlreadyAborted() {
+        // Arrange
+        ExecutionDetails.Status oldStatus = ExecutionDetails.Status.ABORTED;
+        ExecutionDetails.Status newStatus = ExecutionDetails.Status.WAITING;
+        testUserExecutionDetails.setStatus(oldStatus);
+        when(mockExecutionRepository.findById(MOCK_USER_EXECUTION_ID)).thenReturn(Optional.of(testUserExecutionDetails));
+
+        // Act
+        subject.changeExecutionStatus(MOCK_USER_EXECUTION_ID, newStatus);
+
+        // Assert
+        assertEquals(ExecutionDetails.Status.ABORTED, testUserExecutionDetails.getStatus());
+        verify(mockExecutionRepository, times(1)).findById(MOCK_USER_EXECUTION_ID);
+        verifyNoMoreInteractions(mockExecutionRepository);
+    }
+
+    @Test
+    public void testChangeExecutionStatus_validExecutionId_statusIsMutable() {
+        // Arrange
+        ExecutionDetails.Status oldStatus = ExecutionDetails.Status.RUNNING;
+        ExecutionDetails.Status newStatus = ExecutionDetails.Status.FINISHED;
+        testUserExecutionDetails.setStatus(oldStatus);
+        when(mockExecutionRepository.findById(MOCK_USER_EXECUTION_ID)).thenReturn(Optional.of(testUserExecutionDetails));
+
+        // Act
+        subject.changeExecutionStatus(MOCK_USER_EXECUTION_ID, newStatus);
+
+        // Assert
+        assertEquals(ExecutionDetails.Status.FINISHED, testUserExecutionDetails.getStatus());
+        verify(mockExecutionRepository, times(1)).findById(MOCK_USER_EXECUTION_ID);
+        verify(mockExecutionRepository, times(1)).save(testUserExecutionDetails);
+        verifyNoMoreInteractions(mockExecutionRepository);
+    }
+
+    @Test
+    public void testGetExecutionOfPod_validPodName_validNamespace() {
+        // Arrange
+        String testPodName = "Test";
+        when(mockExperimentRepository.findById(MOCK_USER_EXPERIMENT_ID)).thenReturn(Optional.of(testUserExperimentDetails));
+        when(mockExecutionRepository.findByPodNameAndExperimentDetails(testPodName, testUserExperimentDetails)).thenReturn(testUserExecutionDetails);
+
+        // Act
+        ExecutionDetails actual = subject.getExecutionOfPod(testPodName, MOCK_USER_EXPERIMENT_ID);
+
+        // Assert
+        assertEquals(testUserExecutionDetails, actual);
+        verify(mockExperimentRepository, times(1)).findById(MOCK_USER_EXPERIMENT_ID);
+        verify(mockExecutionRepository, times(1)).findByPodNameAndExperimentDetails(testPodName, testUserExperimentDetails);
+        verifyNoMoreInteractions(mockExperimentRepository);
+        verifyNoMoreInteractions(mockExecutionRepository);
+    }
+
+    @Test
+    public void testGetExecutionOfPod_invalidPodName_invalidNamespace_throwsException() {
+        // Arrange
+        String testPodName = "Test";
+        expectedEx.expect(ResourceNotFoundException.class);
+
+        // Act
+        subject.getExecutionOfPod(testPodName, MOCK_USER_EXPERIMENT_ID);
+
+        // Assert - with rule
     }
 }
