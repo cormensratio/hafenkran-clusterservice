@@ -41,4 +41,5 @@ dockerClient:
   certPath: ~/.docker/certs
   configPath: ~/.docker/config.json
   tls: 1
-  host: tcp://localhost:2376
+  host: /var/run/docker.sock
+  authKey: aGFmZW5rcmFuOnByZXNpZGVudCBlbmNvZGUgY29sZA==

@@ -52,25 +52,25 @@ public class UploadServiceImpl implements UploadService {
     private String DOCKER_HUB_REPO_PATH;
 
     @Value("${dockerClient.email}")
-    private final String dockerEmail;
+    private String dockerEmail;
 
     @Value("${dockerClient.password}")
-    private final String dockerPassword;
+    private String dockerPassword;
 
     @Value("${dockerClient.username}")
-    private final String dockerUsername;
+    private String dockerUsername;
 
     @Value("${dockerClient.certPath}")
-    private final String dockerCertPath;
+    private String dockerCertPath;
 
     @Value("${dockerClient.configPath}")
-    private final String dockerConfigPath;
+    private String dockerConfigPath;
 
     @Value("${dockerClient.tls}")
-    private final String dockerTlsVerify;
+    private String dockerTlsVerify;
 
     @Value("${dockerClient.host}")
-    private final String dockerHost;
+    private String dockerHost;
 
     private Path getFileStoragePath(@NonNull ExperimentDetails experimentDetails) {
         return Paths.get(String
