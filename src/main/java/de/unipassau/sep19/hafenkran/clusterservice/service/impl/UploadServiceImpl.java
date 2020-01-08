@@ -26,7 +26,11 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -43,14 +47,34 @@ public class UploadServiceImpl implements UploadService {
 
     private static final int PUSH_TIMEOUT = 130;
     private final ExperimentService experimentService;
-
     private final KubernetesClient kubernetesClient;
+
+    @Value("${experimentsFileUploadLocation}")
+    private String path;
 
     @Value("${dockerHubRepoPath}")
     private String DOCKER_HUB_REPO_PATH;
 
-    @Value("${experimentsFileUploadLocation}")
-    private String path;
+    @Value("${dockerClient.email}")
+    private String dockerEmail;
+
+    @Value("${dockerClient.password}")
+    private String dockerPassword;
+
+    @Value("${dockerClient.username}")
+    private String dockerUsername;
+
+    @Value("${dockerClient.certPath}")
+    private String dockerCertPath;
+
+    @Value("${dockerClient.configPath}")
+    private String dockerConfigPath;
+
+    @Value("${dockerClient.tls}")
+    private String dockerTlsVerify;
+
+    @Value("${dockerClient.host}")
+    private String dockerHost;
 
     private Path getFileStoragePath(@NonNull ExperimentDetails experimentDetails) {
         return Paths.get(String
@@ -145,13 +169,20 @@ public class UploadServiceImpl implements UploadService {
     }
 
     private DockerClient initializeDockerClient() {
-        DefaultDockerClientConfig.Builder config = DefaultDockerClientConfig
-                .createDefaultConfigBuilder();
 
-        DockerClient dockerClient = DockerClientBuilder
-                .getInstance(config)
-                .build();
-        log.debug("Created default docker client");
+        // Custom configuration for docker client
+        DefaultDockerClientConfig config
+                = DefaultDockerClientConfig.createDefaultConfigBuilder()
+                .withRegistryEmail(dockerEmail)
+                .withRegistryPassword(dockerPassword)
+                .withRegistryUsername(dockerUsername)
+                .withDockerCertPath(dockerCertPath)
+                .withDockerConfig(dockerConfigPath)
+                .withDockerTlsVerify(dockerTlsVerify)
+                .withDockerHost(dockerHost).build();
+
+        DockerClient dockerClient = DockerClientBuilder.getInstance(config).build();
+        log.debug("Created docker client");
 
         return dockerClient;
     }
@@ -201,20 +232,6 @@ public class UploadServiceImpl implements UploadService {
 
         String imageId = extractImageIdFromTar(experimentDetails);
         String tag = experimentDetails.getId().toString();
-
-        // Custom configuration for docker account
-        /*
-        DefaultDockerClientConfig config
-                = DefaultDockerClientConfig.createDefaultConfigBuilder()
-                .withRegistryEmail("hafenkran@protonmail.com")
-                .withRegistryPassword("president encode cold")
-                .withRegistryUsername("hafenkran")
-                .withDockerCertPath("~/.docker/")
-                .withDockerConfig("~/.docker/")
-                .withDockerTlsVerify("1")
-                .withDockerHost("tcp://localhost:2376").build();
-
-        */
 
         dockerClient.loadImageCmd(inputStream).exec();
         log.debug("Successfully loaded the image with experiment name " + experimentDetails.getName()

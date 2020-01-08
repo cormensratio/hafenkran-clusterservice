@@ -34,7 +34,12 @@ kubernetes:
 jwt:
   secret: MCgCIQCAS7IFlSvaBOPXwSBHo+7+6C4RbkvYj3fgI5+Abe4pRwIDAQAB
 
-dockerRegistry.username: hafenkran
-dockerRegistry.password: president encode cold
-dockerRegistry.email: hafenkran@protonmail.com
-dockerRegistry.authKey: aGFmZW5rcmFuOnByZXNpZGVudCBlbmNvZGUgY29sZA==
+dockerClient:
+  username: hafenkran
+  password: president encode cold
+  email: hafenkran@protonmail.com
+  certPath: ~/.docker/certs
+  configPath: ~/.docker/config.json
+  tls: 0
+  host: unix:///var/run/docker.sock
+  authKey: aGFmZW5rcmFuOnByZXNpZGVudCBlbmNvZGUgY29sZA==

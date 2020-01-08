@@ -41,31 +41,6 @@
       "description": "Default amount of lines returned when requesting the logs of an active execution without specifying the amount of lines explicitly."
     },
     {
-      "name": "dockerRegistry.username",
-      "type": "java.lang.String",
-      "description": "The users name from which the image should be pulled from the docker registry."
-    },
-    {
-      "name": "dockerRegistry.password",
-      "type": "java.lang.String",
-      "description": "The password of the user."
-    },
-    {
-      "name": "dockerRegistry.email",
-      "type": "java.lang.String",
-      "description": "The email-address of the user."
-    },
-    {
-      "name": "dockerRegistry.authKey",
-      "type": "java.lang.String",
-      "description": "The authentication key of the user."
-    },
-    {
-      "name": "dockerHubRepoPath",
-      "type": "java.lang.String",
-      "description": "The repository name for the hafenkran docker-hub."
-    },
-    {
       "name": "kubernetes.debugging",
       "type": "java.lang.Boolean",
       "description": "Set debugging to false in order to use the kubernetes pod informer. If debugging is set to true, kubernetes will throw an exception that it cannot use the pod informer."
@@ -74,6 +49,51 @@
       "name": "kubernetes.excludedNamespaces",
       "type": "java.util.List",
       "description": "The list of namespaces in String representation that are going to be excluded from the kubernetes pod informer update method."
+    },
+    {
+      "name": "dockerHubRepoPath",
+      "type": "java.lang.String",
+      "description": "The repository name for the hafenkran docker-hub."
+    },
+    {
+      "name": "dockerClient.username",
+      "type": "java.lang.String",
+      "description": "The username of the local docker client."
+    },
+    {
+      "name": "dockerClient.password",
+      "type": "java.lang.String",
+      "description": "The password of the local docker client."
+    },
+    {
+      "name": "dockerClient.email",
+      "type": "java.lang.String",
+      "description": "The email-address of the local docker client."
+    },
+    {
+      "name": "dockerClient.authKey",
+      "type": "java.lang.String",
+      "description": "The authentication key of the local docker client."
+    },
+    {
+      "name": "dockerClient.certPath",
+      "type": "java.lang.String",
+      "description": "The path to the local docker client's certifications."
+    },
+    {
+      "name": "dockerClient.configPath",
+      "type": "java.lang.String",
+      "description": "The path to the local docker client's config file."
+    },
+    {
+      "name": "dockerClient.tls",
+      "type": "java.lang.String",
+      "description": "Enable TLS for the local docker client. Set to 1 to activate. Set to 0 to deactivate. Needs a correct certPath to use TLS."
+    },
+    {
+      "name": "dockerClient.host",
+      "type": "java.lang.String",
+      "description": "The path to the local docker daemon. Can be a tcp, unix or fd socket."
     }
   ]
 }
