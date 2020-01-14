@@ -5,8 +5,10 @@ import de.unipassau.sep19.hafenkran.clusterservice.metricsserver.MetricsServerCl
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Random;
 import java.util.UUID;
 
 /**
@@ -28,17 +30,29 @@ public class MetricsServerClientMockImpl implements MetricsServerClient {
     }
 
     @Override
-    public Map<String, MetricsDTO> retrieveMetrics() {
-        UUID uuid = UUID.fromString("550e8400-e29b-11d4-a716-446655440000");
-        MetricsDTO mockMetricOne = new MetricsDTO(uuid, uuid, "1m", "1Ki");
-        MetricsDTO mockMetricTwo = new MetricsDTO(uuid, uuid, "2m", "2Ki");
-        MetricsDTO mockMetricThree = new MetricsDTO(uuid, uuid, "3m", "3Ki");
+    public ArrayList<MetricsDTO> retrieveMetrics() {
+        UUID executionId = UUID.fromString("00000000-0000-0000-0000-000000000001");
+        UUID experimentId = UUID.fromString("00000000-0000-0000-0000-000000000001");
+        String cpu = getRandomNumberInRange(100, 400) + "m";
+        String memory = getRandomNumberInRange(1000, 4000) + "Ki";
+        Date date = new Date();
+        long time = date.getTime();
+        Timestamp timestamp = new Timestamp(time);
+        MetricsDTO mockColdFusionAlgorithmMetric = new MetricsDTO(executionId, experimentId, cpu, memory, timestamp);
 
-        Map<String, MetricsDTO> map = new HashMap<>();
-        map.put(uuid.toString(), mockMetricOne);
-        map.put(uuid.toString(), mockMetricTwo);
-        map.put(uuid.toString(), mockMetricThree);
+        ArrayList<MetricsDTO> mockPodMetricsList = new ArrayList<>();
+        mockPodMetricsList.add(mockColdFusionAlgorithmMetric);
 
-        return map;
+        return mockPodMetricsList;
+    }
+
+    private int getRandomNumberInRange(int min, int max) {
+
+        if (min >= max) {
+            throw new IllegalArgumentException("max must be greater than min");
+        }
+
+        Random r = new Random();
+        return r.nextInt((max - min) + 1) + min;
     }
 }
