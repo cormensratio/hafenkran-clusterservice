@@ -2,8 +2,11 @@ package de.unipassau.sep19.hafenkran.clusterservice.service;
 
 import de.unipassau.sep19.hafenkran.clusterservice.dto.MetricsDTO;
 
-import java.util.Map;
+import java.util.ArrayList;
 
+/**
+ * The MetricsServerService for retrieving all podMetrics.
+ */
 public interface MetricsServerService {
-    Map<String, MetricsDTO> retrieveMetrics();
+    ArrayList<MetricsDTO> retrieveMetrics();
 }
