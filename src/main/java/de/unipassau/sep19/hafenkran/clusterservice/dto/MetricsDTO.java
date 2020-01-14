@@ -29,7 +29,8 @@ public class MetricsDTO {
     private final String memory;
 
     @JsonCreator
-    public MetricsDTO(@NonNull UUID experimentId, @NonNull String cpu, @NonNull String memory) {
+    public MetricsDTO(UUID executionId, @NonNull UUID experimentId, @NonNull String cpu, @NonNull String memory) {
+        this.executionId = executionId;
         this.experimentId = experimentId;
         this.cpu = cpu;
         this.memory = memory;
