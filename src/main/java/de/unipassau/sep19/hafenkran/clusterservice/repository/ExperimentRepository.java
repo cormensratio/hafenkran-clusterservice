@@ -17,4 +17,6 @@ public interface ExperimentRepository extends CrudRepository<ExperimentDetails, 
 
     @org.springframework.lang.NonNull
     List<ExperimentDetails> findAll();
+
+    ExperimentDetails findFirstByChecksum(@NonNull String checksum);
 }

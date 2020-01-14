@@ -8,6 +8,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceStorageException;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
+import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
 import de.unipassau.sep19.hafenkran.clusterservice.service.UploadService;
 import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
@@ -27,6 +28,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -49,6 +51,7 @@ public class UploadServiceImpl implements UploadService {
     private static final int PUSH_TIMEOUT = 130;
     private final ExperimentService experimentService;
     private final KubernetesClient kubernetesClient;
+    private final ExperimentRepository experimentRepository;
 
     @Value("${experimentsFileUploadLocation}")
     private String path;
@@ -230,13 +233,41 @@ public class UploadServiceImpl implements UploadService {
                                       @NonNull ExperimentDetails experimentDetails) {
 
         final DockerClient dockerClient = initializeDockerClient();
+        final String imageId = extractImageIdFromTar(experimentDetails);
+        final byte[] imageByteArray = convertInputStreamToByteArray(inputStream);
 
-        String imageId = extractImageIdFromTar(experimentDetails);
-        String tag = experimentDetails.getId().toString();
+        String checksum = calculateChecksum(imageByteArray);
+        log.debug("Calculated checksum of image with id: " + imageId);
 
-        dockerClient.loadImageCmd(inputStream).exec();
-        log.debug("Successfully loaded the image with experiment name " + experimentDetails.getName()
-                + " and experiment id " + experimentDetails.getId() + " into the local registry.");
+        experimentDetails.setChecksum(checksum);
+
+        dockerClient.loadImageCmd(new ByteArrayInputStream(imageByteArray)).exec();
+        log.debug("Successfully loaded the image with experiment name " + experimentDetails.getName() + " into the local registry.");
+
+        dockerClient.tagImageCmd(imageId, DOCKER_HUB_REPO_PATH, checksum).exec();
+        log.debug("Tagged the loaded image with its checksum " + checksum);
+
+        if (experimentRepository.findFirstByChecksum(checksum) == null) {
+            try {
+                dockerClient.pushImageCmd(DOCKER_HUB_REPO_PATH)
+                        .withTag(checksum)
+                        .exec(new PushImageResultCallback())
+                        .awaitCompletion(PUSH_TIMEOUT, TimeUnit.SECONDS);
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
+            log.debug("Successfully pushed the image to the docker-hub repository: " + DOCKER_HUB_REPO_PATH);
+            log.info("Successfully uploaded the image.");
+        }
+        log.debug("Image with id " + imageId + " was already in registry and upload is skipped.");
+
+        /*
+         The image could be referenced in multiple containers and would need a force remove. The workaround is to
+         remove the tagged instance by tag name and afterwards the base image by its image id.
+        */
+        dockerClient.removeImageCmd(DOCKER_HUB_REPO_PATH + ":" + checksum).exec();
+        dockerClient.removeImageCmd(imageId).exec();
+        log.debug("Successfully removed the image from the local registry.");
 
         try {
             inputStream.close();
@@ -244,36 +275,20 @@ public class UploadServiceImpl implements UploadService {
             log.debug("An error occurred while closing the input stream.", ex);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-        dockerClient.tagImageCmd(imageId, DOCKER_HUB_REPO_PATH, tag).exec();
-        log.debug("Tagged the loaded image with experiment id " + experimentDetails.getId());
-
-        try {
-            dockerClient.pushImageCmd(DOCKER_HUB_REPO_PATH)
-                    .withTag(experimentDetails.getId().toString())
-                    .exec(new PushImageResultCallback())
-                    .awaitCompletion(PUSH_TIMEOUT, TimeUnit.SECONDS);
-        } catch (InterruptedException ex) {
-            throw new RuntimeException(ex);
-        }
-        log.debug("Successfully pushed the image to the docker-hub repository: " + DOCKER_HUB_REPO_PATH);
-        log.info("Successfully uploaded the image.");
-
-        /*
-         The image could be referenced in multiple containers and would need a force remove. The workaround is to
-         remove the tagged instance by tag name and afterwards the base image by its image id.
-        */
-        dockerClient.removeImageCmd(DOCKER_HUB_REPO_PATH + ":" + experimentDetails.getId()).exec();
-        dockerClient.removeImageCmd(imageId).exec();
-        log.debug("Successfully removed the image from the local registry.");
     }
 
-    private String calculateChecksum(@NonNull InputStream imageInputStream) {
+    private byte[] convertInputStreamToByteArray(@NonNull InputStream inputStream) {
+        byte[] imageByteArray;
         try {
-            return DigestUtils.md5Hex(imageInputStream);
+            imageByteArray = IOUtils.toByteArray(inputStream);
         } catch (IOException ex) {
-            log.debug("An error occurred while reading the image input stream for calculating the checksum.", ex);
+            log.debug("An error occured while reading the image input stream to the byte array");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+        return imageByteArray;
+    }
+
+    private String calculateChecksum(@NonNull byte[] imageByteArray) {
+        return DigestUtils.md5Hex(imageByteArray);
     }
 }
