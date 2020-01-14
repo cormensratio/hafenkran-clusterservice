@@ -21,6 +21,9 @@ dockerHubRepoPath: hafenkran/hafenkran-repo
 
 mockdata: true
 mockKubernetesClient: false
+mockMetricsServerClient: false
+
+clusterProxy.path: http://localhost:8001
 
 kubernetes:
   deployment:
