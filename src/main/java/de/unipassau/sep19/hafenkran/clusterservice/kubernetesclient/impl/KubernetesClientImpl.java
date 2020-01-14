@@ -65,17 +65,17 @@ public class KubernetesClientImpl implements KubernetesClient {
     @Value("${dockerHubRepoPath}")
     private String DOCKER_HUB_REPO_PATH;
 
-    @Value("${dockerRegistry.username}")
-    private String dockerRegistryUsername;
+    @Value("${dockerClient.username}")
+    private String dockerClientUsername;
 
-    @Value("${dockerRegistry.password}")
-    private String dockerRegistryPassword;
+    @Value("${dockerClient.password}")
+    private String dockerClientPassword;
 
-    @Value("${dockerRegistry.email}")
-    private String dockerRegistryEmail;
+    @Value("${dockerClient.email}")
+    private String dockerClientEmail;
 
-    @Value("${dockerRegistry.authKey}")
-    private String dockerRegistryAuthKey;
+    @Value("${dockerClient.authKey}")
+    private String dockerClientAuthKey;
 
     @Value("${kubernetes.debugging}")
     private boolean debugMode;
@@ -319,10 +319,10 @@ public class KubernetesClientImpl implements KubernetesClient {
         String dockerCfg = String.format(
                 "{\"auths\": {\"%s\": {\"username\": \"%s\",\t\"password\": \"%s\",\"email\": \"%s\",\t\"auth\": \"%s\"}}}",
                 "https://index.docker.io/v1/",
-                dockerRegistryUsername,
-                dockerRegistryPassword,
-                dockerRegistryEmail,
-                dockerRegistryAuthKey);
+                dockerClientUsername,
+                dockerClientPassword,
+                dockerClientEmail,
+                dockerClientAuthKey);
         Map<String, byte[]> data = new HashMap<>();
         data.put(".dockerconfigjson", dockerCfg.getBytes());
         imagePullSecret.setData(data);

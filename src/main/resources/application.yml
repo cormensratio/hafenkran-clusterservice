@@ -41,7 +41,8 @@ kubernetes:
   defaultLogLines: 500
   debugging: false
 
-dockerRegistry.username:
-dockerRegistry.password:
-dockerRegistry.email:
-dockerRegistry.authKey:
+dockerClient:
+  username:
+  password:
+  email:
+  authKey:
