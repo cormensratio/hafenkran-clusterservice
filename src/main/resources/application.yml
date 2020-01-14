@@ -25,6 +25,9 @@ experimentsFileUploadLocation:
 
 mockdata: false
 mockKubernetesClient: false
+mockMetricsServerClient: false
+
+clusterProxy.path: http://localhost:8001
 
 jwt:
   secret:
