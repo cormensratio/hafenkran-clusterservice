@@ -15,6 +15,7 @@ import io.kubernetes.client.ApiException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.io.IOUtils;
@@ -267,4 +268,12 @@ public class UploadServiceImpl implements UploadService {
         log.debug("Successfully removed the image from the local registry.");
     }
 
+    private String calculateChecksum(@NonNull InputStream imageInputStream) {
+        try {
+            return DigestUtils.md5Hex(imageInputStream);
+        } catch (IOException ex) {
+            log.debug("An error occurred while reading the image input stream for calculating the checksum.", ex);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
