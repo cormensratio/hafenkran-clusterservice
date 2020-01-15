@@ -237,7 +237,7 @@ public class UploadServiceImpl implements UploadService {
         final byte[] imageByteArray = convertInputStreamToByteArray(inputStream);
 
         String checksum = calculateChecksum(imageByteArray);
-        log.debug("Calculated checksum of image with id: " + imageId);
+        log.debug("Calculated checksum of image with id: " + imageId + " and checksum " + checksum);
 
         experimentDetails.setChecksum(checksum);
 
@@ -282,7 +282,7 @@ public class UploadServiceImpl implements UploadService {
         try {
             imageByteArray = IOUtils.toByteArray(inputStream);
         } catch (IOException ex) {
-            log.debug("An error occured while reading the image input stream to the byte array");
+            log.debug("An error occurred while reading the image input stream to the byte array");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return imageByteArray;
