@@ -241,25 +241,34 @@ public class UploadServiceImpl implements UploadService {
 
         experimentDetails.setChecksum(checksum);
 
+        if (experimentRepository.findFirstByChecksum(checksum) != null) {
+            log.debug("Image with id " + imageId + " was already in registry and upload is skipped.");
+
+            try {
+                inputStream.close();
+            } catch (IOException ex) {
+                log.debug("An error occurred while closing the input stream.", ex);
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+            return;
+        }
+
         dockerClient.loadImageCmd(new ByteArrayInputStream(imageByteArray)).exec();
         log.debug("Successfully loaded the image with experiment name " + experimentDetails.getName() + " into the local registry.");
 
         dockerClient.tagImageCmd(imageId, DOCKER_HUB_REPO_PATH, checksum).exec();
         log.debug("Tagged the loaded image with its checksum " + checksum);
 
-        if (experimentRepository.findFirstByChecksum(checksum) == null) {
-            try {
-                dockerClient.pushImageCmd(DOCKER_HUB_REPO_PATH)
-                        .withTag(checksum)
-                        .exec(new PushImageResultCallback())
-                        .awaitCompletion(PUSH_TIMEOUT, TimeUnit.SECONDS);
-            } catch (InterruptedException ex) {
-                throw new RuntimeException(ex);
-            }
-            log.debug("Successfully pushed the image to the docker-hub repository: " + DOCKER_HUB_REPO_PATH);
-            log.info("Successfully uploaded the image.");
+        try {
+            dockerClient.pushImageCmd(DOCKER_HUB_REPO_PATH)
+                    .withTag(checksum)
+                    .exec(new PushImageResultCallback())
+                    .awaitCompletion(PUSH_TIMEOUT, TimeUnit.SECONDS);
+        } catch (InterruptedException ex) {
+            throw new RuntimeException(ex);
         }
-        log.debug("Image with id " + imageId + " was already in registry and upload is skipped.");
+        log.debug("Successfully pushed the image to the docker-hub repository: " + DOCKER_HUB_REPO_PATH);
+        log.info("Successfully uploaded the image.");
 
         /*
          The image could be referenced in multiple containers and would need a force remove. The workaround is to
@@ -268,13 +277,6 @@ public class UploadServiceImpl implements UploadService {
         dockerClient.removeImageCmd(DOCKER_HUB_REPO_PATH + ":" + checksum).exec();
         dockerClient.removeImageCmd(imageId).exec();
         log.debug("Successfully removed the image from the local registry.");
-
-        try {
-            inputStream.close();
-        } catch (IOException ex) {
-            log.debug("An error occurred while closing the input stream.", ex);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
     }
 
     private byte[] convertInputStreamToByteArray(@NonNull InputStream inputStream) {
