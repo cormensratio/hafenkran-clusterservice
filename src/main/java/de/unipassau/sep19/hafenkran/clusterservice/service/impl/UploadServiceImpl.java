@@ -111,33 +111,38 @@ public class UploadServiceImpl implements UploadService {
             throw new ResourceStorageException("Could not create the directory where the uploaded files will be stored.", e);
         }
 
-        try {
-            if (StringUtils.isEmpty(fileName)) {
-                throw new ResourceStorageException("Filename is empty.");
-            } else if (fileName.contains("..")) {
-                throw new ResourceStorageException("Filename contains invalid path sequence " + fileName);
-            }
-
-            // Copy file into the target location
-            Path uploadLocation = fileStorageLocation.resolve(fileName);
-            Files.copy(file.getInputStream(), uploadLocation, StandardCopyOption.REPLACE_EXISTING);
-
-            InputStream imageStream = getImageInputStream(experimentDetails);
-            pushImageToDockerHub(imageStream, experimentDetails);
-
-            experimentService.createExperiment(experimentDetails);
-
-            try {
-                kubernetesClient.createNamespace(experimentDetails);
-            } catch (ApiException e) {
-                throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
-                        "communicating with the cluster.", e);
-            }
-
-            return ExperimentDTO.fromExperimentDetails(experimentDetails);
-        } catch (IOException e) {
-            throw new ResourceStorageException("Could not store the file '" + fileName + "'. Please try again!", e);
+        if (StringUtils.isEmpty(fileName)) {
+            throw new ResourceStorageException("Filename is empty.");
+        } else if (fileName.contains("..")) {
+            throw new ResourceStorageException("Filename contains invalid path sequence " + fileName);
         }
+
+        // Copy file into the target location
+        Path uploadLocation = fileStorageLocation.resolve(fileName);
+
+        try {
+            Files.copy(file.getInputStream(), uploadLocation, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException ex) {
+            throw new ResourceStorageException("Could not store the file '" + fileName + "'. Please try again!", ex);
+        }
+
+        try (InputStream imageStream = getImageInputStream(experimentDetails)) {
+            pushImageToDockerHub(imageStream, experimentDetails);
+        } catch (IOException e) {
+            log.debug("An error occurred while closing the input stream.", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        experimentService.createExperiment(experimentDetails);
+
+        try {
+            kubernetesClient.createNamespace(experimentDetails);
+        } catch (ApiException e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
+                    "communicating with the cluster.", e);
+        }
+
+        return ExperimentDTO.fromExperimentDetails(experimentDetails);
     }
 
     private Path getPathToTar(@NonNull ExperimentDetails experimentDetails) {
@@ -146,30 +151,25 @@ public class UploadServiceImpl implements UploadService {
     }
 
     private InputStream getImageInputStream(@NonNull ExperimentDetails experimentDetails) {
-        InputStream inputStream;
         try {
-            inputStream =
-                    Files.newInputStream(getPathToTar(experimentDetails));
+            InputStream inputStream = Files.newInputStream(getPathToTar(experimentDetails));
+            log.info("Successfully extracted the uploaded file.");
+            return inputStream;
         } catch (IOException ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Uploaded experiment " + experimentDetails.getName() + " with id " + experimentDetails.getId()
                             + " could not be extracted from file.", ex);
         }
-        log.info("Successfully extracted the uploaded file.");
-        return inputStream;
     }
 
     private TarArchiveInputStream getTarInputStream(@NonNull ExperimentDetails experimentDetails) {
-        TarArchiveInputStream tarStream;
         try {
-            tarStream =
-                    new TarArchiveInputStream(new FileInputStream(new File(String.valueOf(getPathToTar(experimentDetails)))));
+            return new TarArchiveInputStream(new FileInputStream(new File(String.valueOf(getPathToTar(experimentDetails)))));
         } catch (IOException ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Uploaded experiment " + experimentDetails.getName() + " with id " + experimentDetails.getId()
                             + " could not be extracted from file.", ex);
         }
-        return tarStream;
     }
 
     private DockerClient initializeDockerClient() {
@@ -192,29 +192,19 @@ public class UploadServiceImpl implements UploadService {
     }
 
     private String extractImageIdFromTar(@NonNull ExperimentDetails experimentDetails) {
-        TarArchiveInputStream tarStream = getTarInputStream(experimentDetails);
         TarArchiveEntry tarEntry;
         String imageId = "";
-        try {
+        try (TarArchiveInputStream tarStream = getTarInputStream(experimentDetails)) {
             while ((tarEntry = tarStream.getNextTarEntry()) != null) {
                 if (tarEntry.isFile() && tarEntry.getName().equals("manifest.json")) {
-                    try {
-                        File destFile = new File(String.valueOf(getFileStoragePath(experimentDetails)));
-                        File outputFile = new File(destFile + File.separator + tarEntry.getName());
-                        outputFile.getParentFile().mkdirs();
-                        IOUtils.copy(tarStream, new FileOutputStream(outputFile));
-                        String manifestString = Files.readAllLines(Paths.get(outputFile.getPath())).toString();
-
-                        // Builds the substring of of the shortened image id in the manifest.json file.
-                        imageId = manifestString.substring(13, 25);
-                        outputFile.delete();
-                        tarStream.close();
-                    } catch (IOException ex) {
-                        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                                "Image id of uploaded experiment " + experimentDetails.getName() + " with id " + experimentDetails.getId()
-                                        + " could not be extracted from file.", ex);
-                    }
-                    return imageId;
+                    File destFile = new File(String.valueOf(getFileStoragePath(experimentDetails)));
+                    File outputFile = new File(destFile + File.separator + tarEntry.getName());
+                    outputFile.getParentFile().mkdirs();
+                    IOUtils.copy(tarStream, new FileOutputStream(outputFile));
+                    String manifestString = Files.readAllLines(Paths.get(outputFile.getPath())).toString();
+                    imageId = manifestString.substring(13, 25);
+                    outputFile.delete();
+                    break;
                 }
             }
         } catch (IOException ex) {
@@ -241,15 +231,8 @@ public class UploadServiceImpl implements UploadService {
 
         experimentDetails.setChecksum(checksum);
 
-        if (experimentRepository.findFirstByChecksum(checksum) != null) {
-            log.debug("Image with id " + imageId + " was already in registry and upload is skipped.");
-
-            try {
-                inputStream.close();
-            } catch (IOException ex) {
-                log.debug("An error occurred while closing the input stream.", ex);
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
-            }
+        if (experimentRepository.findFirstByChecksum(checksum).isPresent()) {
+            log.debug("Image with checksum " + checksum + " already exists and upload is skipped.");
             return;
         }
 
