@@ -54,11 +54,6 @@ public class ConfigEntrypoint {
         return new KubernetesClientImpl();
     }
 
-    @Bean
-    public ReportingServiceClient reportingServiceClient() {
-        return new ReportingServiceClient();
-    }
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public void handleValidationExceptions(
             MethodArgumentNotValidException ex) {
