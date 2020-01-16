@@ -1,6 +1,6 @@
 package de.unipassau.sep19.hafenkran.clusterservice.metricsserver;
 
-import de.unipassau.sep19.hafenkran.clusterservice.dto.MetricsDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.MetricDTO;
 
 import java.util.ArrayList;
 
@@ -12,7 +12,7 @@ public interface MetricsServerClient {
     /**
      * Retrieves the pod metrics of all pods except internal cluster pods.
      *
-     * @return Arraylist with all MetricsDTOs of the Pods except from internal cluster pods.
+     * @return Arraylist with all MetricDTOs of the Pods except from internal cluster pods.
      */
-    ArrayList<MetricsDTO> retrieveMetrics();
+    ArrayList<MetricDTO> retrieveMetrics();
 }
