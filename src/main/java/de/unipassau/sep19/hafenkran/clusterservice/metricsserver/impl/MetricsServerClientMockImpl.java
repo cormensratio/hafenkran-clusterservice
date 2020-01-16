@@ -40,8 +40,18 @@ public class MetricsServerClientMockImpl implements MetricsServerClient {
         Timestamp timestamp = new Timestamp(time);
         MetricsDTO mockColdFusionAlgorithmMetric = new MetricsDTO(executionId, experimentId, cpu, memory, timestamp);
 
+        String cpuTwo = getRandomNumberInRange(100, 400) + "m";
+        String memoryTwo = getRandomNumberInRange(1000, 4000) + "Ki";
+        MetricsDTO mockColdFusionAlgorithmMetricTwo = new MetricsDTO(executionId, experimentId, cpuTwo, memoryTwo, timestamp);
+
+        String cpuThree = getRandomNumberInRange(100, 400) + "m";
+        String memoryThree = getRandomNumberInRange(1000, 4000) + "Ki";
+        MetricsDTO mockColdFusionAlgorithmMetricThree = new MetricsDTO(executionId, experimentId, cpuThree, memoryThree, timestamp);
+
         ArrayList<MetricsDTO> mockPodMetricsList = new ArrayList<>();
         mockPodMetricsList.add(mockColdFusionAlgorithmMetric);
+        mockPodMetricsList.add(mockColdFusionAlgorithmMetricTwo);
+        mockPodMetricsList.add(mockColdFusionAlgorithmMetricThree);
 
         return mockPodMetricsList;
     }
