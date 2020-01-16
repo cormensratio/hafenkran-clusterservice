@@ -1,6 +1,6 @@
 package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
-import de.unipassau.sep19.hafenkran.clusterservice.dto.MetricsDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.MetricDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.service.MetricsServerService;
 import de.unipassau.sep19.hafenkran.clusterservice.metricsserver.MetricsServerClient;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 
 /**
- * Provides {@link MetricsDTO} specific service.
+ * Provides {@link MetricDTO} specific service.
  */
 @Slf4j
 @Service
@@ -21,7 +21,7 @@ public class MetricsServerServiceImpl implements MetricsServerService {
     private final MetricsServerClient metricsServerClient;
 
     @Override
-    public ArrayList<MetricsDTO> retrieveMetrics() {
+    public ArrayList<MetricDTO> retrieveMetrics() {
         return metricsServerClient.retrieveMetrics();
     }
 }
