@@ -1,12 +1,13 @@
 package de.unipassau.sep19.hafenkran.clusterservice.metricsserver.impl;
 
-import com.jayway.jsonpath.DocumentContext;
-import com.jayway.jsonpath.JsonPath;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.unipassau.sep19.hafenkran.clusterservice.config.SpringContext;
-import de.unipassau.sep19.hafenkran.clusterservice.dto.MetricsDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.MetricDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.metricsserver.MetricsServerClient;
 
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.configurationprocessor.json.JSONArray;
@@ -17,12 +18,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
 import java.util.UUID;
-import java.util.Date;
 
 
 /**
@@ -48,7 +47,7 @@ public class MetricsServerClientImpl implements MetricsServerClient {
      * {@inheritDoc}
      */
     @Override
-    public ArrayList<MetricsDTO> retrieveMetrics() {
+    public ArrayList<MetricDTO> retrieveMetrics() {
         String path = "/apis/metrics.k8s.io/v1beta1/pods";
         String jsonGetResponse = get(path, String.class);
         return retrieveMetricsFromGetRequest(jsonGetResponse);
@@ -58,7 +57,7 @@ public class MetricsServerClientImpl implements MetricsServerClient {
         excludedNamespaceList = Arrays.asList("kube-node-lease", "kube-public", "kube-system", "kubernetes-dashboard");
     }
 
-    private <T> T get(String path, Class<T> responseType) {
+    private <T> T get(@NonNull String path, Class<T> responseType) {
         RestTemplate rt = new RestTemplate();
         String basePath = clusterProxyPath;
         String targetPath = basePath + path;
@@ -82,17 +81,22 @@ public class MetricsServerClientImpl implements MetricsServerClient {
      * @param jsonGetResponse The response of the metrics api call represented as string.
      * @return Returns a map with the wanted metrics of pods which arent internal.
      */
-    private ArrayList<MetricsDTO> retrieveMetricsFromGetRequest(String jsonGetResponse) {
-        ArrayList<MetricsDTO> allPodMetrics = new ArrayList<>();
+    private ArrayList<MetricDTO> retrieveMetricsFromGetRequest(@NonNull String jsonGetResponse) {
+        ArrayList<MetricDTO> allPodMetrics = new ArrayList<>();
         try {
             JSONObject jsonGetResponseObject = new JSONObject(jsonGetResponse);
             JSONArray jsonMetricsItemsArray = jsonGetResponseObject.getJSONArray("items");
             if (jsonMetricsItemsArray != null) {
                 for (int i = 0; i < jsonMetricsItemsArray.length(); i++) {
                     String jsonDataSourceString = jsonMetricsItemsArray.getJSONObject(i).toString();
-                    MetricsDTO metricsDTO = buildPodMetricsDTOFromJsonString(jsonDataSourceString);
-                    if (metricsDTO != null) {
-                        allPodMetrics.add(metricsDTO);
+                    MetricDTO metricDTO = buildPodMetricsDTOFromJsonString(jsonDataSourceString);
+                    if (metricDTO != null && !excludedNamespaceList.contains(metricDTO.getMetadata().getNamespace())) {
+                        UUID experimentId = UUID.fromString(metricDTO.getMetadata().getNamespace());
+                        metricDTO.setExecutionId(executionService.getExecutionOfPod(metricDTO.getMetadata().getName(),
+                                experimentId).getId());
+                        if (executionService.retrieveExecutionDTOById(metricDTO.getExecutionId()) != null) {
+                            allPodMetrics.add(metricDTO);
+                        }
                     }
                 }
             }
@@ -102,23 +106,12 @@ public class MetricsServerClientImpl implements MetricsServerClient {
         return allPodMetrics;
     }
 
-    private MetricsDTO buildPodMetricsDTOFromJsonString(String jsonDataSourceString) {
-        String jsonPathPodNamePath = "$['metadata']['name']";
-        String jsonPathNamespacePath = "$['metadata']['namespace']";
-        String jsonPathCpuUsagePath = "$['containers'][0]['usage']['cpu']";
-        String jsonPathMemoryUsagePath = "$['containers'][0]['usage']['memory']";
-        DocumentContext jsonContext = JsonPath.parse(jsonDataSourceString);
-        String podName = jsonContext.read(jsonPathPodNamePath);
-        String namespace = jsonContext.read(jsonPathNamespacePath);
-        if (!excludedNamespaceList.contains(namespace)) {
-            UUID experimentId = UUID.fromString(namespace);
-            UUID executionId = executionService.getExecutionOfPod(podName, experimentId).getId();
-            String cpu = jsonContext.read(jsonPathCpuUsagePath);
-            String memory = jsonContext.read(jsonPathMemoryUsagePath);
-            Date date = new Date();
-            long time = date.getTime();
-            Timestamp timestamp = new Timestamp(time);
-            return new MetricsDTO(executionId, experimentId, cpu, memory, timestamp);
+    private MetricDTO buildPodMetricsDTOFromJsonString(@NonNull String jsonDataSourceString) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.readValue(jsonDataSourceString, MetricDTO.class);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
         }
         return null;
     }
