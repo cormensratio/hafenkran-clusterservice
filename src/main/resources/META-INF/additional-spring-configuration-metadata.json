@@ -51,6 +51,11 @@
       "description": "The list of namespaces in String representation that are going to be excluded from the kubernetes pod informer update method."
     },
     {
+      "name": "reportingservice.path",
+      "type": "java.lang.String",
+      "description": "URI for the ReportingService."
+    },
+    {
       "name": "dockerHubRepoPath",
       "type": "java.lang.String",
       "description": "The repository name for the hafenkran docker-hub."

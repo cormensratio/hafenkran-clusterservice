@@ -10,6 +10,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesCl
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails.Status;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
+import de.unipassau.sep19.hafenkran.clusterservice.reportingserviceclient.ReportingServiceClient;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExecutionRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
@@ -40,6 +41,8 @@ public class ExecutionServiceImpl implements ExecutionService {
 
     private final KubernetesClient kubernetesClient;
 
+    private final ReportingServiceClient rsClient;
+
     @Value("${kubernetes.deployment.defaults.ram}")
     private long ramDefault;
 
@@ -54,9 +57,15 @@ public class ExecutionServiceImpl implements ExecutionService {
      */
     @Override
     public String retrieveLogsForExecutionId(@NonNull UUID id, int lines, Integer sinceSeconds, boolean withTimestamps) {
+        ExecutionDetails executionDetails = retrieveExecutionDetailsById(id);
+
+        if(!executionDetails.getStatus().equals(ExecutionDetails.Status.RUNNING)){
+            return "Logs can only be retrieved for running executions!";
+        }
+
         final String logs;
         try {
-            logs = kubernetesClient.retrieveLogs(retrieveExecutionDetailsById(id), lines, sinceSeconds,
+            logs = kubernetesClient.retrieveLogs(executionDetails, lines, sinceSeconds,
                     withTimestamps);
         } catch (ApiException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
@@ -349,6 +358,12 @@ public class ExecutionServiceImpl implements ExecutionService {
         ExperimentDetails experiment = experimentRepository.findById(namespace).orElseThrow(() -> new ResourceNotFoundException(ExperimentDetails.class, "id",
                 namespace.toString()));
         return executionRepository.findByPodNameAndExperimentDetails(podName, experiment);
+    }
+
+    @Override
+    public void updatePersistedResults(@NonNull ExecutionDetails execution) {
+        byte[] results = getResults(execution.getId());
+        rsClient.sendResultsToResultsService(results, execution.getId());
     }
 
     /**

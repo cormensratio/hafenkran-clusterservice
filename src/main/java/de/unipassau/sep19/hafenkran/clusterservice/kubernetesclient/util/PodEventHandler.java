@@ -2,6 +2,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.util;
 
 import de.unipassau.sep19.hafenkran.clusterservice.config.SpringContext;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
+import de.unipassau.sep19.hafenkran.clusterservice.reportingserviceclient.ReportingServiceClient;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import io.kubernetes.client.informer.ResourceEventHandler;
 import io.kubernetes.client.models.V1Pod;
@@ -27,6 +28,7 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
     public PodEventHandler() {
         this.excludedNamespaceList = new ArrayList<>();
         buildNamespaceExclusionList();
+        this.executionService = SpringContext.getBean(ExecutionService.class);
     }
 
     private void buildNamespaceExclusionList() {
@@ -66,20 +68,15 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
 
     @Override
     public void onDelete(V1Pod pod, boolean deletedFinalStateUnknown) {
+        ExecutionDetails execution = findExecutionOfPod(pod);
+        executionService.updatePersistedResults(execution);
         log.debug(String.format("Pod with name \"%s\" has status \"%s\"",
                 pod.getMetadata().getName(), pod.getStatus().getPhase()));
         log.debug(String.format("Pod with name \"%s\" deleted!\n", pod.getMetadata().getName()));
     }
 
-    private ExecutionService getExecutionService() {
-        return SpringContext.getBean(ExecutionService.class);
-    }
-
     private void setExecutionStatus(@NonNull V1Pod pod, @NonNull UUID executionId) {
-        executionService = getExecutionService();
-
         switch (pod.getStatus().getPhase()) {
-
             // Kubernetes status --> execution status
             // Running --> RUNNING
             case "Running":
@@ -96,7 +93,6 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
     }
 
     private ExecutionDetails findExecutionOfPod(@NonNull V1Pod pod) {
-        executionService = getExecutionService();
         String namespace = pod.getMetadata().getNamespace();
         String podName = pod.getMetadata().getName();
         return executionService.getExecutionOfPod(podName, UUID.fromString(namespace));

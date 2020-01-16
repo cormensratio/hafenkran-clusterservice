@@ -18,6 +18,7 @@ spring:
 experimentsFileUploadLocation: /tmp/hafenkran-clusterservice
 
 dockerHubRepoPath: hafenkran/hafenkran-repo
+reportingservice.path: http://localhost:8083
 
 mockdata: true
 mockKubernetesClient: false
