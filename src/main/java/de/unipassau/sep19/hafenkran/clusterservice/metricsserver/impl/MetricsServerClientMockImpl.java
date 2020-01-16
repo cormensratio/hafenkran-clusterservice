@@ -1,14 +1,13 @@
 package de.unipassau.sep19.hafenkran.clusterservice.metricsserver.impl;
 
-import de.unipassau.sep19.hafenkran.clusterservice.dto.MetricsDTO;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.MetricDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.metricsserver.MetricsServerClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Random;
 import java.util.UUID;
 
 /**
@@ -30,39 +29,18 @@ public class MetricsServerClientMockImpl implements MetricsServerClient {
     }
 
     @Override
-    public ArrayList<MetricsDTO> retrieveMetrics() {
-        UUID executionId = UUID.fromString("00000000-0000-0000-0000-000000000001");
-        UUID experimentId = UUID.fromString("00000000-0000-0000-0000-000000000001");
-        String cpu = getRandomNumberInRange(100, 400) + "m";
-        String memory = getRandomNumberInRange(1000, 4000) + "Ki";
-        Date date = new Date();
-        long time = date.getTime();
-        Timestamp timestamp = new Timestamp(time);
-        MetricsDTO mockColdFusionAlgorithmMetric = new MetricsDTO(executionId, experimentId, cpu, memory, timestamp);
-
-        String cpuTwo = getRandomNumberInRange(100, 400) + "m";
-        String memoryTwo = getRandomNumberInRange(1000, 4000) + "Ki";
-        MetricsDTO mockColdFusionAlgorithmMetricTwo = new MetricsDTO(executionId, experimentId, cpuTwo, memoryTwo, timestamp);
-
-        String cpuThree = getRandomNumberInRange(100, 400) + "m";
-        String memoryThree = getRandomNumberInRange(1000, 4000) + "Ki";
-        MetricsDTO mockColdFusionAlgorithmMetricThree = new MetricsDTO(executionId, experimentId, cpuThree, memoryThree, timestamp);
-
-        ArrayList<MetricsDTO> mockPodMetricsList = new ArrayList<>();
-        mockPodMetricsList.add(mockColdFusionAlgorithmMetric);
-        mockPodMetricsList.add(mockColdFusionAlgorithmMetricTwo);
-        mockPodMetricsList.add(mockColdFusionAlgorithmMetricThree);
-
-        return mockPodMetricsList;
-    }
-
-    private int getRandomNumberInRange(int min, int max) {
-
-        if (min >= max) {
-            throw new IllegalArgumentException("max must be greater than min");
+    public ArrayList<MetricDTO> retrieveMetrics() {
+        ArrayList<MetricDTO> mockPodMetricsList = new ArrayList<>();
+        ObjectMapper objectMapper = new ObjectMapper();
+        MetricDTO metricDTO = null;
+        String jsonDataSourceString = "{\"metadata\":{\"name\":\"hafenkran-1\",\"namespace\":\"cce4a685-391c-474b-a2ca-7e314edde99c\",\"creationTimestamp\":\"2020-01-16T14:51:14Z\",\"selfLink\":\"/apis/metrics.k8s.io/v1beta1/namespaces/cce4a685-391c-474b-a2ca-7e314edde99c/pods/hafenkran-1\"},\"containers\":[{\"usage\":{\"memory\":\"16496Ki\",\"cpu\":\"0\"},\"name\":\"hafenkran-1\"}],\"window\":\"1m0s\",\"timestamp\":\"2020-01-16T14:51:00Z\"}";
+        try {
+            metricDTO = objectMapper.readValue(jsonDataSourceString, MetricDTO.class);
+            metricDTO.setExecutionId(UUID.fromString("00000000-0000-0000-0000-000000000001"));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
         }
-
-        Random r = new Random();
-        return r.nextInt((max - min) + 1) + min;
+        mockPodMetricsList.add(metricDTO);
+        return mockPodMetricsList;
     }
 }
