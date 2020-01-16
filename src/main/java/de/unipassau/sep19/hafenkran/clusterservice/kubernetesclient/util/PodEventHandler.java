@@ -20,7 +20,6 @@ import java.util.UUID;
 @Slf4j
 public class PodEventHandler implements ResourceEventHandler<V1Pod> {
 
-    @NonNull
     private ExecutionService executionService;
 
     private List<String> excludedNamespaceList;
@@ -28,7 +27,6 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
     public PodEventHandler() {
         this.excludedNamespaceList = new ArrayList<>();
         buildNamespaceExclusionList();
-        this.executionService = SpringContext.getBean(ExecutionService.class);
     }
 
     private void buildNamespaceExclusionList() {
@@ -68,6 +66,9 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
 
     @Override
     public void onDelete(V1Pod pod, boolean deletedFinalStateUnknown) {
+        if(executionService == null){
+            this.executionService = SpringContext.getBean(ExecutionService.class);
+        }
         ExecutionDetails execution = findExecutionOfPod(pod);
         executionService.updatePersistedResults(execution);
         log.debug(String.format("Pod with name \"%s\" has status \"%s\"",
@@ -76,6 +77,9 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
     }
 
     private void setExecutionStatus(@NonNull V1Pod pod, @NonNull UUID executionId) {
+        if(executionService == null){
+            this.executionService = SpringContext.getBean(ExecutionService.class);
+        }
         switch (pod.getStatus().getPhase()) {
             // Kubernetes status --> execution status
             // Running --> RUNNING
@@ -93,6 +97,9 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
     }
 
     private ExecutionDetails findExecutionOfPod(@NonNull V1Pod pod) {
+        if(executionService == null){
+            this.executionService = SpringContext.getBean(ExecutionService.class);
+        }
         String namespace = pod.getMetadata().getNamespace();
         String podName = pod.getMetadata().getName();
         return executionService.getExecutionOfPod(podName, UUID.fromString(namespace));
