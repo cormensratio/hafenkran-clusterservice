@@ -2,6 +2,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
+import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
 import de.unipassau.sep19.hafenkran.clusterservice.service.UploadService;
 import org.junit.Before;
@@ -29,6 +30,9 @@ public class UploadServiceImplTest {
 
     @Mock
     ExperimentService experimentService;
+
+    @Mock
+    ExperimentRepository experimentRepository;
     private MultipartFile testFile;
 
     @Mock
@@ -36,7 +40,7 @@ public class UploadServiceImplTest {
 
     @Before
     public void setUp() {
-        this.subject = new UploadServiceImpl(experimentService, kubernetesClient);
+        this.subject = new UploadServiceImpl(experimentService, kubernetesClient, experimentRepository);
         this.testFile = new MockMultipartFile("testExperiment", "testfile", "text/txt", bytearray);
     }
 
