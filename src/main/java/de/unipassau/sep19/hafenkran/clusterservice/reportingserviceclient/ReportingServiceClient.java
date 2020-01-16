@@ -31,7 +31,7 @@ public class ReportingServiceClient {
     }
 
     private String getAuthToken() {
-        String loginResponse = post("http://localhost:8081",
+        String loginResponse = post("http://localhost:8081/authenticate",
                 String.format("{\"name\":\"%s\", \"password\":\"%s\"}", "service", "test"));
         final String jwtToken;
         try {

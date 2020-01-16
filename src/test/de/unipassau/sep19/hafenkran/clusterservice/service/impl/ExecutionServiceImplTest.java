@@ -90,7 +90,7 @@ public class ExecutionServiceImplTest {
         SecurityContextHolder.setContext(mockContext);
 
         this.subject = new ExecutionServiceImpl(mockExecutionRepository, mockExperimentRepository,
-                mockKubernetesClient, null);
+                mockKubernetesClient);
 
         ExperimentDetails experimentDetails =
                 new ExperimentDetails(MOCK_USER_ID, "testExperiment",
