@@ -128,7 +128,8 @@ public class KubernetesClientImpl implements KubernetesClient {
     @Override
     public String createPod(@NonNull ExecutionDetails executionDetails) throws ApiException {
         String namespace = executionDetails.getExperimentDetails().getId().toString();
-        String image = DOCKER_HUB_REPO_PATH + ":" + namespace;
+        String checksum = executionDetails.getExperimentDetails().getChecksum();
+        String image = DOCKER_HUB_REPO_PATH + ":" + checksum;
         String podName = executionDetails.getName();
 
         Map<String, String> labels = new HashMap<>();
