@@ -1,6 +1,6 @@
 package de.unipassau.sep19.hafenkran.clusterservice.controller;
 
-import de.unipassau.sep19.hafenkran.clusterservice.dto.MetricsDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.MetricDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.service.MetricsServerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,14 +26,15 @@ public class MetricsController {
     private final MetricsServerService metricsServerService;
 
     /**
-     * GET-Endpoint for receiving a ArrayList with all {@link MetricsDTO}s.
+     * GET-Endpoint for receiving an ArrayList with all {@link MetricDTO}s of the currently running containers.
+     * Cluster-internal pods excluded.
      *
-     * @return ArrayList with all {@link MetricsDTO}s.
+     * @return ArrayList with all {@link MetricDTO}s.
      */
     @GetMapping(value = "/all")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public ArrayList<MetricsDTO> retrieveMetrics() {
+    public ArrayList<MetricDTO> retrieveMetrics() {
         return metricsServerService.retrieveMetrics();
     }
 }
