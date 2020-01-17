@@ -359,7 +359,8 @@ public class ExecutionServiceImpl implements ExecutionService {
     public void updatePersistedResults(@NonNull ExecutionDetails execution) {
         byte[] results = getResults(execution.getId());
         ReportingServiceClient rsClient = new ReportingServiceClient();
-        rsClient.sendResultsToResultsService(results, execution.getId());
+        ResultDTO resultDTO = new ResultDTO(execution.getId(), execution.getOwnerId(), Base64.getEncoder().encodeToString(results));
+        rsClient.sendResultsToResultsService(resultDTO);
     }
 
     /**

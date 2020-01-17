@@ -1,5 +1,8 @@
 package de.unipassau.sep19.hafenkran.clusterservice.reportingserviceclient;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ResultDTO;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.configurationprocessor.json.JSONException;
@@ -18,8 +21,10 @@ public class ReportingServiceClient {
 
     private String post(String path, String body) {
         RestTemplate rt = new RestTemplate();
+        HttpHeaders headers = authHeaders();
+        headers.add("Content-Type", "application/json");
         ResponseEntity<String> response = rt.exchange(path, HttpMethod.POST,
-                new HttpEntity<>(body, authHeaders()), String.class);
+                new HttpEntity<>(body, headers), String.class);
 
         if (!HttpStatus.Series.valueOf(response.getStatusCode()).equals(HttpStatus.Series.SUCCESSFUL)) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
@@ -38,7 +43,7 @@ public class ReportingServiceClient {
             jwtToken = (String) new JSONObject(loginResponse).get("jwtToken");
             return jwtToken;
         } catch (JSONException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not retrieve JWT from login.");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not retrieve JWT from login");
         }
     }
 
@@ -48,7 +53,12 @@ public class ReportingServiceClient {
         return headers;
     }
 
-    public void sendResultsToResultsService(@NonNull byte[] results, @NonNull UUID executionId) {
-        post(basePath + "/results/" + executionId, Base64.getEncoder().encodeToString(results));
+    public void sendResultsToResultsService(@NonNull ResultDTO resultDTO) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            post(basePath + "/results", mapper.writeValueAsString(resultDTO));
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("Can not convert results to json");
+        }
     }
 }
