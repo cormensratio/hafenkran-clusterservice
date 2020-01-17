@@ -29,6 +29,9 @@ public class ExperimentDetails extends Resource {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "experimentDetails")
     private List<ExecutionDetails> executionDetails;
 
+    @NonNull
+    private String checksum;
+
     @Valid
     @NonNull
     @NotBlank
