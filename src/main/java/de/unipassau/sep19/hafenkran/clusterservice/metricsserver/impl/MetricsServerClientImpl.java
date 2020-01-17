@@ -6,6 +6,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.config.SpringContext;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.MetricDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.metricsserver.MetricsServerClient;
 
+import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,9 @@ public class MetricsServerClientImpl implements MetricsServerClient {
     private ExecutionService executionService;
 
     private List<String> excludedNamespaceList;
+
+    private String regex = "[^0-9]";
+
 
     public MetricsServerClientImpl() {
         this.executionService = SpringContext.getBean(ExecutionService.class);
@@ -92,9 +96,12 @@ public class MetricsServerClientImpl implements MetricsServerClient {
                     MetricDTO metricDTO = buildPodMetricsDTOFromJsonString(jsonDataSourceString);
                     if (metricDTO != null && !excludedNamespaceList.contains(metricDTO.getMetadata().getNamespace())) {
                         UUID experimentId = UUID.fromString(metricDTO.getMetadata().getNamespace());
-                        metricDTO.setExecutionId(executionService.getExecutionOfPod(metricDTO.getMetadata().getName(),
-                                experimentId).getId());
+                        ExecutionDetails executionDetails = executionService.getExecutionOfPod(
+                                metricDTO.getMetadata().getName(), experimentId);
+                        metricDTO.setExecutionId(executionDetails.getId());
                         if (executionService.retrieveExecutionDTOById(metricDTO.getExecutionId()) != null) {
+                            UUID ownerId = executionDetails.getOwnerId();
+                            metricDTO.setOwnerId(ownerId);
                             allPodMetrics.add(metricDTO);
                         }
                     }
@@ -109,10 +116,27 @@ public class MetricsServerClientImpl implements MetricsServerClient {
     private MetricDTO buildPodMetricsDTOFromJsonString(@NonNull String jsonDataSourceString) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            return objectMapper.readValue(jsonDataSourceString, MetricDTO.class);
+            MetricDTO metricDTO = objectMapper.readValue(jsonDataSourceString, MetricDTO.class);
+            regexCpuUsage(metricDTO);
+            regexMemoryUsage(metricDTO);
+            return metricDTO;
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    private void regexCpuUsage(@NonNull MetricDTO metricDTO) {
+        for (int i = 0; i < metricDTO.getContainers().size(); i++) {
+            String cpuUsage = metricDTO.getContainers().get(i).getUsage().getCpu();
+            metricDTO.getContainers().get(i).getUsage().setCpu(cpuUsage.replaceAll(regex, ""));
+        }
+    }
+
+    private void regexMemoryUsage(@NonNull MetricDTO metricDTO) {
+        for (int i = 0; i < metricDTO.getContainers().size(); i++) {
+            String memoryUsage = metricDTO.getContainers().get(i).getUsage().getMemory();
+            metricDTO.getContainers().get(i).getUsage().setMemory(memoryUsage.replaceAll(regex, ""));
+        }
     }
 }
