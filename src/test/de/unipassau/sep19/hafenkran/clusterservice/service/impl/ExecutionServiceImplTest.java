@@ -8,6 +8,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundExc
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
+import de.unipassau.sep19.hafenkran.clusterservice.reportingserviceclient.ReportingServiceClient;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExecutionRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
 import io.kubernetes.client.ApiException;
@@ -71,6 +72,9 @@ public class ExecutionServiceImplTest {
     @Mock
     private SecurityContext mockContext;
 
+    @Mock
+    private ReportingServiceClient rsClient;
+
     private ExperimentDetails testUserExperimentDetails;
 
     private ExecutionDetails testUserExecutionDetails;
@@ -90,7 +94,7 @@ public class ExecutionServiceImplTest {
         SecurityContextHolder.setContext(mockContext);
 
         this.subject = new ExecutionServiceImpl(mockExecutionRepository, mockExperimentRepository,
-                mockKubernetesClient);
+                mockKubernetesClient, rsClient);
 
         ExperimentDetails experimentDetails =
                 new ExperimentDetails(MOCK_USER_ID, "testExperiment",

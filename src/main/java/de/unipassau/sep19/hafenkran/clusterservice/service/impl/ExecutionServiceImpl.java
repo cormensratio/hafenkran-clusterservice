@@ -151,7 +151,6 @@ public class ExecutionServiceImpl implements ExecutionService {
         ExecutionDetails executionDetails = execution.orElseThrow(
                 () -> new ResourceNotFoundException(ExecutionDetails.class, "id",
                         id.toString()));
-        executionDetails.validatePermissions();
         return executionDetails;
     }
 

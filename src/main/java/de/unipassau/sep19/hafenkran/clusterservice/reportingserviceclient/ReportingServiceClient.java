@@ -49,8 +49,24 @@ public class ReportingServiceClient {
         return response.getBody();
     }
 
+    private String login(String path, String body) {
+        RestTemplate rt = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", "application/json");
+        ResponseEntity<String> response = rt.exchange(path, HttpMethod.POST,
+                new HttpEntity<>(body, headers), String.class);
+
+        if (!HttpStatus.Series.valueOf(response.getStatusCode()).equals(HttpStatus.Series.SUCCESSFUL)) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    String.format("Could not retrieve data from %s. Reason: %s %s", path,
+                            response.getStatusCodeValue(), response.getBody()));
+        }
+
+        return response.getBody();
+    }
+
     private String getAuthToken() {
-        String loginResponse = post(usPath + "authenticate",
+        String loginResponse = login(usPath + "/authenticate",
                 String.format("{\"name\":\"%s\", \"password\":\"%s\"}", serviceUserName, serviceUserPw));
         final String jwtToken;
         try {

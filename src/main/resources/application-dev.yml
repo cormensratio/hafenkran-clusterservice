@@ -8,7 +8,7 @@ spring:
     password: test
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     show-sql: true
   servlet:
     multipart:
@@ -19,8 +19,9 @@ experimentsFileUploadLocation: /tmp/hafenkran-clusterservice
 
 dockerHubRepoPath: hafenkran/hafenkran-repo
 reportingservice.path: http://localhost:8083
+userservice.path: http://localhost:8081
 
-mockdata: true
+mockdata: false
 mockKubernetesClient: false
 
 kubernetes:
