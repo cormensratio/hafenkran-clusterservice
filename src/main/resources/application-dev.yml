@@ -44,3 +44,7 @@ dockerClient:
   tls: 0
   host: unix:///var/run/docker.sock
   authKey: aGFmZW5rcmFuOnByZXNpZGVudCBlbmNvZGUgY29sZA==
+
+service-user:
+  name: service
+  password: test

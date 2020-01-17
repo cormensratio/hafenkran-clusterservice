@@ -37,6 +37,8 @@ public class ExecutionServiceImpl implements ExecutionService {
 
     private final KubernetesClient kubernetesClient;
 
+    private final ReportingServiceClient rsClient;
+
     @Value("${kubernetes.deployment.defaults.ram}")
     private long ramDefault;
 
@@ -358,7 +360,6 @@ public class ExecutionServiceImpl implements ExecutionService {
     @Override
     public void updatePersistedResults(@NonNull ExecutionDetails execution) {
         byte[] results = getResults(execution.getId());
-        ReportingServiceClient rsClient = new ReportingServiceClient();
         ResultDTO resultDTO = new ResultDTO(execution.getId(), execution.getOwnerId(), Base64.getEncoder().encodeToString(results));
         rsClient.sendResultsToResultsService(resultDTO);
     }

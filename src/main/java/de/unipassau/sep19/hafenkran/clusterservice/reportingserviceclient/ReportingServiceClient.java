@@ -4,20 +4,34 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ResultDTO;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.http.*;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Base64;
 import java.util.UUID;
 
+@Service
+@RequiredArgsConstructor(onConstructor = @__({@Autowired}))
 public class ReportingServiceClient {
 
     @Value("${reportingservice.path}")
     private String basePath;
+
+    @Value("${userservice.path}")
+    private String usPath;
+
+    @Value("${service-user.name}")
+    private String serviceUserName;
+
+    @Value("${service-user.password}")
+    private String serviceUserPw;
 
     private String post(String path, String body) {
         RestTemplate rt = new RestTemplate();
@@ -36,8 +50,8 @@ public class ReportingServiceClient {
     }
 
     private String getAuthToken() {
-        String loginResponse = post("http://localhost:8081/authenticate",
-                String.format("{\"name\":\"%s\", \"password\":\"%s\"}", "service", "test"));
+        String loginResponse = post(usPath + "authenticate",
+                String.format("{\"name\":\"%s\", \"password\":\"%s\"}", serviceUserName, serviceUserPw));
         final String jwtToken;
         try {
             jwtToken = (String) new JSONObject(loginResponse).get("jwtToken");
