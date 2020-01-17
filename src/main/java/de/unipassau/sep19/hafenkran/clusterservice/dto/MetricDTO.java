@@ -19,6 +19,8 @@ public class MetricDTO {
     @JsonProperty("executionId")
     UUID executionId;
 
+    UUID ownerId;
+
     MetadataDTO metadata;
     List<ContainerDTO> containers;
 
