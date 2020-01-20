@@ -51,7 +51,7 @@
       "description": "The list of namespaces in String representation that are going to be excluded from the kubernetes pod informer update method."
     },
     {
-      "name": "reportingservice.path",
+      "name": "reporting-service-uri",
       "type": "java.lang.String",
       "description": "URI for the ReportingService."
     },
@@ -109,6 +109,16 @@
       "name": "service-user.password",
       "type": "java.lang.String",
       "description": "Password of the user used for internal communication between services."
+    },
+    {
+      "name": "service-user.token-cache-time",
+      "type": "java.lang.String",
+      "description": "Time in seconds until the cache for the last authentication token will be invalidated."
+    },
+    {
+      "name": "user-service-uri",
+      "type": "java.lang.String",
+      "description": "URI for the UserService."
     }
   ]
 }

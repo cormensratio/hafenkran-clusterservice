@@ -6,10 +6,10 @@ import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesCl
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails.Status;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
-import de.unipassau.sep19.hafenkran.clusterservice.reportingserviceclient.ReportingServiceClient;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExecutionRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
+import de.unipassau.sep19.hafenkran.clusterservice.serviceclient.ReportingServiceClient;
 import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
 import io.kubernetes.client.ApiException;
 import lombok.NonNull;
@@ -148,10 +148,7 @@ public class ExecutionServiceImpl implements ExecutionService {
 
     private ExecutionDetails retrieveExecutionDetailsById(@NonNull UUID id) {
         final Optional<ExecutionDetails> execution = executionRepository.findById(id);
-        ExecutionDetails executionDetails = execution.orElseThrow(
-                () -> new ResourceNotFoundException(ExecutionDetails.class, "id",
-                        id.toString()));
-        return executionDetails;
+        return execution.orElseThrow(() -> new ResourceNotFoundException(ExecutionDetails.class, "id", id.toString()));
     }
 
     /**
@@ -249,7 +246,7 @@ public class ExecutionServiceImpl implements ExecutionService {
     }
 
     private ExecutionDetails startExecution(@NonNull ExecutionDetails executionDetails) {
-        String podName = null;
+        final String podName;
         try {
             podName = kubernetesClient.createPod(executionDetails);
         } catch (ApiException e) {

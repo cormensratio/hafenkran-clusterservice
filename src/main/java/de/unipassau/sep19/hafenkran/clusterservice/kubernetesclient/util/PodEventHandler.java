@@ -2,7 +2,6 @@ package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.util;
 
 import de.unipassau.sep19.hafenkran.clusterservice.config.SpringContext;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
-import de.unipassau.sep19.hafenkran.clusterservice.reportingserviceclient.ReportingServiceClient;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import io.kubernetes.client.informer.ResourceEventHandler;
 import io.kubernetes.client.models.V1Pod;
@@ -102,6 +101,7 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
         }
         String namespace = pod.getMetadata().getNamespace();
         String podName = pod.getMetadata().getName();
+
         return executionService.getExecutionOfPod(podName, UUID.fromString(namespace));
     }
 
