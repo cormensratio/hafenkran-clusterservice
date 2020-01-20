@@ -92,7 +92,7 @@ public class KubernetesClientImpl implements KubernetesClient {
         log.info("Kubernetes Client ready!");
 
         // auto detect kubernetes config file
-        ApiClient client = Config.fromConfig("/cluster/config");
+        ApiClient client = Config.defaultClient();
 
         // debugging must be set to false for pod informer
         client.setDebugging(debugMode);
