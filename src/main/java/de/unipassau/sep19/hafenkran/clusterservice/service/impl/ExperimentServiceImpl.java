@@ -3,7 +3,9 @@ package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
+import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
+import de.unipassau.sep19.hafenkran.clusterservice.repository.ExecutionRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
 import lombok.NonNull;
@@ -29,8 +31,10 @@ public class ExperimentServiceImpl implements ExperimentService {
 
     private final ExperimentRepository experimentRepository;
 
+    private final ExecutionRepository executionRepository;
+
     private List<ExperimentDetails> findExperimentsListOfUserId(@NonNull UUID userId) {
-        List<ExperimentDetails> experimentDetailsByUserId = experimentRepository.findExperimentDetailsByOwnerId(userId);
+        List<ExperimentDetails> experimentDetailsByUserId = experimentRepository.findExperimentDetailsByOwnerIdAndPermittedAccountsContainingId(userId, userId);
         experimentDetailsByUserId.forEach(ExperimentDetails::validatePermissions);
         return experimentDetailsByUserId;
     }
@@ -82,6 +86,31 @@ public class ExperimentServiceImpl implements ExperimentService {
      */
     public List<ExperimentDTO> retrieveAllExperimentDTOs() {
         return ExperimentDTOList.convertExperimentListToDTOList(findAllExperiments());
+    }
+
+    @Override
+    public void deleteExperimentsAndExecutions(@NonNull UUID ownerId, @NonNull boolean deleteAll) {
+        List<ExperimentDetails> experimentDetails = experimentRepository.findExperimentDetailsByOwnerIdAndPermittedAccountsContainingId(ownerId, ownerId);
+        for (ExperimentDetails experiment : experimentDetails) {
+            if (deleteAll) {
+                if (experiment.getOwnerId() == ownerId) {
+                    List<ExecutionDetails> executionList = executionRepository.deleteAllByExperimentDetails_Id(experiment.getId());
+                    experimentRepository.delete(experiment);
+                    // TODO: serviceclient zum userservice fürs komplette nutzerdeleten einfügen und zur matrix
+                } else {
+                    experiment.getPermittedAccounts().remove(ownerId);
+                }
+
+            } else {
+                if (experiment.getOwnerId() == ownerId && experiment.getPermittedAccounts().isEmpty()) {
+                    List<ExecutionDetails> executionList = executionRepository.deleteAllByExperimentDetails_Id(experiment.getId());
+                    experimentRepository.delete(experiment);
+                    // TODO: serviceclient zum userservice fürs komplette nutzerdeleten einfügen und zur matrix
+                } else if (experiment.getOwnerId() != ownerId && (experiment.getPermittedAccounts()).contains(ownerId)) {
+                    experiment.getPermittedAccounts().remove(ownerId);
+                }
+            }
+        }
     }
 
 }

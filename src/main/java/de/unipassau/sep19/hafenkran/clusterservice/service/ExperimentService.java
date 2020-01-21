@@ -41,4 +41,6 @@ public interface ExperimentService {
      */
     List<ExperimentDTO> retrieveAllExperimentDTOs();
 
+    void deleteExperimentsAndExecutions(@NonNull UUID ownerId, @NonNull boolean deleteAll);
+
 }

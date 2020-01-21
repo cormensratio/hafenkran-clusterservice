@@ -105,4 +105,11 @@ public class ExperimentController {
 
         return executionService.createAndStartExecution(executionCreateDTO);
     }
+
+    @PostMapping("/{ownerId}/delete")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteExperiments(@PathVariable UUID ownerId, @RequestParam(required = false, defaultValue = "false") boolean deleteAll) {
+        experimentService.deleteExperimentsAndExecutions(ownerId, deleteAll);
+    }
 }
