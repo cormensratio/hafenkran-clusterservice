@@ -49,4 +49,4 @@ dockerClient:
 service-user:
   name: service
   password: test
-  token-cache-time: '#{60 * 4}'
+  token-cache-time: {60 * 4}

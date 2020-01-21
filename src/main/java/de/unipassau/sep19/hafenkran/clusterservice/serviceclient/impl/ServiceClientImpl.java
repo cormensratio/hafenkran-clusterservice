@@ -11,11 +11,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.http.*;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -44,11 +44,33 @@ public class ServiceClientImpl implements ServiceClient {
     /**
      * {@inheritDoc}
      */
-    public String post(@NonNull String path, @NonNull Object body, @Nullable HttpHeaders headers) {
-        return post(path, body, headers, false);
+    public <T> T get(@NonNull String path, @NonNull Class<T> responseType, @Nullable HttpHeaders headers) {
+        RestTemplate rt = new RestTemplate();
+
+        headers = headers != null ? headers : new HttpHeaders();
+        headers.add("Content-Type", "application/json");
+        headers.add("Authorization", authToken.get());
+
+        ResponseEntity<T> response = rt.exchange(path, HttpMethod.GET, new HttpEntity<>("", headers), responseType);
+
+        if (!HttpStatus.Series.valueOf(response.getStatusCode()).equals(HttpStatus.Series.SUCCESSFUL)) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    String.format("Could not retrieve data from %s. Reason: %s %s", path,
+                            response.getStatusCodeValue(), response.getBody()));
+        }
+
+        return response.getBody();
     }
 
-    private String post(@NonNull String path, @NonNull Object body, @Nullable HttpHeaders headers, boolean withoutAuthHeaders) {
+
+    /**
+     * {@inheritDoc}
+     */
+    public <T> T post(@NonNull String path, @NonNull Object body, @NonNull Class<T> responseType, @Nullable HttpHeaders headers) {
+        return post(path, body, responseType, headers, false);
+    }
+
+    private <T> T post(@NonNull String path, @NonNull Object body, @NonNull Class<T> responseType, @Nullable HttpHeaders headers, boolean withoutAuthHeaders) {
         RestTemplate rt = new RestTemplate();
 
         headers = headers != null ? headers : new HttpHeaders();
@@ -58,8 +80,8 @@ public class ServiceClientImpl implements ServiceClient {
             headers.add("Authorization", authToken.get());
         }
 
-        ResponseEntity<String> response = rt.exchange(path, HttpMethod.POST,
-                new HttpEntity<>(body, headers), String.class);
+        ResponseEntity<T> response = rt.exchange(path, HttpMethod.POST,
+                new HttpEntity<>(body, headers), responseType);
 
         if (!HttpStatus.Series.valueOf(response.getStatusCode()).equals(HttpStatus.Series.SUCCESSFUL)) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
@@ -77,7 +99,7 @@ public class ServiceClientImpl implements ServiceClient {
 
     private String retrieveAuthHeaders() {
         String loginResponse = post(usPath + "/authenticate", new AuthenticationDTO(serviceUserName, serviceUserPw),
-                null, true);
+                String.class, null, true);
 
         final String jwt;
         try {

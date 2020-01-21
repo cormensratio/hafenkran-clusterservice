@@ -25,7 +25,7 @@ public class ReportingServiceClientImpl implements ReportingServiceClient {
      * {@inheritDoc}
      */
     public void sendResultsToResultsService(@NonNull ResultDTO resultDTO) {
-        serviceClient.post(basePath + "/results", resultDTO, null);
+        serviceClient.post(basePath + "/results", resultDTO, String.class, null);
     }
 
 }
