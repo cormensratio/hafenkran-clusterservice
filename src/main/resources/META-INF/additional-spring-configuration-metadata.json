@@ -111,11 +111,6 @@
       "description": "Password of the user used for internal communication between services."
     },
     {
-      "name": "service-user.token-cache-time",
-      "type": "java.lang.Long",
-      "description": "Time in seconds until the cache for the last authentication token will be invalidated."
-    },
-    {
       "name": "user-service-uri",
       "type": "java.lang.String",
       "description": "URI for the UserService."

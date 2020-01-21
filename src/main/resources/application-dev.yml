@@ -22,7 +22,7 @@ reporting-service-uri: http://localhost:8083
 user-service-uri: http://localhost:8081
 
 mockdata: false
-mockKubernetesClient: false
+mockKubernetesClient: true
 
 kubernetes:
   deployment:
@@ -49,4 +49,3 @@ dockerClient:
 service-user:
   name: service
   password: test
-  token-cache-time: {60 * 4}
