@@ -33,7 +33,7 @@ public class ExecutionController {
     private int defaultLogLines;
 
     @Value("${service-user.secret}")
-    private final String serviceSecret;
+    private String serviceSecret;
 
     /**
      * GET-Endpoint for receiving a single {@link ExecutionDTO} by its id.
