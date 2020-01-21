@@ -41,4 +41,13 @@ public interface ExperimentService {
      */
     List<ExperimentDTO> retrieveAllExperimentDTOs();
 
+    /**
+     * Shares an experiment and returns an {@link ExperimentDTO} with the permittedAccounts within.
+     *
+     * @param experimentId The id of the experiment to be shared.
+     * @param userId       The id of the user, with whom the experiment should be shared.
+     * @return The corresponding {@link ExperimentDTO}.
+     */
+    ExperimentDTO share(@NonNull UUID experimentId, @NonNull UUID userId);
+
 }

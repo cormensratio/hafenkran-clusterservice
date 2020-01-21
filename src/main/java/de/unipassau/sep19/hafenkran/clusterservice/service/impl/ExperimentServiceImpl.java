@@ -84,4 +84,16 @@ public class ExperimentServiceImpl implements ExperimentService {
         return ExperimentDTOList.convertExperimentListToDTOList(findAllExperiments());
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ExperimentDTO share(@NonNull UUID experimentId, @NonNull UUID userId) {
+        ExperimentDetails experimentDetails = experimentRepository.findById(experimentId).orElseThrow(
+                () -> new ResourceNotFoundException(ExperimentDetails.class, "experimentId", experimentId.toString()));
+        experimentDetails.getPermittedAccounts().add(userId);
+        experimentRepository.save(experimentDetails);
+        return ExperimentDTO.fromExperimentDetails(experimentDetails);
+    }
+
 }

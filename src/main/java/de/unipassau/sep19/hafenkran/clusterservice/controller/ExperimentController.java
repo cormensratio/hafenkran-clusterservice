@@ -105,4 +105,18 @@ public class ExperimentController {
 
         return executionService.createAndStartExecution(executionCreateDTO);
     }
+
+    /**
+     * POST-Endpoint for sharing an experiment and receiving the corresponding {@link ExperimentDTO}.
+     *
+     * @param experimentId The id of the experiment to be shared.
+     * @param userId       The id of the user, with whom the experiment should be shared.
+     * @return The corresponding {@link ExperimentDTO}.
+     */
+    @PostMapping("/{experimentId}/share/{userId}")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public ExperimentDTO shareExperiment(@PathVariable UUID experimentId, @PathVariable UUID userId) {
+        return experimentService.share(experimentId, userId);
+    }
 }
