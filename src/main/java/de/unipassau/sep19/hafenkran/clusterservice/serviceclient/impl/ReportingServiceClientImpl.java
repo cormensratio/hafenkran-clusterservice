@@ -22,7 +22,7 @@ public class ReportingServiceClientImpl implements ReportingServiceClient {
     private String basePath;
 
     @Value("${service-user.secret}")
-    private final String serviceSecret;
+    private String serviceSecret;
 
     /**
      * {@inheritDoc}
