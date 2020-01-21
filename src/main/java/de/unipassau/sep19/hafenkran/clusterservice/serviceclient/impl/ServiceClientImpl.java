@@ -1,7 +1,6 @@
 package de.unipassau.sep19.hafenkran.clusterservice.serviceclient.impl;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.google.common.base.Suppliers;
 import de.unipassau.sep19.hafenkran.clusterservice.serviceclient.ServiceClient;
 import lombok.Getter;
 import lombok.NonNull;
@@ -15,10 +14,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
-
-import javax.annotation.PostConstruct;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
 /**
  * {@inheritDoc}
@@ -36,11 +31,6 @@ public class ServiceClientImpl implements ServiceClient {
     @Value("${service-user.password}")
     private String serviceUserPw;
 
-    @Value("${service-user.token-cache-time}")
-    private long jwtCacheTime;
-
-    private Supplier<String> authToken;
-
     /**
      * {@inheritDoc}
      */
@@ -49,7 +39,7 @@ public class ServiceClientImpl implements ServiceClient {
 
         headers = headers != null ? headers : new HttpHeaders();
         headers.add("Content-Type", "application/json");
-        headers.add("Authorization", authToken.get());
+        headers.add("Authorization", getAuthToken());
 
         ResponseEntity<T> response = rt.exchange(path, HttpMethod.GET, new HttpEntity<>("", headers), responseType);
 
@@ -77,7 +67,7 @@ public class ServiceClientImpl implements ServiceClient {
         headers.add("Content-Type", "application/json");
 
         if (!withoutAuthHeaders) {
-            headers.add("Authorization", authToken.get());
+            headers.add("Authorization", getAuthToken());
         }
 
         ResponseEntity<T> response = rt.exchange(path, HttpMethod.POST,
@@ -92,12 +82,7 @@ public class ServiceClientImpl implements ServiceClient {
         return response.getBody();
     }
 
-    @PostConstruct
-    private void postConstruct() {
-        this.authToken = Suppliers.memoizeWithExpiration(this::retrieveAuthHeaders, jwtCacheTime, TimeUnit.SECONDS);
-    }
-
-    private String retrieveAuthHeaders() {
+    private String getAuthToken() {
         String loginResponse = post(usPath + "/authenticate", new AuthenticationDTO(serviceUserName, serviceUserPw),
                 String.class, null, true);
 
