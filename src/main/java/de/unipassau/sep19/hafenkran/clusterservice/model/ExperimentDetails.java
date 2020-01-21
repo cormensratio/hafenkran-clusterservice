@@ -8,7 +8,6 @@ import lombok.NonNull;
 import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -52,8 +51,7 @@ public class ExperimentDetails extends Resource {
         this.size = size;
         this.fileName = fileName;
         this.executionDetails = Collections.emptyList();
-        permittedAccounts = new ArrayList<>();
-        permittedAccounts.add(ownerId);
+        this.permittedAccounts = Collections.emptyList();
     }
 }
 
