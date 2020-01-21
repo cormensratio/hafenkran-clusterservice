@@ -49,3 +49,4 @@ dockerClient:
 service-user:
   name: service
   password: test
+  secret: secretToken

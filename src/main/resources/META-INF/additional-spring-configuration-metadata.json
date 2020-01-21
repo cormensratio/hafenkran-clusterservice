@@ -111,6 +111,11 @@
       "description": "Password of the user used for internal communication between services."
     },
     {
+      "name": "service-user.secret",
+      "type": "java.lang.String",
+      "description": "The secret used for validating that the requesting side is actually an internal service."
+    },
+    {
       "name": "user-service-uri",
       "type": "java.lang.String",
       "description": "URI for the UserService."

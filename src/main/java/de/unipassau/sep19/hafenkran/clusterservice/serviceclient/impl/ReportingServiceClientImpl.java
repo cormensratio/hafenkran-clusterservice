@@ -21,11 +21,14 @@ public class ReportingServiceClientImpl implements ReportingServiceClient {
     @Value("${reporting-service-uri}")
     private String basePath;
 
+    @Value("${service-user.secret}")
+    private final String serviceSecret;
+
     /**
      * {@inheritDoc}
      */
     public void sendResultsToResultsService(@NonNull ResultDTO resultDTO) {
-        serviceClient.post(basePath + "/results", resultDTO, String.class, null);
+        serviceClient.post(basePath + "/results?secret=" + serviceSecret, resultDTO, String.class, null);
     }
 
 }

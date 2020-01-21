@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -30,6 +31,9 @@ public class ExecutionController {
 
     @Value("${kubernetes.defaultLogLines}")
     private int defaultLogLines;
+
+    @Value("${service-user.secret}")
+    private final String serviceSecret;
 
     /**
      * GET-Endpoint for receiving a single {@link ExecutionDTO} by its id.
@@ -116,7 +120,11 @@ public class ExecutionController {
     @GetMapping(value = "/{executionId}/results", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public byte[] getResultsForExecution(@NonNull @PathVariable UUID executionId) {
+    public byte[] getResultsForExecution(@NonNull @PathVariable UUID executionId, @RequestParam("secret") String secret) {
+        if (!secret.equals(serviceSecret)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                    "You are not authorized to call an internal service endpoint");
+        }
         return executionService.getResults(executionId);
     }
 
