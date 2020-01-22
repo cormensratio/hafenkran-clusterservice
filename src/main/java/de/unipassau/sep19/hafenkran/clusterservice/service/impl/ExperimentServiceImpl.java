@@ -92,6 +92,7 @@ public class ExperimentServiceImpl implements ExperimentService {
         ExperimentDetails experimentDetails = experimentRepository.findById(experimentId).orElseThrow(
                 () -> new ResourceNotFoundException(ExperimentDetails.class, "experimentId", experimentId.toString()));
         experimentDetails.getPermittedAccounts().add(userId);
+        //experimentDetails.setPermittedAccounts(permittedUsers.add(userId));
         experimentRepository.save(experimentDetails);
         return ExperimentDTO.fromExperimentDetails(experimentDetails);
     }

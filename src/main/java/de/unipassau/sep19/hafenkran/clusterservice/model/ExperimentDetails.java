@@ -10,6 +10,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -38,7 +39,7 @@ public class ExperimentDetails extends Resource {
     private String fileName;
 
     @ElementCollection
-    private List<UUID> permittedAccounts;
+    private Set<UUID> permittedAccounts;
 
     private long size;
 
@@ -51,7 +52,7 @@ public class ExperimentDetails extends Resource {
         this.size = size;
         this.fileName = fileName;
         this.executionDetails = Collections.emptyList();
-        this.permittedAccounts = Collections.emptyList();
+        this.permittedAccounts = Collections.emptySet();
     }
 }
 
