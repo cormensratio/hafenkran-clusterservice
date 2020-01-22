@@ -10,6 +10,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExecutionRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
+import de.unipassau.sep19.hafenkran.clusterservice.serviceclient.impl.ReportingServiceClientImpl;
 import io.kubernetes.client.ApiException;
 import org.junit.Before;
 import org.junit.Rule;
@@ -23,23 +24,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ExecutionServiceImplTest {
@@ -71,6 +62,9 @@ public class ExecutionServiceImplTest {
     @Mock
     private SecurityContext mockContext;
 
+    @Mock
+    private ReportingServiceClientImpl rsClient;
+
     private ExperimentDetails testUserExperimentDetails;
 
     private ExecutionDetails testUserExecutionDetails;
@@ -90,7 +84,7 @@ public class ExecutionServiceImplTest {
         SecurityContextHolder.setContext(mockContext);
 
         this.subject = new ExecutionServiceImpl(mockExecutionRepository, mockExperimentRepository,
-                mockKubernetesClient);
+                mockKubernetesClient, rsClient);
 
         ExperimentDetails experimentDetails =
                 new ExperimentDetails(MOCK_USER_ID, "testExperiment",
