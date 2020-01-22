@@ -110,6 +110,6 @@ public class ExperimentController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public void deleteExperiments(@PathVariable UUID ownerId, @RequestParam(required = false, defaultValue = "false") boolean deleteAll) {
-        experimentService.deleteExperimentsAndExecutions(ownerId, deleteAll);
+        experimentService.deleteExperimentsAndExecutionsFromDeletedUser(ownerId, deleteAll);
     }
 }

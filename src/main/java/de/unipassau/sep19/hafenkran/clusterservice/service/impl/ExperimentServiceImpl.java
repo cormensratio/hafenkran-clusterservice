@@ -34,7 +34,7 @@ public class ExperimentServiceImpl implements ExperimentService {
     private final ExecutionRepository executionRepository;
 
     private List<ExperimentDetails> findExperimentsListOfUserId(@NonNull UUID userId) {
-        List<ExperimentDetails> experimentDetailsByUserId = experimentRepository.findExperimentDetailsByOwnerIdAndPermittedAccountsContainingId(userId, userId);
+        List<ExperimentDetails> experimentDetailsByUserId = experimentRepository.findExperimentDetailsByOwnerIdOrPermittedAccountsContaining(userId, userId);
         experimentDetailsByUserId.forEach(ExperimentDetails::validatePermissions);
         return experimentDetailsByUserId;
     }
@@ -89,27 +89,27 @@ public class ExperimentServiceImpl implements ExperimentService {
     }
 
     @Override
-    public void deleteExperimentsAndExecutions(@NonNull UUID ownerId, @NonNull boolean deleteAll) {
-        List<ExperimentDetails> experimentDetails = experimentRepository.findExperimentDetailsByOwnerIdAndPermittedAccountsContainingId(ownerId, ownerId);
+    public void deleteExperimentsAndExecutionsFromDeletedUser(@NonNull UUID ownerId, @NonNull boolean deleteAll) {
+        List<ExperimentDetails> experimentDetails = experimentRepository.findExperimentDetailsByOwnerIdOrPermittedAccountsContaining(ownerId, ownerId);
         for (ExperimentDetails experiment : experimentDetails) {
-            if (deleteAll) {
-                if (experiment.getOwnerId() == ownerId) {
+
+            if (experiment.getOwnerId() == ownerId) {
+
+                if (deleteAll || experiment.getPermittedAccounts().isEmpty()) { // Deletes all executions from the experiment and the experiment for all users
                     List<ExecutionDetails> executionList = executionRepository.deleteAllByExperimentDetails_Id(experiment.getId());
                     experimentRepository.delete(experiment);
-                    // TODO: serviceclient zum userservice fürs komplette nutzerdeleten einfügen und zur matrix
-                } else {
-                    experiment.getPermittedAccounts().remove(ownerId);
+                    // TODO: serviceclient zum userservice fürs komplette nutzerdeleten einfügen
+                } else { // Deletes only the executions from the owner
+                    List<ExecutionDetails> executionList = executionRepository.deleteAllByExperimentDetails_OwnerId(ownerId);
                 }
 
             } else {
-                if (experiment.getOwnerId() == ownerId && experiment.getPermittedAccounts().isEmpty()) {
-                    List<ExecutionDetails> executionList = executionRepository.deleteAllByExperimentDetails_Id(experiment.getId());
-                    experimentRepository.delete(experiment);
-                    // TODO: serviceclient zum userservice fürs komplette nutzerdeleten einfügen und zur matrix
-                } else if (experiment.getOwnerId() != ownerId && (experiment.getPermittedAccounts()).contains(ownerId)) {
-                    experiment.getPermittedAccounts().remove(ownerId);
-                }
+                experiment.getPermittedAccounts().remove(ownerId);
+                List<ExecutionDetails> executionList = executionRepository.deleteAllByExperimentDetails_OwnerId(ownerId);
             }
+
+            // TODO: ExecutionList an Kubernetes zum Löschen der Daten schicken
+
         }
     }
 

@@ -12,7 +12,7 @@ import java.util.UUID;
 @Repository
 public interface ExperimentRepository extends CrudRepository<ExperimentDetails, UUID> {
 
-    List<ExperimentDetails> findExperimentDetailsByOwnerIdAndPermittedAccountsContainingId(@NonNull UUID ownerId, @NonNull UUID userId);
+    List<ExperimentDetails> findExperimentDetailsByOwnerIdOrPermittedAccountsContaining(@NonNull UUID ownerId, @NonNull UUID userId);
 
     List<ExperimentDetails> findExperimentDetailsByOwnerIdAndName(@NonNull UUID ownerId, @NonNull String name);
 

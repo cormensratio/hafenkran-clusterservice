@@ -25,4 +25,6 @@ public interface ExecutionRepository extends CrudRepository<ExecutionDetails, UU
 
     List<ExecutionDetails> deleteAllByExperimentDetails_Id(@NonNull UUID experimentId);
 
+    List<ExecutionDetails> deleteAllByExperimentDetails_OwnerId(@NonNull UUID ownerId);
+
 }
