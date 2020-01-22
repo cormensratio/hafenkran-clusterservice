@@ -2,6 +2,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTOList;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.UserDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
@@ -96,13 +97,64 @@ public class ExperimentServiceImpl implements ExperimentService {
                 () -> new ResourceNotFoundException(ExperimentDetails.class, "experimentId", experimentId.toString()));
 
         Set<UUID> permittedAccounts = experimentDetails.getPermittedAccounts();
-        if (permittedAccounts.contains(userId) || experimentDetails.getOwnerId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "The user is already permitted.");
-        } else if (userId == SecurityContextUtil.getCurrentUserDTO().getId() && !SecurityContextUtil.getCurrentUserDTO().isAdmin()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "You can't add yourself to the sharing list.");
+        UserDTO currentUser = SecurityContextUtil.getCurrentUserDTO();
+
+        // If the owner is not the current user and if the current user is no admin
+        if (!experimentDetails.getOwnerId().equals(currentUser.getId()) && !currentUser.isAdmin()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not the owner, so you can't add other users to the experiment.");
+
+            // If the owner is the current user or if the current user is an admin
+        } else if (experimentDetails.getOwnerId().equals(currentUser.getId()) || currentUser.isAdmin()) {
+
+            // If the current user wants to add himself to the experiment
+            if (currentUser.getId().equals(userId)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "You have already access to the experiment.");
+                // If the user is already permitted
+            } else if (permittedAccounts.contains(userId)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "The user is already permitted.");
+            }
         }
 
         permittedAccounts.add(userId);
+        experimentRepository.save(experimentDetails);
+        return ExperimentDTO.fromExperimentDetails(experimentDetails);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ExperimentDTO forbid(@NonNull UUID experimentId, @NonNull UUID userId) {
+        ExperimentDetails experimentDetails = experimentRepository.findById(experimentId).orElseThrow(
+                () -> new ResourceNotFoundException(ExperimentDetails.class, "experimentId", experimentId.toString()));
+
+        Set<UUID> permittedAccounts = experimentDetails.getPermittedAccounts();
+        UserDTO currentUser = SecurityContextUtil.getCurrentUserDTO();
+
+        // If the owner is not the current user and if the current user is no admin
+        if (!experimentDetails.getOwnerId().equals(currentUser.getId()) && !currentUser.isAdmin()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not the owner, so you can't remove other users from the experiment.");
+
+            // If the owner is the current user or if the current user is an admin
+        } else if (experimentDetails.getOwnerId().equals(currentUser.getId()) || currentUser.isAdmin()) {
+
+            // If the current user wants to add himself to his experiment
+            if (currentUser.getId().equals(userId) && !currentUser.isAdmin()) {
+                if (!currentUser.isAdmin()) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "You are the owner, so you can't remove your permission. Please delete your experiment, if you really want to remove it.");
+                }
+
+                // If the admin wants to forbid the user, which is the owner, the access
+            } else if (experimentDetails.getOwnerId().equals(userId) && currentUser.isAdmin()) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "The user is the owner, so you can't remove his permission. Please delete the experiment, if you really want to remove it.");
+
+                // If the user isn't within the permittedAccounts-list
+            } else if (!permittedAccounts.contains(userId) && !experimentDetails.getOwnerId().equals(userId)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "The user has already no permission to see the experiment.");
+            }
+        }
+
+        permittedAccounts.remove(userId);
         experimentRepository.save(experimentDetails);
         return ExperimentDTO.fromExperimentDetails(experimentDetails);
     }

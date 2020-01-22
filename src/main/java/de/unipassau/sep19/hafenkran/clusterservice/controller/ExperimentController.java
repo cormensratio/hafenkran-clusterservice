@@ -119,4 +119,18 @@ public class ExperimentController {
     public ExperimentDTO shareExperiment(@PathVariable UUID experimentId, @PathVariable UUID userId) {
         return experimentService.share(experimentId, userId);
     }
+
+    /**
+     * POST-Endpoint for forbidding the use of an experiment and returns an {@link ExperimentDTO} with the rest of the permittedAccounts.
+     *
+     * @param experimentId The id of the experiment which usage should be forbidden.
+     * @param userId       The id of the user, for whom the experiment should be forbidden.
+     * @return The corresponding {@link ExperimentDTO}.
+     */
+    @PostMapping("/{experimentId}/forbid/{userId}")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public ExperimentDTO forbidExperiment(@PathVariable UUID experimentId, @PathVariable UUID userId) {
+        return experimentService.forbid(experimentId, userId);
+    }
 }
