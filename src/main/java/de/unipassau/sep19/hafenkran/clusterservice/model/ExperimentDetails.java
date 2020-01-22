@@ -5,12 +5,14 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -38,9 +40,6 @@ public class ExperimentDetails extends Resource {
     @NonNull
     private String fileName;
 
-    @ElementCollection
-    private Set<UUID> permittedAccounts;
-
     private long size;
 
     private long totalNumberOfExecutionsStarted;
@@ -52,7 +51,6 @@ public class ExperimentDetails extends Resource {
         this.size = size;
         this.fileName = fileName;
         this.executionDetails = Collections.emptyList();
-        this.permittedAccounts = Collections.emptySet();
     }
 }
 

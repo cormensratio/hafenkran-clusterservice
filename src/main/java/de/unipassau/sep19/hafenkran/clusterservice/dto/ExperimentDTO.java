@@ -9,7 +9,7 @@ import lombok.NonNull;
 
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -44,7 +44,7 @@ public class ExperimentDTO {
     private final UUID ownerId;
 
     @JsonProperty("permittedAccounts")
-    private final List<UUID> permittedAccounts;
+    private final Set<UUID> permittedAccounts;
 
     public static ExperimentDTO fromExperimentDetails(@NonNull final ExperimentDetails experimentDetails) {
         return new ExperimentDTO(

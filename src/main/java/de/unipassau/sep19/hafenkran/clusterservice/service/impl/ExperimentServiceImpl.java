@@ -6,6 +6,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundExc
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
+import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -30,7 +32,8 @@ public class ExperimentServiceImpl implements ExperimentService {
     private final ExperimentRepository experimentRepository;
 
     private List<ExperimentDetails> findExperimentsListOfUserId(@NonNull UUID userId) {
-        List<ExperimentDetails> experimentDetailsByUserId = experimentRepository.findExperimentDetailsByOwnerId(userId);
+        List<ExperimentDetails> experimentDetailsByUserId =
+                experimentRepository.findExperimentDetailsByOwnerIdOrPermittedAccountsContaining(userId, userId);
         experimentDetailsByUserId.forEach(ExperimentDetails::validatePermissions);
         return experimentDetailsByUserId;
     }
@@ -91,8 +94,15 @@ public class ExperimentServiceImpl implements ExperimentService {
     public ExperimentDTO share(@NonNull UUID experimentId, @NonNull UUID userId) {
         ExperimentDetails experimentDetails = experimentRepository.findById(experimentId).orElseThrow(
                 () -> new ResourceNotFoundException(ExperimentDetails.class, "experimentId", experimentId.toString()));
-        experimentDetails.getPermittedAccounts().add(userId);
-        //experimentDetails.setPermittedAccounts(permittedUsers.add(userId));
+
+        Set<UUID> permittedAccounts = experimentDetails.getPermittedAccounts();
+        if (permittedAccounts.contains(userId) || experimentDetails.getOwnerId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "The user is already permitted.");
+        } else if (userId == SecurityContextUtil.getCurrentUserDTO().getId() && !SecurityContextUtil.getCurrentUserDTO().isAdmin()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "You can't add yourself to the sharing list.");
+        }
+
+        permittedAccounts.add(userId);
         experimentRepository.save(experimentDetails);
         return ExperimentDTO.fromExperimentDetails(experimentDetails);
     }
