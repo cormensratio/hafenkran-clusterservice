@@ -1,10 +1,6 @@
 package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
-import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
-import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
-import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
-import de.unipassau.sep19.hafenkran.clusterservice.dto.StdinDTO;
-import de.unipassau.sep19.hafenkran.clusterservice.dto.UserDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.*;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
@@ -13,6 +9,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExecutionRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
+import de.unipassau.sep19.hafenkran.clusterservice.serviceclient.ReportingServiceClient;
 import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
 import io.kubernetes.client.ApiException;
 import lombok.NonNull;
@@ -40,6 +37,8 @@ public class ExecutionServiceImpl implements ExecutionService {
 
     private final KubernetesClient kubernetesClient;
 
+    private final ReportingServiceClient rsClient;
+
     @Value("${kubernetes.deployment.defaults.ram}")
     private long ramDefault;
 
@@ -54,9 +53,15 @@ public class ExecutionServiceImpl implements ExecutionService {
      */
     @Override
     public String retrieveLogsForExecutionId(@NonNull UUID id, int lines, Integer sinceSeconds, boolean withTimestamps) {
+        ExecutionDetails executionDetails = retrieveExecutionDetailsById(id);
+
+        if (!executionDetails.getStatus().equals(ExecutionDetails.Status.RUNNING)) {
+            return "Logs can only be retrieved for running executions!";
+        }
+
         final String logs;
         try {
-            logs = kubernetesClient.retrieveLogs(retrieveExecutionDetailsById(id), lines, sinceSeconds,
+            logs = kubernetesClient.retrieveLogs(executionDetails, lines, sinceSeconds,
                     withTimestamps);
         } catch (ApiException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
@@ -143,11 +148,7 @@ public class ExecutionServiceImpl implements ExecutionService {
 
     private ExecutionDetails retrieveExecutionDetailsById(@NonNull UUID id) {
         final Optional<ExecutionDetails> execution = executionRepository.findById(id);
-        ExecutionDetails executionDetails = execution.orElseThrow(
-                () -> new ResourceNotFoundException(ExecutionDetails.class, "id",
-                        id.toString()));
-        executionDetails.validatePermissions();
-        return executionDetails;
+        return execution.orElseThrow(() -> new ResourceNotFoundException(ExecutionDetails.class, "id", id.toString()));
     }
 
     /**
@@ -245,7 +246,7 @@ public class ExecutionServiceImpl implements ExecutionService {
     }
 
     private ExecutionDetails startExecution(@NonNull ExecutionDetails executionDetails) {
-        String podName = null;
+        final String podName;
         try {
             podName = kubernetesClient.createPod(executionDetails);
         } catch (ApiException e) {
@@ -346,9 +347,17 @@ public class ExecutionServiceImpl implements ExecutionService {
      */
     public ExecutionDetails getExecutionOfPod(@NonNull String podName, @NonNull UUID namespace) {
 
-        ExperimentDetails experiment = experimentRepository.findById(namespace).orElseThrow(() -> new ResourceNotFoundException(ExperimentDetails.class, "id",
-                namespace.toString()));
+        ExperimentDetails experiment = experimentRepository.findById(namespace).orElseThrow(
+                () -> new ResourceNotFoundException(ExperimentDetails.class, "id",
+                        namespace.toString()));
         return executionRepository.findByPodNameAndExperimentDetails(podName, experiment);
+    }
+
+    @Override
+    public void updatePersistedResults(@NonNull ExecutionDetails execution) {
+        byte[] results = getResults(execution.getId());
+        ResultDTO resultDTO = new ResultDTO(execution.getId(), execution.getOwnerId(), Base64.getEncoder().encodeToString(results));
+        rsClient.sendResultsToResultsService(resultDTO);
     }
 
     /**
