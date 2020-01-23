@@ -44,7 +44,7 @@ public class ExperimentDetails extends Resource {
     private String fileName;
 
     @ElementCollection
-    private Set<UUID> permittedAccounts;
+    private Set<UUID> permittedUsers;
 
     private long size;
 
@@ -57,7 +57,7 @@ public class ExperimentDetails extends Resource {
         this.size = size;
         this.fileName = fileName;
         this.executionDetails = Collections.emptyList();
-        this.permittedAccounts = Collections.emptySet();
+        this.permittedUsers = Collections.emptySet();
     }
 
     /**
@@ -66,7 +66,7 @@ public class ExperimentDetails extends Resource {
     @Override
     public void validatePermissions() {
         UserDTO user = SecurityContextUtil.getCurrentUserDTO();
-        if (!(user.isAdmin() || user.getId().equals(this.getOwnerId()) || permittedAccounts.contains(user.getId()))) {
+        if (!(user.isAdmin() || user.getId().equals(this.getOwnerId()) || permittedUsers.contains(user.getId()))) {
             log.info(String.format("User %s is not allowed to access %s with id %s", user.getId(),
                     this.getClass().getName(), this.getId()));
             throw new ResourceNotFoundException(this.getClass());

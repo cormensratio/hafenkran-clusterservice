@@ -34,7 +34,7 @@ public class ExperimentServiceImpl implements ExperimentService {
 
     private List<ExperimentDetails> findExperimentsListOfUserId(@NonNull UUID userId) {
         List<ExperimentDetails> experimentDetailsByUserId =
-                experimentRepository.findExperimentDetailsByOwnerIdOrPermittedAccountsContaining(userId, userId);
+                experimentRepository.findExperimentDetailsByOwnerIdOrPermittedUsersContaining(userId, userId);
         experimentDetailsByUserId.forEach(ExperimentDetails::validatePermissions);
         return experimentDetailsByUserId;
     }
@@ -103,10 +103,10 @@ public class ExperimentServiceImpl implements ExperimentService {
 
             // If the owner is the current user or if the current user is an admin
         } else if (experimentDetails.getOwnerId().equals(currentUser.getId()) || currentUser.isAdmin()) {
-            if (experimentUpdateDTO.getPermittedAccounts().toArray().length == experimentDetails.getPermittedAccounts().toArray().length) {
+            if (experimentUpdateDTO.getPermittedAccounts().toArray().length == experimentDetails.getPermittedUsers().toArray().length) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "There were no changes.");
             }
-            experimentDetails.setPermittedAccounts(experimentUpdateDTO.getPermittedAccounts());
+            experimentDetails.setPermittedUsers(experimentUpdateDTO.getPermittedAccounts());
             experimentRepository.save(experimentDetails);
             return ExperimentDTO.fromExperimentDetails(experimentDetails);
         } else {
