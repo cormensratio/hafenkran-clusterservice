@@ -103,10 +103,10 @@ public class ExperimentServiceImpl implements ExperimentService {
 
             // If the owner is the current user or if the current user is an admin
         } else if (experimentDetails.getOwnerId().equals(currentUser.getId()) || currentUser.isAdmin()) {
-            if (experimentUpdateDTO.getPermittedAccounts().toArray().length == experimentDetails.getPermittedUsers().toArray().length) {
+            if (experimentUpdateDTO.getPermittedUsers().toArray().length == experimentDetails.getPermittedUsers().toArray().length) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "There were no changes.");
             }
-            experimentDetails.setPermittedUsers(experimentUpdateDTO.getPermittedAccounts());
+            experimentDetails.setPermittedUsers(experimentUpdateDTO.getPermittedUsers());
             experimentRepository.save(experimentDetails);
             return ExperimentDTO.fromExperimentDetails(experimentDetails);
         } else {

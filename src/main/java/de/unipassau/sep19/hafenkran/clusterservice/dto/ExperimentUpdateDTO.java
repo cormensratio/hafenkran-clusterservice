@@ -21,7 +21,7 @@ public class ExperimentUpdateDTO {
     @JsonProperty("id")
     private final UUID id;
 
-    @JsonProperty("permittedAccounts")
-    private final Set<UUID> permittedAccounts;
+    @JsonProperty("permittedUsers")
+    private final Set<UUID> permittedUsers;
 
 }
