@@ -1,5 +1,6 @@
 FROM openjdk:8-jdk-alpine
 VOLUME /tmp
 COPY /target/hafenkran-clusterservice.jar hafenkran-clusterservice.jar
+COPY ./kubernetes /kubernetes
 ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-Dspring.profiles.active=dev","-jar","/hafenkran-clusterservice.jar"]
 EXPOSE 8082
