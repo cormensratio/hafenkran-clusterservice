@@ -107,30 +107,16 @@ public class ExperimentController {
     }
 
     /**
-     * POST-Endpoint for sharing an experiment and receiving the corresponding {@link ExperimentDTO}.
+     * POST-Endpoint for updating an experiment including the userAccess-Management.
      *
-     * @param experimentId The id of the experiment to be shared.
-     * @param userId       The id of the user, with whom the experiment should be shared.
+     * @param experimentId        The id of the experiment to be updated.
+     * @param experimentUpdateDTO The new options from the experiment, that should be updated (including userAccess).
      * @return The corresponding {@link ExperimentDTO}.
      */
-    @PostMapping("/{experimentId}/share/{userId}")
+    @PostMapping("/{experimentId}/updateExperiment")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public ExperimentDTO shareExperiment(@PathVariable UUID experimentId, @PathVariable UUID userId) {
-        return experimentService.share(experimentId, userId);
-    }
-
-    /**
-     * POST-Endpoint for forbidding the use of an experiment and returns an {@link ExperimentDTO} with the rest of the permittedAccounts.
-     *
-     * @param experimentId The id of the experiment which usage should be forbidden.
-     * @param userId       The id of the user, for whom the experiment should be forbidden.
-     * @return The corresponding {@link ExperimentDTO}.
-     */
-    @PostMapping("/{experimentId}/forbid/{userId}")
-    @ResponseBody
-    @ResponseStatus(HttpStatus.OK)
-    public ExperimentDTO forbidExperiment(@PathVariable UUID experimentId, @PathVariable UUID userId) {
-        return experimentService.forbid(experimentId, userId);
+    public ExperimentDTO updateExperimentAccess(@PathVariable UUID experimentId, @RequestBody ExperimentUpdateDTO experimentUpdateDTO) {
+        return experimentService.updateExperimentAccess(experimentUpdateDTO);
     }
 }

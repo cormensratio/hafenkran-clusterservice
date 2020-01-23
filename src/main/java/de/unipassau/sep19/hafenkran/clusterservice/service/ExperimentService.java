@@ -2,6 +2,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.service;
 
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTOList;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentUpdateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import lombok.NonNull;
 
@@ -42,21 +43,11 @@ public interface ExperimentService {
     List<ExperimentDTO> retrieveAllExperimentDTOs();
 
     /**
-     * Shares an experiment and returns an {@link ExperimentDTO} with the permittedAccounts within.
+     * Shares an experiment or deletes the access to an experiment and returns an {@link ExperimentDTO} with the permittedAccounts within.
      *
-     * @param experimentId The id of the experiment to be shared.
-     * @param userId       The id of the user, with whom the experiment should be shared.
+     * @param experimentUpdateDTO The changes in the experimentAccess.
      * @return The corresponding {@link ExperimentDTO}.
      */
-    ExperimentDTO share(@NonNull UUID experimentId, @NonNull UUID userId);
-
-    /**
-     * Forbids the use of an experiment and returns an {@link ExperimentDTO} with the rest of the permittedAccounts.
-     *
-     * @param experimentId The id of the experiment which usage should be forbidden.
-     * @param userId       The id of the user, for whom the experiment should be forbidden.
-     * @return The corresponding {@link ExperimentDTO}.
-     */
-    ExperimentDTO forbid(@NonNull UUID experimentId, @NonNull UUID userId);
+    ExperimentDTO updateExperimentAccess(@NonNull ExperimentUpdateDTO experimentUpdateDTO);
 
 }
