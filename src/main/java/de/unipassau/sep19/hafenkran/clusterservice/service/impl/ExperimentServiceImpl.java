@@ -45,8 +45,12 @@ public class ExperimentServiceImpl implements ExperimentService {
      * {@inheritDoc}
      */
     public ExperimentDetails createExperiment(@Valid @NonNull ExperimentDetails experimentDetails) {
+        experimentDetails.validatePermissions();
+
         List<ExperimentDetails> foundExperiments = experimentRepository.findExperimentDetailsByOwnerIdAndName(
                 experimentDetails.getOwnerId(), experimentDetails.getName());
+
+        foundExperiments.forEach(ExperimentDetails::validatePermissions);
 
         if (foundExperiments.size() == 0) {
             final ExperimentDetails savedExperimentDetails = experimentRepository.save(experimentDetails);
@@ -64,9 +68,10 @@ public class ExperimentServiceImpl implements ExperimentService {
     public ExperimentDTO retrieveExperimentDTOById(@NonNull UUID id) {
         final Optional<ExperimentDetails> experimentDetailsOptional = experimentRepository.findById(id);
         ExperimentDetails experimentDetails = experimentDetailsOptional.orElseThrow(
-                () -> new ResourceNotFoundException(ExperimentDetails.class, "id",
-                        id.toString()));
+                () -> new ResourceNotFoundException(ExperimentDetails.class, "id", id.toString()));
+
         experimentDetails.validatePermissions();
+
         return ExperimentDTO.fromExperimentDetails(experimentDetails);
     }
 
