@@ -18,11 +18,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -47,6 +49,21 @@ public class ExecutionServiceImpl implements ExecutionService {
 
     @Value("${kubernetes.deployment.defaults.bookedTime}")
     private long bookedTimeDefault;
+
+    /**
+     * Automatically goes through all running pods in a fixed interval and terminates the execution
+     * if the booked time was exceeded by 10 seconds.
+     */
+    @Scheduled(fixedDelayString = "${pod-cleanup-scheduler-delay}")
+    private void terminatePodsAfterBookedTimeExceeded() {
+        List<ExecutionDetails> runningExecutions = executionRepository.findAllByStatus(Status.RUNNING);
+        runningExecutions.forEach(e -> {
+            if (LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+                    < e.getStartedAt().toEpochSecond(ZoneOffset.UTC) + e.getBookedTime()) {
+                terminateExecution(e.getId());
+            }
+        });
+    }
 
     /**
      * {@inheritDoc}

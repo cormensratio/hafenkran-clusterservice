@@ -119,6 +119,11 @@
       "name": "user-service-uri",
       "type": "java.lang.String",
       "description": "URI for the UserService."
+    },
+    {
+      "name": "kubernetes.pod-cleanup-scheduler-delay",
+      "type": "java.lang.Long",
+      "description": "Delay in seconds between scheduler runs for cleanup of executions which exceed their booked time limit."
     }
   ]
 }
