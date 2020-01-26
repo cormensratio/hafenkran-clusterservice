@@ -131,7 +131,7 @@
       "description": "Loads the default config located in the users home directory (especially useful for minikube installations)."
     },
     {
-      "name": "kubernetes.config.location",
+      "name": "kubernetes.config.path",
       "type": "java.lang.String",
       "description": "The config location if the load-default is not used."
     }
