@@ -64,6 +64,12 @@ public class KubernetesClientImpl implements KubernetesClient {
     @Value("${kubernetes.debugging}")
     private boolean debugMode;
 
+    @Value("${kubernetes.config.load-default}")
+    private boolean loadDefaultConfig;
+
+    @Value("${kubernetes.config.location}")
+    private String kubernetesConfigLocation;
+
     /**
      * Constructor of KubernetesClientImpl.
      * <p>
@@ -75,8 +81,10 @@ public class KubernetesClientImpl implements KubernetesClient {
     public KubernetesClientImpl() throws IOException {
         log.info("Kubernetes Client ready!");
 
-        // auto detect kubernetes config file
-        ApiClient client = Config.fromConfig("/kubernetes/config");
+        // load kubernetes config file
+        final ApiClient client = loadDefaultConfig
+                ? Config.defaultClient()
+                : Config.fromConfig(kubernetesConfigLocation);
 
         // debugging must be set to false for pod informer
         client.setDebugging(debugMode);
@@ -189,10 +197,10 @@ public class KubernetesClientImpl implements KubernetesClient {
                         false,
                         false);
 
-        String output = "";
-        try(InputStream is = new Base64InputStream(new BufferedInputStream(proc.getInputStream()))){
+        final String output;
+        try (InputStream is = new Base64InputStream(new BufferedInputStream(proc.getInputStream()))) {
             output = IOUtils.toString(is, StandardCharsets.UTF_8);
-        } catch (IOException e){
+        } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Could not retrieve results for the given pod");
         }
 

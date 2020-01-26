@@ -33,6 +33,9 @@ kubernetes:
   defaultLogLines: 500
   debugging: false
   pod-cleanup-scheduler-delay: 60
+  config:
+    load-default: true
+    location: /kubernetes/config
 
 jwt:
   secret: MCgCIQCAS7IFlSvaBOPXwSBHo+7+6C4RbkvYj3fgI5+Abe4pRwIDAQAB
