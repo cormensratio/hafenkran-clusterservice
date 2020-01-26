@@ -52,7 +52,7 @@ public class ExecutionServiceImpl implements ExecutionService {
 
     /**
      * Automatically goes through all running pods in a fixed interval and terminates the execution
-     * if the booked time was exceeded by 10 seconds.
+     * if the booked time was exceeded.
      */
     @Scheduled(fixedDelayString = "#{${kubernetes.pod-cleanup-scheduler-delay}*1000}")
     private void terminatePodsAfterBookedTimeExceeded() {
