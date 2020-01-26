@@ -46,3 +46,8 @@ dockerClient:
   password:
   email:
   authKey:
+
+service-user:
+  name:
+  password:
+  secret:

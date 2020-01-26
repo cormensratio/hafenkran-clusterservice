@@ -1,6 +1,7 @@
 package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.command.PushImageResultCallback;
@@ -20,6 +21,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.io.IOUtils;
+import org.omg.CosNaming.NamingContextPackage.NotFound;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -257,8 +259,14 @@ public class UploadServiceImpl implements UploadService {
          The image could be referenced in multiple containers and would need a force remove. The workaround is to
          remove the tagged instance by tag name and afterwards the base image by its image id.
         */
-        dockerClient.removeImageCmd(DOCKER_HUB_REPO_PATH + ":" + checksum).exec();
-        dockerClient.removeImageCmd(imageId).exec();
+        try {
+            dockerClient.removeImageCmd(DOCKER_HUB_REPO_PATH + ":" + checksum).exec();
+            dockerClient.removeImageCmd(imageId).exec();
+        } catch (NotFoundException e) {
+            e.printStackTrace();
+        }
+
+
         log.debug("Successfully removed the image from the local registry.");
     }
 

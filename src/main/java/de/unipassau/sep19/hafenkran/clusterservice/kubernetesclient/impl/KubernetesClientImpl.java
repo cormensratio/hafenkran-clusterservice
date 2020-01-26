@@ -205,8 +205,14 @@ public class KubernetesClientImpl implements KubernetesClient {
                         false,
                         false);
 
-        InputStream is = new Base64InputStream(new BufferedInputStream(proc.getInputStream()));
-        return IOUtils.toString(is, StandardCharsets.UTF_8);
+        String output = "";
+        try (InputStream is = new Base64InputStream(new BufferedInputStream(proc.getInputStream()))) {
+            output = IOUtils.toString(is, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Could not retrieve results for the given pod");
+        }
+
+        return output;
     }
 
     /**
@@ -214,6 +220,12 @@ public class KubernetesClientImpl implements KubernetesClient {
      */
     @Override
     public void sendSTIN(@NonNull String input, @NonNull ExecutionDetails executionDetails) throws IOException, ApiException {
+        if (!executionDetails.getStatus().equals(ExecutionDetails.Status.RUNNING)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    String.format("Found execution for id %s, but with status %s.", executionDetails.getId(),
+                            executionDetails.getStatus()));
+        }
+
         String namespace = getNamespace(executionDetails);
         String podName = getPodName(executionDetails);
 

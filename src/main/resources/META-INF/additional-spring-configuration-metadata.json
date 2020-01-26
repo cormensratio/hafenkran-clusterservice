@@ -61,6 +61,11 @@
       "description": "Path to the configured proxy of the cluster."
     },
     {
+      "name": "reporting-service-uri",
+      "type": "java.lang.String",
+      "description": "URI for the ReportingService."
+    },
+    {
       "name": "dockerHubRepoPath",
       "type": "java.lang.String",
       "description": "The repository name for the hafenkran docker-hub."
@@ -104,6 +109,26 @@
       "name": "dockerClient.host",
       "type": "java.lang.String",
       "description": "The path to the local docker daemon. Can be a tcp, unix or fd socket."
+    },
+    {
+      "name": "service-user.name",
+      "type": "java.lang.String",
+      "description": "Name of the user used for internal communication between services."
+    },
+    {
+      "name": "service-user.password",
+      "type": "java.lang.String",
+      "description": "Password of the user used for internal communication between services."
+    },
+    {
+      "name": "service-user.secret",
+      "type": "java.lang.String",
+      "description": "The secret used for validating that the requesting side is actually an internal service."
+    },
+    {
+      "name": "user-service-uri",
+      "type": "java.lang.String",
+      "description": "URI for the UserService."
     }
   ]
 }

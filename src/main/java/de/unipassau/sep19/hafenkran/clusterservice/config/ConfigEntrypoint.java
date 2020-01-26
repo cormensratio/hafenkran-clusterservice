@@ -26,6 +26,7 @@ import java.io.IOException;
         "de.unipassau.sep19.hafenkran.clusterservice.controller",
         "de.unipassau.sep19.hafenkran.clusterservice.util",
         "de.unipassau.sep19.hafenkran.clusterservice.service.impl",
+        "de.unipassau.sep19.hafenkran.clusterservice.serviceclient.impl"
 })
 @EntityScan(basePackages = {
         "de.unipassau.sep19.hafenkran.clusterservice.model"
