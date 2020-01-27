@@ -43,8 +43,8 @@ public class ExperimentDTO {
     @JsonProperty("ownerId")
     private final UUID ownerId;
 
-    @JsonProperty("permittedAccounts")
-    private final Set<UUID> permittedAccounts;
+    @JsonProperty("permittedUsers")
+    private final Set<UUID> permittedUsers;
 
     public static ExperimentDTO fromExperimentDetails(@NonNull final ExperimentDetails experimentDetails) {
         return new ExperimentDTO(
@@ -54,7 +54,7 @@ public class ExperimentDTO {
                 experimentDetails.getCreatedAt(),
                 experimentDetails.getSize(),
                 experimentDetails.getOwnerId(),
-                experimentDetails.getPermittedAccounts()
+                experimentDetails.getPermittedUsers()
         );
     }
 }

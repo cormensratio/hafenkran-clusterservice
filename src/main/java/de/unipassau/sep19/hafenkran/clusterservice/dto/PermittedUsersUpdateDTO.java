@@ -15,7 +15,7 @@ import java.util.UUID;
  */
 @Data
 @AllArgsConstructor(onConstructor = @__(@JsonCreator))
-public class ExperimentUpdateDTO {
+public class PermittedUsersUpdateDTO {
 
     @NonNull
     @JsonProperty("id")

@@ -2,7 +2,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTOList;
-import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentUpdateDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.PermittedUsersUpdateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.UserDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
@@ -92,9 +92,9 @@ public class ExperimentServiceImpl implements ExperimentService {
      * {@inheritDoc}
      */
     @Override
-    public ExperimentDTO updateExperimentAccess(@NonNull ExperimentUpdateDTO experimentUpdateDTO) {
-        ExperimentDetails experimentDetails = experimentRepository.findById(experimentUpdateDTO.getId()).orElseThrow(
-                () -> new ResourceNotFoundException(ExperimentDetails.class, "experimentId", experimentUpdateDTO.getId().toString()));
+    public ExperimentDTO updatePermittedUsers(@NonNull PermittedUsersUpdateDTO permittedUsersUpdateDTO) {
+        ExperimentDetails experimentDetails = experimentRepository.findById(permittedUsersUpdateDTO.getId()).orElseThrow(
+                () -> new ResourceNotFoundException(ExperimentDetails.class, "experimentId", permittedUsersUpdateDTO.getId().toString()));
         UserDTO currentUser = SecurityContextUtil.getCurrentUserDTO();
 
         // If the owner is not the current user and if the current user is no admin
@@ -103,10 +103,10 @@ public class ExperimentServiceImpl implements ExperimentService {
 
             // If the owner is the current user or if the current user is an admin
         } else if (experimentDetails.getOwnerId().equals(currentUser.getId()) || currentUser.isAdmin()) {
-            if (experimentUpdateDTO.getPermittedUsers().toArray().length == experimentDetails.getPermittedUsers().toArray().length) {
+            if (permittedUsersUpdateDTO.getPermittedUsers().toArray().length == experimentDetails.getPermittedUsers().toArray().length) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "There were no changes.");
             }
-            experimentDetails.setPermittedUsers(experimentUpdateDTO.getPermittedUsers());
+            experimentDetails.setPermittedUsers(permittedUsersUpdateDTO.getPermittedUsers());
             experimentRepository.save(experimentDetails);
             return ExperimentDTO.fromExperimentDetails(experimentDetails);
         } else {
