@@ -34,7 +34,7 @@ public class ExperimentServiceImpl implements ExperimentService {
 
     private List<ExperimentDetails> findExperimentsListOfUserId(@NonNull UUID userId) {
         List<ExperimentDetails> experimentDetailsByUserId =
-                experimentRepository.findExperimentDetailsByOwnerIdOrPermittedUsersContaining(userId, userId);
+                experimentRepository.findExperimentDetailsByPermittedUsersContaining(userId);
         experimentDetailsByUserId.forEach(ExperimentDetails::validatePermissions);
         return experimentDetailsByUserId;
     }
