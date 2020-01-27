@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.persistence.RollbackException;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
@@ -45,17 +46,18 @@ public class ExperimentServiceImpl implements ExperimentService {
      * {@inheritDoc}
      */
     public ExperimentDetails createExperiment(@Valid @NonNull ExperimentDetails experimentDetails) {
-        List<ExperimentDetails> foundExperiments = experimentRepository.findExperimentDetailsByOwnerIdAndName(
-                experimentDetails.getOwnerId(), experimentDetails.getName());
+        experimentDetails.validatePermissions();
 
-        if (foundExperiments.size() == 0) {
-            final ExperimentDetails savedExperimentDetails = experimentRepository.save(experimentDetails);
-            log.info(String.format("Experiment with id %s created", savedExperimentDetails.getId()));
-            return savedExperimentDetails;
-        } else {
+        final ExperimentDetails savedExperimentDetails;
+
+        try {
+            savedExperimentDetails = experimentRepository.save(experimentDetails);
+        } catch (RollbackException e) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Experimentname: "
                     + experimentDetails.getName() + " already used. Must be unique.");
         }
+        log.info(String.format("Experiment with id %s created", savedExperimentDetails.getId()));
+        return savedExperimentDetails;
     }
 
     /**
@@ -64,9 +66,10 @@ public class ExperimentServiceImpl implements ExperimentService {
     public ExperimentDTO retrieveExperimentDTOById(@NonNull UUID id) {
         final Optional<ExperimentDetails> experimentDetailsOptional = experimentRepository.findById(id);
         ExperimentDetails experimentDetails = experimentDetailsOptional.orElseThrow(
-                () -> new ResourceNotFoundException(ExperimentDetails.class, "id",
-                        id.toString()));
+                () -> new ResourceNotFoundException(ExperimentDetails.class, "id", id.toString()));
+
         experimentDetails.validatePermissions();
+
         return ExperimentDTO.fromExperimentDetails(experimentDetails);
     }
 
