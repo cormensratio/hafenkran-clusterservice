@@ -19,7 +19,6 @@ import java.util.UUID;
 @Slf4j
 public class PodEventHandler implements ResourceEventHandler<V1Pod> {
 
-    @NonNull
     private ExecutionService executionService;
 
     private List<String> excludedNamespaceList;
@@ -66,20 +65,21 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
 
     @Override
     public void onDelete(V1Pod pod, boolean deletedFinalStateUnknown) {
+        if(executionService == null){
+            this.executionService = SpringContext.getBean(ExecutionService.class);
+        }
+        ExecutionDetails execution = findExecutionOfPod(pod);
+        executionService.updatePersistedResults(execution);
         log.debug(String.format("Pod with name \"%s\" has status \"%s\"",
                 pod.getMetadata().getName(), pod.getStatus().getPhase()));
         log.debug(String.format("Pod with name \"%s\" deleted!\n", pod.getMetadata().getName()));
     }
 
-    private ExecutionService getExecutionService() {
-        return SpringContext.getBean(ExecutionService.class);
-    }
-
     private void setExecutionStatus(@NonNull V1Pod pod, @NonNull UUID executionId) {
-        executionService = getExecutionService();
-
+        if(executionService == null){
+            this.executionService = SpringContext.getBean(ExecutionService.class);
+        }
         switch (pod.getStatus().getPhase()) {
-
             // Kubernetes status --> execution status
             // Running --> RUNNING
             case "Running":
@@ -96,9 +96,12 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
     }
 
     private ExecutionDetails findExecutionOfPod(@NonNull V1Pod pod) {
-        executionService = getExecutionService();
+        if(executionService == null){
+            this.executionService = SpringContext.getBean(ExecutionService.class);
+        }
         String namespace = pod.getMetadata().getNamespace();
         String podName = pod.getMetadata().getName();
+
         return executionService.getExecutionOfPod(podName, UUID.fromString(namespace));
     }
 

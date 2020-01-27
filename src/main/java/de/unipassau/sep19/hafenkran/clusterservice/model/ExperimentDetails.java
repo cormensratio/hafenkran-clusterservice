@@ -22,7 +22,10 @@ import java.util.UUID;
  */
 @Slf4j
 @Data
-@Table(name = "experimentdetails")
+@Table(
+        name = "experimentdetails",
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"ownerId", "name"})}
+)
 @Entity
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
@@ -73,5 +76,3 @@ public class ExperimentDetails extends Resource {
         }
     }
 }
-
-

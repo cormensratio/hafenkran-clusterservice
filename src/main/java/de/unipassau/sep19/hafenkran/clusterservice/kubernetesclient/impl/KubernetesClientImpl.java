@@ -5,27 +5,11 @@ import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesCl
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.util.PodEventHandler;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
-import io.kubernetes.client.ApiClient;
-import io.kubernetes.client.ApiException;
-import io.kubernetes.client.Attach;
-import io.kubernetes.client.Configuration;
-import io.kubernetes.client.Exec;
+import io.kubernetes.client.*;
 import io.kubernetes.client.apis.CoreV1Api;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
-import io.kubernetes.client.models.V1Container;
-import io.kubernetes.client.models.V1ContainerBuilder;
-import io.kubernetes.client.models.V1DeleteOptions;
-import io.kubernetes.client.models.V1LocalObjectReference;
-import io.kubernetes.client.models.V1LocalObjectReferenceBuilder;
-import io.kubernetes.client.models.V1Namespace;
-import io.kubernetes.client.models.V1NamespaceBuilder;
-import io.kubernetes.client.models.V1NamespaceList;
-import io.kubernetes.client.models.V1Pod;
-import io.kubernetes.client.models.V1PodBuilder;
-import io.kubernetes.client.models.V1PodList;
-import io.kubernetes.client.models.V1Secret;
-import io.kubernetes.client.models.V1SecretBuilder;
+import io.kubernetes.client.models.*;
 import io.kubernetes.client.util.CallGeneratorParams;
 import io.kubernetes.client.util.Config;
 import lombok.NonNull;
@@ -80,6 +64,12 @@ public class KubernetesClientImpl implements KubernetesClient {
     @Value("${kubernetes.debugging}")
     private boolean debugMode;
 
+    @Value("${kubernetes.config.load-default}")
+    private boolean loadDefaultConfig;
+
+    @Value("${kubernetes.config.location}")
+    private String kubernetesConfigLocation;
+
     /**
      * Constructor of KubernetesClientImpl.
      * <p>
@@ -91,8 +81,10 @@ public class KubernetesClientImpl implements KubernetesClient {
     public KubernetesClientImpl() throws IOException {
         log.info("Kubernetes Client ready!");
 
-        // auto detect kubernetes config file
-        ApiClient client = Config.defaultClient();
+        // load kubernetes config file
+        final ApiClient client = loadDefaultConfig
+                ? Config.defaultClient()
+                : Config.fromConfig(kubernetesConfigLocation);
 
         // debugging must be set to false for pod informer
         client.setDebugging(debugMode);
@@ -172,6 +164,7 @@ public class KubernetesClientImpl implements KubernetesClient {
      */
     @Override
     public String retrieveLogs(@NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamps) throws ApiException {
+        executionDetails.validatePermissions();
 
         if (!executionDetails.getStatus().equals(ExecutionDetails.Status.RUNNING)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -205,8 +198,14 @@ public class KubernetesClientImpl implements KubernetesClient {
                         false,
                         false);
 
-        InputStream is = new Base64InputStream(new BufferedInputStream(proc.getInputStream()));
-        return IOUtils.toString(is, StandardCharsets.UTF_8);
+        String output = "";
+        try (InputStream is = new Base64InputStream(new BufferedInputStream(proc.getInputStream()))) {
+            output = IOUtils.toString(is, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Could not retrieve results for the given pod");
+        }
+
+        return output;
     }
 
     /**
@@ -214,6 +213,12 @@ public class KubernetesClientImpl implements KubernetesClient {
      */
     @Override
     public void sendSTIN(@NonNull String input, @NonNull ExecutionDetails executionDetails) throws IOException, ApiException {
+        if (!executionDetails.getStatus().equals(ExecutionDetails.Status.RUNNING)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    String.format("Found execution for id %s, but with status %s.", executionDetails.getId(),
+                            executionDetails.getStatus()));
+        }
+
         String namespace = getNamespace(executionDetails);
         String podName = getPodName(executionDetails);
 
