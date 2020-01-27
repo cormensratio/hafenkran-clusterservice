@@ -129,7 +129,7 @@ public class ExecutionController {
     }
 
     /**
-     * POST-Endpoint for sending standardinputs to an execution.
+     * POST-Endpoint for sending standard inputs to an execution.
      *
      * @param executionId The execution to receive inputs.
      * @param stdinDTO    The input to be sent.
