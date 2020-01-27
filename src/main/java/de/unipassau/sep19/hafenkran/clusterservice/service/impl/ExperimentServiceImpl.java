@@ -97,21 +97,14 @@ public class ExperimentServiceImpl implements ExperimentService {
                 () -> new ResourceNotFoundException(ExperimentDetails.class, "experimentId", permittedUsersUpdateDTO.getId().toString()));
         UserDTO currentUser = SecurityContextUtil.getCurrentUserDTO();
 
-        // If the owner is not the current user and if the current user is no admin
-        if (!experimentDetails.getOwnerId().equals(currentUser.getId()) && !currentUser.isAdmin()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not the owner, so you can't add other users to the experiment.");
-
-            // If the owner is the current user or if the current user is an admin
-        } else if (experimentDetails.getOwnerId().equals(currentUser.getId()) || currentUser.isAdmin()) {
-            if (permittedUsersUpdateDTO.getPermittedUsers().toArray().length == experimentDetails.getPermittedUsers().toArray().length) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "There were no changes.");
-            }
-            experimentDetails.setPermittedUsers(permittedUsersUpdateDTO.getPermittedUsers());
-            experimentRepository.save(experimentDetails);
-            return ExperimentDTO.fromExperimentDetails(experimentDetails);
-        } else {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You have no permission to update the experiment.");
+        // If the current user is not permitted or if the current user is no admin
+        if (!experimentDetails.getPermittedUsers().contains(currentUser.getId()) || !currentUser.isAdmin()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not allowed to change the user access from the current experiment.");
         }
+
+        experimentDetails.setPermittedUsers(permittedUsersUpdateDTO.getPermittedUsers());
+        experimentRepository.save(experimentDetails);
+        return ExperimentDTO.fromExperimentDetails(experimentDetails);
     }
 
 }

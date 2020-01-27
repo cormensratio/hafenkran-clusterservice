@@ -57,7 +57,7 @@ public class ExperimentDetails extends Resource {
         this.size = size;
         this.fileName = fileName;
         this.executionDetails = Collections.emptyList();
-        this.permittedUsers = Collections.emptySet();
+        this.permittedUsers.add(this.getOwnerId());
     }
 
     /**
