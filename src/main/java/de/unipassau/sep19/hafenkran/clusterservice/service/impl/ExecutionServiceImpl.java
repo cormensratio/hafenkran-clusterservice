@@ -99,10 +99,11 @@ public class ExecutionServiceImpl implements ExecutionService {
      */
     @Override
     public ExecutionDetails createExecution(@NonNull ExecutionDetails executionDetails) {
+        executionDetails.validatePermissions();
+
         final ExecutionDetails savedExecutionDetails =
                 executionRepository.save(executionDetails);
 
-        savedExecutionDetails.validatePermissions();
 
         log.info(String.format("Execution with id %s created",
                 savedExecutionDetails.getId()));

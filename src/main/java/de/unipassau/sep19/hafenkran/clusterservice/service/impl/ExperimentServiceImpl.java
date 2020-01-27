@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.persistence.RollbackException;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
@@ -47,19 +48,16 @@ public class ExperimentServiceImpl implements ExperimentService {
     public ExperimentDetails createExperiment(@Valid @NonNull ExperimentDetails experimentDetails) {
         experimentDetails.validatePermissions();
 
-        List<ExperimentDetails> foundExperiments = experimentRepository.findExperimentDetailsByOwnerIdAndName(
-                experimentDetails.getOwnerId(), experimentDetails.getName());
+        final ExperimentDetails savedExperimentDetails;
 
-        foundExperiments.forEach(ExperimentDetails::validatePermissions);
-
-        if (foundExperiments.size() == 0) {
-            final ExperimentDetails savedExperimentDetails = experimentRepository.save(experimentDetails);
-            log.info(String.format("Experiment with id %s created", savedExperimentDetails.getId()));
-            return savedExperimentDetails;
-        } else {
+        try {
+            savedExperimentDetails = experimentRepository.save(experimentDetails);
+        } catch (RollbackException e) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Experimentname: "
                     + experimentDetails.getName() + " already used. Must be unique.");
         }
+        log.info(String.format("Experiment with id %s created", savedExperimentDetails.getId()));
+        return savedExperimentDetails;
     }
 
     /**
