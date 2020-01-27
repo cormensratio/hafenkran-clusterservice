@@ -93,6 +93,10 @@ public class ExperimentServiceImpl implements ExperimentService {
      */
     @Override
     public ExperimentDTO updatePermittedUsers(@NonNull PermittedUsersUpdateDTO permittedUsersUpdateDTO) {
+        if (permittedUsersUpdateDTO.getPermittedUsers().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "You cannot forbid everyone the access. There must be at least one person.");
+        }
+        
         ExperimentDetails experimentDetails = experimentRepository.findById(permittedUsersUpdateDTO.getId()).orElseThrow(
                 () -> new ResourceNotFoundException(ExperimentDetails.class, "experimentId", permittedUsersUpdateDTO.getId().toString()));
         UserDTO currentUser = SecurityContextUtil.getCurrentUserDTO();
