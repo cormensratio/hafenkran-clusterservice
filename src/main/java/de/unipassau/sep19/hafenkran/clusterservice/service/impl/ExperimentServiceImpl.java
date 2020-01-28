@@ -25,10 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import javax.persistence.RollbackException;
 import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Provides {@link ExperimentDetails}, {@link ExperimentDTO} and {@link ExperimentDTOList} specific services.
@@ -129,48 +126,70 @@ public class ExperimentServiceImpl implements ExperimentService {
         return ExperimentDTO.fromExperimentDetails(experimentDetails);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void deleteExperimentsAndExecutionsFromDeletedUser(@NonNull UUID ownerId, @NonNull boolean deleteEverything) {
-        List<ExperimentDetails> experimentDetails = experimentRepository.findExperimentDetailsByPermittedUsersContaining(ownerId);
-        boolean noMoreExperimentsFromThisUser = true;
+    public void deleteExperimentsByOwnerId(@NonNull UUID ownerId) {
+        List<ExperimentDetails> experimentDetailsList = experimentRepository.findExperimentDetailsByPermittedUsersContaining(ownerId);
+        Set<UUID> executionIdList = new HashSet<>();
 
-        for (ExperimentDetails experiment : experimentDetails) {
-            List<ExecutionDetails> executionDetailsList = executionRepository.findAllByExperimentDetails_OwnerId(ownerId);
-            List<UUID> executionIdList = new ArrayList<>();
-            for (ExecutionDetails executionDetails : executionDetailsList) {
-                executionIdList.add(executionDetails.getId());
-            }
-
-            if (experiment.getOwnerId() == ownerId) {
-                if (deleteEverything || experiment.getPermittedAccounts().isEmpty()) { // Deletes all executions from the experiment and the experiment for all users
-                    executionRepository.deleteAllByExperimentDetails_Id(experiment.getId());
-                    experimentRepository.delete(experiment);
-
-                    String namespace = experiment.getId().toString();
-                    // Deletes the namespace from the experiment in Kubernetes
-                    try {
-                        kubernetesClient.deleteNamespace(namespace);
-                    } catch (ApiException e) {
-                        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "The namespace couldn't be deleted.");
-                    }
-
-                } else { // Deletes only the executions from the owner
-                    List<ExecutionDetails> executionList = executionRepository.deleteAllByExperimentDetails_OwnerId(ownerId);
-                    noMoreExperimentsFromThisUser = false;
-                }
-            } else {
-                experiment.getPermittedAccounts().remove(ownerId);
-                List<ExecutionDetails> executionList = executionRepository.deleteAllByExperimentDetails_OwnerId(ownerId);
-            }
-
-            // Deletes the results in the ReportingService
-            reportingServiceClient.sendDeleteExecutionResultToResultsService(executionIdList);
-
+        for (ExperimentDetails experimentDetails : experimentDetailsList) {
+            executionIdList.addAll(deleteExperimentAndAllExecutions(experimentDetails, ownerId, false));
         }
 
-        if (!noMoreExperimentsFromThisUser) {
-            userServiceClient.sendDeleteUserToUserService(ownerId, true);
+        // Deletes the results in the ReportingService
+        reportingServiceClient.deleteResults(executionIdList);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void deleteExperimentById(@NonNull UUID experimentId, @NonNull boolean deleteEverything) {
+        ExperimentDetails experimentDetails = experimentRepository.findById(experimentId).orElseThrow(
+                () -> new ResourceNotFoundException(ExperimentDetails.class, "experimentId", experimentId.toString()));
+        UserDTO currentUser = SecurityContextUtil.getCurrentUserDTO();
+
+        Set<UUID> executionIdList = deleteExperimentAndAllExecutions(experimentDetails, currentUser.getId(), deleteEverything);
+
+        // Deletes the results in the ReportingService
+        reportingServiceClient.deleteResults(executionIdList);
+    }
+
+    /**
+     * Deletes all executions from the experiment and the experiment for all users, also within Kubernetes.
+     *
+     * @param experimentDetails The experiment to be deleted.
+     * @return An Set of ids from the deleted executions.
+     */
+    private Set<UUID> deleteExperimentAndAllExecutions(@NonNull ExperimentDetails experimentDetails, @NonNull UUID userId, @NonNull boolean deleteEverything) {
+        List<ExecutionDetails> executionDetailsList;
+
+        experimentDetails.getPermittedAccounts().remove(userId);
+
+        if (deleteEverything || experimentDetails.getPermittedAccounts().isEmpty()) {
+            executionDetailsList = executionRepository.deleteAllByExperimentDetails_Id(experimentDetails.getId());
+            experimentRepository.delete(experimentDetails);
+
+            String namespace = experimentDetails.getId().toString();
+            // Deletes the namespace from the experiment in Kubernetes
+            try {
+                kubernetesClient.deleteNamespace(namespace);
+            } catch (ApiException e) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "The namespace couldn't be deleted.");
+            }
+        } else {
+            executionDetailsList = executionRepository.deleteAllByOwnerId(userId);
         }
+
+        // Deletes the results in the ReportingService
+        Set<UUID> executionIdList = new HashSet<>();
+        for (ExecutionDetails executionDetails : executionDetailsList) {
+            executionIdList.add(executionDetails.getId());
+        }
+
+        return executionIdList;
     }
 
 }

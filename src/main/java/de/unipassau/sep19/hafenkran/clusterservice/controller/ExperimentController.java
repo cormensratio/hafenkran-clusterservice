@@ -10,10 +10,12 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -33,6 +35,9 @@ public class ExperimentController {
     private final UploadService uploadService;
 
     private final ExecutionService executionService;
+
+    @Value("${service-user.secret}")
+    private String serviceSecret;
 
     /**
      * GET-Endpoint for receiving a single {@link ExperimentDTO} by its id.
@@ -120,10 +125,24 @@ public class ExperimentController {
         return experimentService.updatePermittedUsers(experimentId, permittedUsersUpdateDTO);
     }
 
-    @PostMapping("/{ownerId}/deletedUser")
+    @PostMapping("/deleteExperiments")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public void deleteExperiments(@PathVariable UUID ownerId, @RequestParam boolean deleteEverything) {
-        experimentService.deleteExperimentsAndExecutionsFromDeletedUser(ownerId, deleteEverything);
+    public void deleteExperiments(@RequestParam(value = "experimentId", defaultValue = "null") UUID experimentId,
+                                  @RequestParam(value = "deleteEverything", defaultValue = "false") boolean deleteEverything,
+                                  @RequestParam(value = "ownerId", defaultValue = "null") UUID ownerId,
+                                  @RequestParam("secret") String secret) {
+        if (!experimentId.toString().equals("null")) {
+            experimentService.deleteExperimentById(experimentId, deleteEverything);
+        } else if (!ownerId.toString().equals("null")) {
+            if (!secret.equals(serviceSecret)) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                        "You are not authorized to call an internal service endpoint");
+            }
+            // /experiments?ownerId=999&deleteEverything=true
+            experimentService.deleteExperimentsByOwnerId(ownerId);
+        } else {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "There must either be an experimentId or an ownerId.");
+        }
     }
 }

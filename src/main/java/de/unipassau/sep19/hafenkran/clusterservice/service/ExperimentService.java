@@ -45,12 +45,26 @@ public interface ExperimentService {
     /**
      * Shares an experiment or deletes the access to an experiment and returns an {@link ExperimentDTO} with the permittedUsers within.
      *
-     * @param experimentId The id of the experiment for which to modify the set permittedUsers
+     * @param experimentId            The id of the experiment for which to modify the set permittedUsers
      * @param permittedUsersUpdateDTO The changes in the userAccess.
      * @return The corresponding {@link ExperimentDTO}.
      */
     ExperimentDTO updatePermittedUsers(@NonNull UUID experimentId, @NonNull PermittedUsersUpdateDTO permittedUsersUpdateDTO);
 
-    void deleteExperimentsAndExecutionsFromDeletedUser(@NonNull UUID ownerId, @NonNull boolean deleteAll);
+    /**
+     * Deletes the access to all experiments from the user.
+     *
+     * @param ownerId The user to delete the access.
+     */
+    void deleteExperimentsByOwnerId(@NonNull UUID ownerId);
+
+    /**
+     * Deletes an experiment. If {@code deleteEverything} is set true, it will be completely deleted for all users,
+     * including all executions.
+     *
+     * @param experimentId     The experiment to be deleted.
+     * @param deleteEverything The choice if everything should be deleted for everyone.
+     */
+    void deleteExperimentById(@NonNull UUID experimentId, @NonNull boolean deleteEverything);
 
 }

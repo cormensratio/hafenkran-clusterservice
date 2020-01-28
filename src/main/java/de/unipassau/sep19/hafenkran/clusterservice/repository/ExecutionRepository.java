@@ -23,8 +23,8 @@ public interface ExecutionRepository extends CrudRepository<ExecutionDetails, UU
 
     ExecutionDetails findByPodNameAndExperimentDetails(@NonNull String podName, @NonNull ExperimentDetails experimentDetails);
 
-    void deleteAllByExperimentDetails_Id(@NonNull UUID experimentId);
+    List<ExecutionDetails> deleteAllByExperimentDetails_Id(@NonNull UUID experimentId);
 
-    List<ExecutionDetails> deleteAllByExperimentDetails_OwnerId(@NonNull UUID ownerId);
+    List<ExecutionDetails> deleteAllByOwnerId(@NonNull UUID ownerId);
 
 }
