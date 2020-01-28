@@ -3,11 +3,14 @@ package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
+import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExecutionRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
+import de.unipassau.sep19.hafenkran.clusterservice.serviceclient.UserServiceClient;
+import io.kubernetes.client.ApiException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +35,10 @@ public class ExperimentServiceImpl implements ExperimentService {
     private final ExperimentRepository experimentRepository;
 
     private final ExecutionRepository executionRepository;
+
+    private final UserServiceClient userServiceClient;
+
+    private final KubernetesClient kubernetesClient;
 
     private List<ExperimentDetails> findExperimentsListOfUserId(@NonNull UUID userId) {
         List<ExperimentDetails> experimentDetailsByUserId = experimentRepository.findExperimentDetailsByOwnerIdOrPermittedAccountsContaining(userId, userId);
@@ -89,27 +96,73 @@ public class ExperimentServiceImpl implements ExperimentService {
     }
 
     @Override
-    public void deleteExperimentsAndExecutionsFromDeletedUser(@NonNull UUID ownerId, @NonNull boolean deleteAll) {
+    public void deleteExperimentsAndExecutionsFromDeletedUser(@NonNull UUID ownerId, @NonNull boolean deleteEverything) {
         List<ExperimentDetails> experimentDetails = experimentRepository.findExperimentDetailsByOwnerIdOrPermittedAccountsContaining(ownerId, ownerId);
+        boolean noMoreExperimentsFromThisUser = true;
+
         for (ExperimentDetails experiment : experimentDetails) {
+            List<ExecutionDetails> executionDetailsList = executionRepository.findAllByExperimentDetails_OwnerId(ownerId);
 
             if (experiment.getOwnerId() == ownerId) {
-
-                if (deleteAll || experiment.getPermittedAccounts().isEmpty()) { // Deletes all executions from the experiment and the experiment for all users
-                    List<ExecutionDetails> executionList = executionRepository.deleteAllByExperimentDetails_Id(experiment.getId());
+                if (deleteEverything || experiment.getPermittedAccounts().isEmpty()) { // Deletes all executions from the experiment and the experiment for all users
+                    executionRepository.deleteAllByExperimentDetails_Id(experiment.getId());
                     experimentRepository.delete(experiment);
-                    // TODO: serviceclient zum userservice fürs komplette nutzerdeleten einfügen
+
+                    String namespace = experiment.getId().toString();
+                    List<String> pods;
+                    // Deletes all pods from the experiment in Kubernetes
+                    try {
+                        pods = kubernetesClient.getAllPodsFromNamespace(namespace);
+                    } catch (ApiException e) {
+                        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "The pod couldn't be found.");
+                    }
+                    for (String pod : pods) {
+                        try {
+                            kubernetesClient.deletePodInNamespace(namespace, pod);
+                        } catch (ApiException e) {
+                            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "The pod couldn't be deleted.");
+                        }
+                    }
+
+                    // Deletes the namespace from the experiment in Kubernetes
+                    try {
+                        kubernetesClient.deleteNamespace(namespace);
+                    } catch (ApiException e) {
+                        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "The namespace couldn't be deleted.");
+                    }
+
                 } else { // Deletes only the executions from the owner
                     List<ExecutionDetails> executionList = executionRepository.deleteAllByExperimentDetails_OwnerId(ownerId);
-                }
+                    noMoreExperimentsFromThisUser = false;
 
+                    for (ExecutionDetails executionDetails : executionList) {
+                        try {
+                            kubernetesClient.deletePod(executionDetails);
+                        } catch (ApiException e) {
+                            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "The pod couldn't be deleted.");
+                        }
+                    }
+                }
             } else {
                 experiment.getPermittedAccounts().remove(ownerId);
                 List<ExecutionDetails> executionList = executionRepository.deleteAllByExperimentDetails_OwnerId(ownerId);
+
+                for (ExecutionDetails executionDetails : executionList) {
+                    try {
+                        kubernetesClient.deletePod(executionDetails);
+                    } catch (ApiException e) {
+                        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "The pod couldn't be deleted.");
+                    }
+                }
             }
 
-            // TODO: ExecutionList an Kubernetes zum Löschen der Daten schicken
+            // TODO: ExecutionList an ReportingService zum Löschen der Daten schicken
 
+
+        }
+
+        if (!noMoreExperimentsFromThisUser) {
+            userServiceClient.sendDeleteUserToUserService(ownerId, true);
         }
     }
 
