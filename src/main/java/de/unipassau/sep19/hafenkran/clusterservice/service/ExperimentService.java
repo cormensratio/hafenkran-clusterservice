@@ -2,6 +2,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.service;
 
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTOList;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.PermittedUsersUpdateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import lombok.NonNull;
 
@@ -40,5 +41,13 @@ public interface ExperimentService {
      * @return The list with all {@link ExperimentDTO}s stored in the database.
      */
     List<ExperimentDTO> retrieveAllExperimentDTOs();
+
+    /**
+     * Shares an experiment or deletes the access to an experiment and returns an {@link ExperimentDTO} with the permittedUsers within.
+     *
+     * @param permittedUsersUpdateDTO The changes in the userAccess.
+     * @return The corresponding {@link ExperimentDTO}.
+     */
+    ExperimentDTO updatePermittedUsers(@NonNull PermittedUsersUpdateDTO permittedUsersUpdateDTO);
 
 }
