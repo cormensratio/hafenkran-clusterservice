@@ -129,6 +129,16 @@
       "name": "user-service-uri",
       "type": "java.lang.String",
       "description": "URI for the UserService."
+    },
+    {
+      "name": "kubernetes.config.load-default",
+      "type": "java.lang.String",
+      "description": "Default config."
+    },
+    {
+      "name": "kubernetes.config.location",
+      "type": "java.lang.String",
+      "description": "Location of kubernetes config."
     }
   ]
 }
