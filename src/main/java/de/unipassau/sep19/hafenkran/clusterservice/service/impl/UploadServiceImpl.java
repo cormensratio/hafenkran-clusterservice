@@ -222,6 +222,7 @@ public class UploadServiceImpl implements UploadService {
 
     private void pushImageToDockerHub(@NonNull InputStream inputStream,
                                       @NonNull ExperimentDetails experimentDetails) {
+        experimentDetails.validatePermissions();
 
         final DockerClient dockerClient = initializeDockerClient();
         final String imageId = extractImageIdFromTar(experimentDetails);
