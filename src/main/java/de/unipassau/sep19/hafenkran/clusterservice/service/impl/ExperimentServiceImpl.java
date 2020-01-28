@@ -11,8 +11,9 @@ import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExecutionRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
-import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
+import de.unipassau.sep19.hafenkran.clusterservice.serviceclient.ReportingServiceClient;
 import de.unipassau.sep19.hafenkran.clusterservice.serviceclient.UserServiceClient;
+import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
 import io.kubernetes.client.ApiException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +23,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.annotation.Nonnegative;
 import javax.persistence.RollbackException;
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -42,6 +43,8 @@ public class ExperimentServiceImpl implements ExperimentService {
     private final ExecutionRepository executionRepository;
 
     private final UserServiceClient userServiceClient;
+
+    private final ReportingServiceClient reportingServiceClient;
 
     private final KubernetesClient kubernetesClient;
 
@@ -128,11 +131,15 @@ public class ExperimentServiceImpl implements ExperimentService {
 
     @Override
     public void deleteExperimentsAndExecutionsFromDeletedUser(@NonNull UUID ownerId, @NonNull boolean deleteEverything) {
-        List<ExperimentDetails> experimentDetails = experimentRepository.findExperimentDetailsByOwnerIdOrPermittedAccountsContaining(ownerId, ownerId);
+        List<ExperimentDetails> experimentDetails = experimentRepository.findExperimentDetailsByPermittedUsersContaining(ownerId);
         boolean noMoreExperimentsFromThisUser = true;
 
         for (ExperimentDetails experiment : experimentDetails) {
             List<ExecutionDetails> executionDetailsList = executionRepository.findAllByExperimentDetails_OwnerId(ownerId);
+            List<UUID> executionIdList = new ArrayList<>();
+            for (ExecutionDetails executionDetails : executionDetailsList) {
+                executionIdList.add(executionDetails.getId());
+            }
 
             if (experiment.getOwnerId() == ownerId) {
                 if (deleteEverything || experiment.getPermittedAccounts().isEmpty()) { // Deletes all executions from the experiment and the experiment for all users
@@ -187,8 +194,8 @@ public class ExperimentServiceImpl implements ExperimentService {
                 }
             }
 
-            // TODO: ExecutionList an ReportingService zum Löschen der Daten schicken
-
+            // Deletes the results in the ReportingService
+            reportingServiceClient.sendDeleteExecutionResultToResultsService(executionIdList);
 
         }
 

@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.UUID;
+
 /**
  * {@inheritDoc}
  */
@@ -29,6 +32,13 @@ public class ReportingServiceClientImpl implements ReportingServiceClient {
      */
     public void sendResultsToResultsService(@NonNull ResultDTO resultDTO) {
         serviceClient.post(basePath + "/results?secret=" + serviceSecret, resultDTO, String.class, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void sendDeleteExecutionResultToResultsService(@NonNull List<UUID> executionIdList) {
+        serviceClient.post(basePath + "/results?secret=" + serviceSecret, executionIdList, String.class, null);
     }
 
 }
