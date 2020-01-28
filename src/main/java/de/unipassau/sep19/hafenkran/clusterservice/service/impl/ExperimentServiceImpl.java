@@ -53,14 +53,7 @@ public class ExperimentServiceImpl implements ExperimentService {
     public ExperimentDetails createExperiment(@Valid @NonNull ExperimentDetails experimentDetails) {
         experimentDetails.validatePermissions();
 
-        final ExperimentDetails savedExperimentDetails;
-
-        try {
-            savedExperimentDetails = experimentRepository.save(experimentDetails);
-        } catch (RollbackException e) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Experimentname: "
-                    + experimentDetails.getName() + " already used. Must be unique.");
-        }
+        final ExperimentDetails savedExperimentDetails = experimentRepository.save(experimentDetails);
         log.info(String.format("Experiment with id %s created", savedExperimentDetails.getId()));
         return savedExperimentDetails;
     }

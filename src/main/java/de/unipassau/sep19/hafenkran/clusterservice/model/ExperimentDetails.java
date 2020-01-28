@@ -12,10 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * {@code ExperimentDetails} save the most significant data to identify a user's uploaded experiment.
@@ -59,8 +56,9 @@ public class ExperimentDetails extends Resource {
         this.name = name;
         this.size = size;
         this.fileName = fileName;
-        this.executionDetails = Collections.emptyList();
-        this.permittedUsers.add(this.getOwnerId());
+        this.executionDetails = new ArrayList<>();
+        this.permittedUsers = new HashSet<>();
+        this.permittedUsers.add(ownerId);
     }
 
     /**
