@@ -17,10 +17,6 @@ import java.util.UUID;
 @AllArgsConstructor(onConstructor = @__(@JsonCreator))
 public class PermittedUsersUpdateDTO {
 
-    @NonNull
-    @JsonProperty("id")
-    private final UUID id;
-
     @JsonProperty("permittedUsers")
     private final Set<UUID> permittedUsers;
 

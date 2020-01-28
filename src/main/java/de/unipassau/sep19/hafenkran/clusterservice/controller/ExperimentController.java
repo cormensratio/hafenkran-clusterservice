@@ -117,6 +117,6 @@ public class ExperimentController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public ExperimentDTO updatePermittedUsers(@PathVariable UUID experimentId, @RequestBody PermittedUsersUpdateDTO permittedUsersUpdateDTO) {
-        return experimentService.updatePermittedUsers(permittedUsersUpdateDTO);
+        return experimentService.updatePermittedUsers(experimentId, permittedUsersUpdateDTO);
     }
 }

@@ -45,9 +45,10 @@ public interface ExperimentService {
     /**
      * Shares an experiment or deletes the access to an experiment and returns an {@link ExperimentDTO} with the permittedUsers within.
      *
+     * @param experimentId The id of the experiment for which to modify the set permittedUsers
      * @param permittedUsersUpdateDTO The changes in the userAccess.
      * @return The corresponding {@link ExperimentDTO}.
      */
-    ExperimentDTO updatePermittedUsers(@NonNull PermittedUsersUpdateDTO permittedUsersUpdateDTO);
+    ExperimentDTO updatePermittedUsers(@NonNull UUID experimentId, @NonNull PermittedUsersUpdateDTO permittedUsersUpdateDTO);
 
 }

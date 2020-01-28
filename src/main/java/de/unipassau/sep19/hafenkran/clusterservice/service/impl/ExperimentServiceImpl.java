@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.annotation.Nonnegative;
 import javax.persistence.RollbackException;
 import javax.validation.Valid;
 import java.util.List;
@@ -95,13 +96,13 @@ public class ExperimentServiceImpl implements ExperimentService {
      * {@inheritDoc}
      */
     @Override
-    public ExperimentDTO updatePermittedUsers(@NonNull PermittedUsersUpdateDTO permittedUsersUpdateDTO) {
+    public ExperimentDTO updatePermittedUsers(@NonNull UUID experimentId, @NonNull PermittedUsersUpdateDTO permittedUsersUpdateDTO) {
         if (permittedUsersUpdateDTO.getPermittedUsers().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "You cannot forbid everyone the access. There must be at least one person.");
         }
         
-        ExperimentDetails experimentDetails = experimentRepository.findById(permittedUsersUpdateDTO.getId()).orElseThrow(
-                () -> new ResourceNotFoundException(ExperimentDetails.class, "experimentId", permittedUsersUpdateDTO.getId().toString()));
+        ExperimentDetails experimentDetails = experimentRepository.findById(experimentId).orElseThrow(
+                () -> new ResourceNotFoundException(ExperimentDetails.class, "experimentId", experimentId.toString()));
         UserDTO currentUser = SecurityContextUtil.getCurrentUserDTO();
 
         // If the current user is not permitted or if the current user is no admin
