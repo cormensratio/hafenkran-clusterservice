@@ -16,6 +16,8 @@ public interface ExecutionRepository extends CrudRepository<ExecutionDetails, UU
 
     List<ExecutionDetails> findAllByOwnerId (@NonNull UUID ownerId);
 
+    List<ExecutionDetails> findAllByStatus(@NonNull ExecutionDetails.Status status);
+
     @org.springframework.lang.NonNull
     List<ExecutionDetails> findAll();
 
