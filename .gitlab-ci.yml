@@ -1,11 +1,11 @@
 image: java:8
 
 stages:
-  - build
+  - verify
 
 before_script:
   - chmod +x mvnw
 
-build:
-  stage: build
+verify:
+  stage: verify
   script: ./mvnw verify
