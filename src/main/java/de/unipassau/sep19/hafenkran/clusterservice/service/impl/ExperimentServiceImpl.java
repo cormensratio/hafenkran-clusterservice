@@ -147,21 +147,6 @@ public class ExperimentServiceImpl implements ExperimentService {
                     experimentRepository.delete(experiment);
 
                     String namespace = experiment.getId().toString();
-                    List<String> pods;
-                    // Deletes all pods from the experiment in Kubernetes
-                    try {
-                        pods = kubernetesClient.getAllPodsFromNamespace(namespace);
-                    } catch (ApiException e) {
-                        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "The pod couldn't be found.");
-                    }
-                    for (String pod : pods) {
-                        try {
-                            kubernetesClient.deletePodInNamespace(namespace, pod);
-                        } catch (ApiException e) {
-                            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "The pod couldn't be deleted.");
-                        }
-                    }
-
                     // Deletes the namespace from the experiment in Kubernetes
                     try {
                         kubernetesClient.deleteNamespace(namespace);
@@ -172,26 +157,10 @@ public class ExperimentServiceImpl implements ExperimentService {
                 } else { // Deletes only the executions from the owner
                     List<ExecutionDetails> executionList = executionRepository.deleteAllByExperimentDetails_OwnerId(ownerId);
                     noMoreExperimentsFromThisUser = false;
-
-                    for (ExecutionDetails executionDetails : executionList) {
-                        try {
-                            kubernetesClient.deletePod(executionDetails);
-                        } catch (ApiException e) {
-                            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "The pod couldn't be deleted.");
-                        }
-                    }
                 }
             } else {
                 experiment.getPermittedAccounts().remove(ownerId);
                 List<ExecutionDetails> executionList = executionRepository.deleteAllByExperimentDetails_OwnerId(ownerId);
-
-                for (ExecutionDetails executionDetails : executionList) {
-                    try {
-                        kubernetesClient.deletePod(executionDetails);
-                    } catch (ApiException e) {
-                        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "The pod couldn't be deleted.");
-                    }
-                }
             }
 
             // Deletes the results in the ReportingService
