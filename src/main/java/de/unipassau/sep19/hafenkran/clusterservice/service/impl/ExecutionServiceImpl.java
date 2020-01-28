@@ -188,7 +188,7 @@ public class ExecutionServiceImpl implements ExecutionService {
      */
     @Override
     public List<ExecutionDTO> retrieveExecutionsDTOListForUserId(@NonNull UUID userId) {
-        List<ExecutionDetails> executionDetailsList = executionRepository.findAllByExperimentDetails_OwnerId(userId);
+        List<ExecutionDetails> executionDetailsList = executionRepository.findAllByOwnerId(userId);
 
         if (executionDetailsList.isEmpty()) {
             return Collections.emptyList();
