@@ -51,7 +51,7 @@ public class ExperimentServiceImpl implements ExperimentService {
     public ExperimentDetails createExperiment(@Valid @NonNull ExperimentDetails experimentDetails) {
         experimentDetails.validatePermissions();
 
-        if (experimentRepository.findExperimentDetailsByOwnerIdAndName(experimentDetails.getOwnerId(), experimentDetails.getName()).isEmpty()) {
+        if (!experimentRepository.findExperimentDetailsByOwnerIdAndName(experimentDetails.getOwnerId(), experimentDetails.getName()).isEmpty()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Experimentname: "
                     + experimentDetails.getName() + " already used. Must be unique.");
         }
