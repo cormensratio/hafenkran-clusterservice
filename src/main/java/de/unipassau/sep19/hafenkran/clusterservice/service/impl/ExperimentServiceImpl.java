@@ -2,10 +2,13 @@ package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTOList;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.PermittedUsersUpdateDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.UserDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
+import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +34,8 @@ public class ExperimentServiceImpl implements ExperimentService {
     private final ExperimentRepository experimentRepository;
 
     private List<ExperimentDetails> findExperimentsListOfUserId(@NonNull UUID userId) {
-        List<ExperimentDetails> experimentDetailsByUserId = experimentRepository.findExperimentDetailsByOwnerId(userId);
+        List<ExperimentDetails> experimentDetailsByUserId =
+                experimentRepository.findExperimentDetailsByPermittedUsersContaining(userId);
         experimentDetailsByUserId.forEach(ExperimentDetails::validatePermissions);
         return experimentDetailsByUserId;
     }
@@ -85,6 +89,29 @@ public class ExperimentServiceImpl implements ExperimentService {
      */
     public List<ExperimentDTO> retrieveAllExperimentDTOs() {
         return ExperimentDTOList.convertExperimentListToDTOList(findAllExperiments());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ExperimentDTO updatePermittedUsers(@NonNull PermittedUsersUpdateDTO permittedUsersUpdateDTO) {
+        if (permittedUsersUpdateDTO.getPermittedUsers().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "You cannot forbid everyone the access. There must be at least one person.");
+        }
+        
+        ExperimentDetails experimentDetails = experimentRepository.findById(permittedUsersUpdateDTO.getId()).orElseThrow(
+                () -> new ResourceNotFoundException(ExperimentDetails.class, "experimentId", permittedUsersUpdateDTO.getId().toString()));
+        UserDTO currentUser = SecurityContextUtil.getCurrentUserDTO();
+
+        // If the current user is not permitted or if the current user is no admin
+        if (!experimentDetails.getPermittedUsers().contains(currentUser.getId()) || !currentUser.isAdmin()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not allowed to change the user access from the current experiment.");
+        }
+
+        experimentDetails.setPermittedUsers(permittedUsersUpdateDTO.getPermittedUsers());
+        experimentRepository.save(experimentDetails);
+        return ExperimentDTO.fromExperimentDetails(experimentDetails);
     }
 
 }
