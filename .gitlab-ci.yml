@@ -1,8 +1,9 @@
-image: maven:3-jdk-8
-
-stages:
-  - test
-
-test:
+java:
+  image: maven:3-jdk-8
   stage: test
-  script: mvn test
+  script:
+    - mvn clean test
+  artifacts:
+    reports:
+      junit:
+        - target/surefire-reports/TEST-*.xml
