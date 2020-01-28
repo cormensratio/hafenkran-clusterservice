@@ -3,7 +3,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.serviceclient;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ResultDTO;
 import lombok.NonNull;
 
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -23,6 +23,6 @@ public interface ReportingServiceClient {
      *
      * @param executionIdList The list of the executions which results should be deleted.
      */
-    void sendDeleteExecutionResultToResultsService(@NonNull List<UUID> executionIdList);
+    void deleteResults(@NonNull Set<UUID> executionIdList);
 
 }

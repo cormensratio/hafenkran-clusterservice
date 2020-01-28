@@ -9,8 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * {@inheritDoc}
@@ -37,8 +38,9 @@ public class ReportingServiceClientImpl implements ReportingServiceClient {
     /**
      * {@inheritDoc}
      */
-    public void sendDeleteExecutionResultToResultsService(@NonNull List<UUID> executionIdList) {
-        serviceClient.post(basePath + "/results?secret=" + serviceSecret, executionIdList, String.class, null);
+    public void deleteResults(@NonNull Set<UUID> executionIdList) {
+        String execIds = executionIdList.stream().map(UUID::toString).collect(Collectors.joining(","));
+        serviceClient.post(basePath + "/results/delete?executionIds=" + execIds + " &secret=" + serviceSecret, "", String.class, null);
     }
 
 }
