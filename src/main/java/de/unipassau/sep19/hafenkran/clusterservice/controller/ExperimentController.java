@@ -106,6 +106,20 @@ public class ExperimentController {
         return executionService.createAndStartExecution(executionCreateDTO);
     }
 
+    /**
+     * POST-Endpoint for updating an experiment including the userAccess-Management.
+     *
+     * @param experimentId            The id of the experiment to be updated.
+     * @param permittedUsersUpdateDTO The new options from the experiment, that should be updated (including userAccess).
+     * @return The corresponding {@link ExperimentDTO}.
+     */
+    @PostMapping("/{experimentId}/permittedUsers")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public ExperimentDTO updatePermittedUsers(@PathVariable UUID experimentId, @RequestBody PermittedUsersUpdateDTO permittedUsersUpdateDTO) {
+        return experimentService.updatePermittedUsers(experimentId, permittedUsersUpdateDTO);
+    }
+
     @PostMapping("/{ownerId}/deletedUser")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)

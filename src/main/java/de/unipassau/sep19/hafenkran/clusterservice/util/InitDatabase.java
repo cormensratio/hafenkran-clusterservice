@@ -37,25 +37,9 @@ public class InitDatabase implements CommandLineRunner {
     @Override
     public void run(String... args) {
 
-        String result = "";
-        Resource resource = new ClassPathResource("mockResultsTar");
-        try {
-            File file = resource.getFile();
-            StringBuilder sb = new StringBuilder();
-            Scanner sc = new Scanner(file);
-            sc.forEachRemaining(sb::append);
-            sc.close();
-            result = sb.toString();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        reportingServiceClient.sendResultsToResultsService(new ResultDTO(UUID.randomUUID(), UUID.randomUUID(), result));
-
-
         if (!mockdata) {
             return;
         }
-
 
         final ExperimentDetails experimentDetails1 =
                 new ExperimentDetails(UUID.fromString(
@@ -71,6 +55,13 @@ public class InitDatabase implements CommandLineRunner {
                         "CompletePI", 1024);
         experimentDetails2.setId(UUID.fromString("00000000-0000-0000-0000-000000000002"));
         experimentService.createExperiment(experimentDetails2);
+
+        final ExperimentDetails experimentDetails3 =
+                new ExperimentDetails(UUID.fromString("00000000-0000-0000-0000-000000000002"),
+                        "CompletePI",
+                        "CompletePI", 1024);
+        experimentDetails3.setId(UUID.fromString("00000000-0000-0000-0000-000000000003"));
+        experimentService.createExperiment(experimentDetails3);
 
         final ExecutionDetails executionDetails = new ExecutionDetails(
                 UUID.fromString("00000000-0000-0000-0000-000000000001"), experimentDetails1,

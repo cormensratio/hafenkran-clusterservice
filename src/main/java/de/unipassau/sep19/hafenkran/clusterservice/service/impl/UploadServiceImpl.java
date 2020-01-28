@@ -21,7 +21,6 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.io.IOUtils;
-import org.omg.CosNaming.NamingContextPackage.NotFound;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -223,6 +222,7 @@ public class UploadServiceImpl implements UploadService {
 
     private void pushImageToDockerHub(@NonNull InputStream inputStream,
                                       @NonNull ExperimentDetails experimentDetails) {
+        experimentDetails.validatePermissions();
 
         final DockerClient dockerClient = initializeDockerClient();
         final String imageId = extractImageIdFromTar(experimentDetails);
