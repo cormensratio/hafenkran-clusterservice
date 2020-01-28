@@ -12,7 +12,6 @@ import de.unipassau.sep19.hafenkran.clusterservice.repository.ExecutionRepositor
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
 import de.unipassau.sep19.hafenkran.clusterservice.serviceclient.ReportingServiceClient;
-import de.unipassau.sep19.hafenkran.clusterservice.serviceclient.UserServiceClient;
 import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
 import io.kubernetes.client.ApiException;
 import lombok.NonNull;
@@ -38,8 +37,6 @@ public class ExperimentServiceImpl implements ExperimentService {
     private final ExperimentRepository experimentRepository;
 
     private final ExecutionRepository executionRepository;
-
-    private final UserServiceClient userServiceClient;
 
     private final ReportingServiceClient reportingServiceClient;
 
