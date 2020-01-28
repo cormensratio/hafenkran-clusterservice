@@ -13,11 +13,11 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.persistence.RollbackException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -81,6 +81,8 @@ public class ExperimentServiceImplTest {
 
         // Assert
         verify(mockExperimentRepository, times(1)).save(testUserExperimentDetails);
+        verify(mockExperimentRepository, times(1))
+                .findExperimentDetailsByOwnerIdAndName(testUserExperimentDetails.getOwnerId(), testUserExperimentDetails.getName());
         verify(mockContext, times(1)).getAuthentication();
         assertEquals(testUserExperimentDetails, actual);
         verifyNoMoreInteractions(mockExperimentRepository);
@@ -91,9 +93,9 @@ public class ExperimentServiceImplTest {
 
         // Arrange
         expectedEx.expect(ResponseStatusException.class);
-        expectedEx.expectMessage("Experimentname: testExperiment already used. Must be unique.");
+        expectedEx.expectMessage("Response status 409");
 
-        when(mockExperimentRepository.save(testUserExperimentDetails)).thenThrow(new RollbackException());
+        when(mockExperimentRepository.save(testUserExperimentDetails)).thenThrow(new ResponseStatusException(HttpStatus.CONFLICT));
         when(mockContext.getAuthentication()).thenReturn(MOCK_USER_AUTH);
 
         // Act
