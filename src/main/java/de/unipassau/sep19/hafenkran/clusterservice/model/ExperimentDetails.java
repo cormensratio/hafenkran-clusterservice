@@ -19,7 +19,10 @@ import java.util.*;
  */
 @Slf4j
 @Data
-@Table(name = "experimentdetails")
+@Table(
+        name = "experimentdetails",
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"ownerId", "name"})}
+)
 @Entity
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)

@@ -17,8 +17,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.annotation.Nonnegative;
-import javax.persistence.RollbackException;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
@@ -53,8 +51,12 @@ public class ExperimentServiceImpl implements ExperimentService {
     public ExperimentDetails createExperiment(@Valid @NonNull ExperimentDetails experimentDetails) {
         experimentDetails.validatePermissions();
 
-        final ExperimentDetails savedExperimentDetails = experimentRepository.save(experimentDetails);
-        log.info(String.format("Experiment with id %s created", savedExperimentDetails.getId()));
+        if (experimentRepository.findExperimentDetailsByOwnerIdAndName(experimentDetails.getOwnerId(), experimentDetails.getName()).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Experimentname: "
+                    + experimentDetails.getName() + " already used. Must be unique.");
+        }
+        ExperimentDetails savedExperimentDetails = experimentRepository.save(experimentDetails);
+        log.info(String.format("Experiment with id %s created", experimentDetails.getId()));
         return savedExperimentDetails;
     }
 
@@ -93,7 +95,7 @@ public class ExperimentServiceImpl implements ExperimentService {
         if (permittedUsersUpdateDTO.getPermittedUsers().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "You cannot forbid everyone the access. There must be at least one person.");
         }
-        
+
         ExperimentDetails experimentDetails = experimentRepository.findById(experimentId).orElseThrow(
                 () -> new ResourceNotFoundException(ExperimentDetails.class, "experimentId", experimentId.toString()));
         UserDTO currentUser = SecurityContextUtil.getCurrentUserDTO();

@@ -249,8 +249,6 @@ public class ExecutionServiceImpl implements ExecutionService {
                 executionRepository.findById(executionId).orElseThrow(
                         () -> new ResourceNotFoundException(ExecutionDetails.class, "id", executionId.toString()));
 
-        executionDetails.validatePermissions();
-
         if (status.equals(Status.FINISHED)) {
             executionDetails.setTerminatedAt(LocalDateTime.now());
         }
@@ -370,8 +368,6 @@ public class ExecutionServiceImpl implements ExecutionService {
 
         ExperimentDetails experiment = experimentRepository.findById(namespace).orElseThrow(
                 () -> new ResourceNotFoundException(ExperimentDetails.class, "id",namespace.toString()));
-
-        experiment.validatePermissions();
 
         return executionRepository.findByPodNameAndExperimentDetails(podName, experiment);
     }

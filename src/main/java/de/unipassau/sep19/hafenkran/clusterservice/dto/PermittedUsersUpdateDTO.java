@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NonNull;
 
 import java.util.Set;
 import java.util.UUID;

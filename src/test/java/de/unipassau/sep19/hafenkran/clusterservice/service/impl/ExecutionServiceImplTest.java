@@ -24,13 +24,23 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
+import static org.junit.Assert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ExecutionServiceImplTest {
@@ -341,7 +351,7 @@ public class ExecutionServiceImplTest {
         // Assert
         verify(mockExperimentRepository, times(1)).findById(MOCK_USER_EXPERIMENT_ID);
         verify(mockExecutionRepository, times(2)).save(any(ExecutionDetails.class));
-        verify(mockContext, times(2)).getAuthentication();
+        verify(mockContext, times(4)).getAuthentication();
         assertEquals(mockExecutionDTO.getRam(), actualExecutionDTO.getRam());
         assertEquals(mockExecutionDTO.getCpu(), actualExecutionDTO.getCpu());
         assertEquals(mockExecutionDTO.getName(), actualExecutionDTO.getName());
@@ -375,7 +385,7 @@ public class ExecutionServiceImplTest {
         // Assert
         verify(mockExperimentRepository, times(1)).findById(MOCK_USER_EXPERIMENT_ID);
         verify(mockExecutionRepository, times(2)).save(any(ExecutionDetails.class));
-        verify(mockContext, times(2)).getAuthentication();
+        verify(mockContext, times(4)).getAuthentication();
         assertEquals(mockExecutionDTO.getRam(), actualExecutionDTO.getRam());
         assertEquals(mockExecutionDTO.getCpu(), actualExecutionDTO.getCpu());
         assertEquals(mockExecutionDTO.getName(), actualExecutionDTO.getName());
@@ -474,7 +484,7 @@ public class ExecutionServiceImplTest {
         // Assert
         verify(mockExperimentRepository, times(1)).findById(MOCK_USER_EXPERIMENT_ID);
         verify(mockExecutionRepository, times(2)).save(any(ExecutionDetails.class));
-        verify(mockContext, times(2)).getAuthentication();
+        verify(mockContext, times(4)).getAuthentication();
         assertEquals(mockExecutionDTO.getRam(), actualExecutionDTO.getRam());
         assertEquals(mockExecutionDTO.getCpu(), actualExecutionDTO.getCpu());
         assertEquals(mockExecutionDTO.getName(), actualExecutionDTO.getName());
@@ -587,7 +597,7 @@ public class ExecutionServiceImplTest {
         // Assert
         verify(mockExperimentRepository, times(1)).findById(MOCK_USER_EXPERIMENT_ID);
         verify(mockExecutionRepository, times(2)).save(any(ExecutionDetails.class));
-        verify(mockContext, times(2)).getAuthentication();
+        verify(mockContext, times(4)).getAuthentication();
         assertEquals(mockExecutionDTO.getRam(), actual.getRam());
         assertEquals(mockExecutionDTO.getCpu(), actual.getCpu());
         assertEquals(mockExecutionDTO.getName(), actual.getName());
@@ -611,7 +621,7 @@ public class ExecutionServiceImplTest {
 
         // Assert
         verify(mockExecutionRepository, times(1)).findById(MOCK_USER_EXECUTION_ID);
-        verify(mockContext, times(2)).getAuthentication();
+        verify(mockContext, times(3)).getAuthentication();
         assertEquals(mockExecutionDTO.getStatus(), actualExecutionDTO.getStatus());
         assertEquals((mockExecutionDTO.getTerminatedAt().getSecond()),
                 actualExecutionDTO.getTerminatedAt().getSecond());
@@ -633,7 +643,7 @@ public class ExecutionServiceImplTest {
 
         // Assert
         verify(mockExecutionRepository, times(1)).findById(MOCK_ADMIN_EXECUTION_ID);
-        verify(mockContext, times(2)).getAuthentication();
+        verify(mockContext, times(3)).getAuthentication();
         assertEquals(mockExecutionDTO.getStatus(), actualExecutionDTO.getStatus());
         assertEquals((mockExecutionDTO.getTerminatedAt().getSecond()),
                 actualExecutionDTO.getTerminatedAt().getSecond());
@@ -655,7 +665,7 @@ public class ExecutionServiceImplTest {
 
         // Assert
         verify(mockExecutionRepository, times(1)).findById(MOCK_USER_EXECUTION_ID);
-        verify(mockContext, times(2)).getAuthentication();
+        verify(mockContext, times(3)).getAuthentication();
         assertEquals(mockExecutionDTO.getStatus(), actualExecutionDTO.getStatus());
         assertEquals((mockExecutionDTO.getTerminatedAt().getSecond()),
                 actualExecutionDTO.getTerminatedAt().getSecond());
@@ -707,6 +717,7 @@ public class ExecutionServiceImplTest {
         String expectedLog = "Test Log";
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, testUserExperimentDetails, "Test1",
                 1L, 1L, 1L);
+        mockExecutionDetails.setStatus(ExecutionDetails.Status.RUNNING);
         when(mockExecutionRepository.findById(MOCK_USER_EXECUTION_ID)).thenReturn(Optional.of(mockExecutionDetails));
         when(mockKubernetesClient.retrieveLogs(mockExecutionDetails, lines, sinceSeconds,
                 true)).thenReturn(
@@ -734,6 +745,7 @@ public class ExecutionServiceImplTest {
         int sinceSeconds = 5;
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, testUserExperimentDetails, "Test1",
                 1L, 1L, 1L);
+        mockExecutionDetails.setStatus(ExecutionDetails.Status.RUNNING);
         when(mockExecutionRepository.findById(MOCK_USER_EXECUTION_ID)).thenReturn(Optional.of(mockExecutionDetails));
         when(mockKubernetesClient.retrieveLogs(mockExecutionDetails, lines, sinceSeconds,
                 true)).thenThrow(
