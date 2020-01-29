@@ -1,23 +1,16 @@
 package de.unipassau.sep19.hafenkran.clusterservice.util;
 
-import de.unipassau.sep19.hafenkran.clusterservice.dto.ResultDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
-import de.unipassau.sep19.hafenkran.clusterservice.serviceclient.impl.ReportingServiceClientImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Scanner;
 import java.util.UUID;
 
 @Slf4j
@@ -29,33 +22,15 @@ public class InitDatabase implements CommandLineRunner {
 
     private final ExecutionService executionService;
 
-    private final ReportingServiceClientImpl reportingServiceClient;
-
     @Value("${mockdata}")
     private boolean mockdata;
 
     @Override
     public void run(String... args) {
 
-        String result = "";
-        Resource resource = new ClassPathResource("mockResultsTar");
-        try {
-            File file = resource.getFile();
-            StringBuilder sb = new StringBuilder();
-            Scanner sc = new Scanner(file);
-            sc.forEachRemaining(sb::append);
-            sc.close();
-            result = sb.toString();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        reportingServiceClient.sendResultsToResultsService(new ResultDTO(UUID.randomUUID(), UUID.randomUUID(), result));
-
-
         if (!mockdata) {
             return;
         }
-
 
         final ExperimentDetails experimentDetails1 =
                 new ExperimentDetails(UUID.fromString(
@@ -71,6 +46,13 @@ public class InitDatabase implements CommandLineRunner {
                         "CompletePI", 1024);
         experimentDetails2.setId(UUID.fromString("00000000-0000-0000-0000-000000000002"));
         experimentService.createExperiment(experimentDetails2);
+
+        final ExperimentDetails experimentDetails3 =
+                new ExperimentDetails(UUID.fromString("00000000-0000-0000-0000-000000000002"),
+                        "CompletePI",
+                        "CompletePI", 1024);
+        experimentDetails3.setId(UUID.fromString("00000000-0000-0000-0000-000000000003"));
+        experimentService.createExperiment(experimentDetails3);
 
         final ExecutionDetails executionDetails = new ExecutionDetails(
                 UUID.fromString("00000000-0000-0000-0000-000000000001"), experimentDetails1,

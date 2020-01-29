@@ -1,6 +1,11 @@
 package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
-import de.unipassau.sep19.hafenkran.clusterservice.dto.*;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ResultDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.StdinDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.UserDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
@@ -18,12 +23,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.time.ZoneOffset;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -47,6 +58,21 @@ public class ExecutionServiceImpl implements ExecutionService {
 
     @Value("${kubernetes.deployment.defaults.bookedTime}")
     private long bookedTimeDefault;
+
+    /**
+     * Automatically goes through all running pods in a fixed interval and terminates the execution
+     * if the booked time was exceeded.
+     */
+    @Scheduled(fixedDelayString = "#{${kubernetes.pod-cleanup-scheduler-delay}*1000}")
+    private void terminatePodsAfterBookedTimeExceeded() {
+        List<ExecutionDetails> runningExecutions = executionRepository.findAllByStatus(Status.RUNNING);
+        runningExecutions.forEach(e -> {
+            if (LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+                    < e.getStartedAt().toEpochSecond(ZoneOffset.UTC) + e.getBookedTime()) {
+                terminateExecution(e.getId());
+            }
+        });
+    }
 
     /**
      * {@inheritDoc}
@@ -90,8 +116,11 @@ public class ExecutionServiceImpl implements ExecutionService {
      */
     @Override
     public ExecutionDetails createExecution(@NonNull ExecutionDetails executionDetails) {
+        executionDetails.validatePermissions();
+
         final ExecutionDetails savedExecutionDetails =
                 executionRepository.save(executionDetails);
+
 
         log.info(String.format("Execution with id %s created",
                 savedExecutionDetails.getId()));
@@ -106,6 +135,8 @@ public class ExecutionServiceImpl implements ExecutionService {
     public ExecutionDTO terminateExecution(@NonNull UUID executionId) {
 
         ExecutionDetails executionDetails = getExecutionDetails(executionId);
+
+        executionDetails.validatePermissions();
 
         try {
             kubernetesClient.deletePod(executionDetails);
@@ -148,7 +179,10 @@ public class ExecutionServiceImpl implements ExecutionService {
 
     private ExecutionDetails retrieveExecutionDetailsById(@NonNull UUID id) {
         final Optional<ExecutionDetails> execution = executionRepository.findById(id);
-        return execution.orElseThrow(() -> new ResourceNotFoundException(ExecutionDetails.class, "id", id.toString()));
+        ExecutionDetails executionDetails = execution.orElseThrow(
+                () -> new ResourceNotFoundException(ExecutionDetails.class, "id", id.toString()));
+        executionDetails.validatePermissions();
+        return execution.get();
     }
 
     /**
@@ -232,6 +266,8 @@ public class ExecutionServiceImpl implements ExecutionService {
                 executionRepository.findById(executionId).orElseThrow(
                         () -> new ResourceNotFoundException(ExecutionDetails.class, "id", executionId.toString()));
 
+        executionDetails.validatePermissions();
+
         if (status.equals(Status.FINISHED)) {
             executionDetails.setTerminatedAt(LocalDateTime.now());
         }
@@ -246,6 +282,8 @@ public class ExecutionServiceImpl implements ExecutionService {
     }
 
     private ExecutionDetails startExecution(@NonNull ExecutionDetails executionDetails) {
+        executionDetails.validatePermissions();
+
         final String podName;
         try {
             podName = kubernetesClient.createPod(executionDetails);
@@ -348,8 +386,10 @@ public class ExecutionServiceImpl implements ExecutionService {
     public ExecutionDetails getExecutionOfPod(@NonNull String podName, @NonNull UUID namespace) {
 
         ExperimentDetails experiment = experimentRepository.findById(namespace).orElseThrow(
-                () -> new ResourceNotFoundException(ExperimentDetails.class, "id",
-                        namespace.toString()));
+                () -> new ResourceNotFoundException(ExperimentDetails.class, "id", namespace.toString()));
+
+        experiment.validatePermissions();
+
         return executionRepository.findByPodNameAndExperimentDetails(podName, experiment);
     }
 
@@ -367,6 +407,8 @@ public class ExecutionServiceImpl implements ExecutionService {
     public ExecutionDTO deleteExecution(@NonNull UUID executionId) {
 
         ExecutionDetails executionDetails = getExecutionDetails(executionId);
+
+        executionDetails.validatePermissions();
 
         if (executionDetails.getStatus().equals(Status.RUNNING)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Can not delete executions in running");

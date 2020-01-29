@@ -32,9 +32,10 @@ kubernetes:
       bookedTime: 3600
   defaultLogLines: 500
   debugging: false
+  pod-cleanup-scheduler-delay: 60
   config:
     load-default: true
-    location: /kubernetes/config
+    path: /kubernetes/config
   namespace:
     limits:
       cpu: 500
