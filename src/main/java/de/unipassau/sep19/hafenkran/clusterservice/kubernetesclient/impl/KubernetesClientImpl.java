@@ -7,6 +7,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import io.kubernetes.client.*;
 import io.kubernetes.client.apis.CoreV1Api;
+import io.kubernetes.client.custom.Quantity;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.models.*;
@@ -259,6 +260,24 @@ public class KubernetesClientImpl implements KubernetesClient {
                 .withName(namespace)
                 .endMetadata()
                 .build();
+
+        Map<String, Quantity> allowedResourceRequests = new HashMap<>();
+        allowedResourceRequests.put("requests.cpu", new Quantity("${kubernetes.namespace.limits.cpu}"));
+        allowedResourceRequests.put("requests.memory", new Quantity("${kubernetes.namespace.limits.memory}"));
+
+        V1ResourceQuota resourceQuota = new V1ResourceQuotaBuilder()
+                .withApiVersion("v1")
+                .withKind("ResourceQuota")
+                .withNewMetadata()
+                .withNamespace(namespace)
+                .endMetadata()
+                .withNewSpec()
+                .withHard(allowedResourceRequests)
+                .endSpec()
+                .build();
+
+        log.info("Created resource quota " + resourceQuota.getMetadata().getName() + " in namespace " + namespace);
+
         api.createNamespace(experimentNamespace, true, "pretty", null);
         log.info("Created namespace {}", namespace);
 
