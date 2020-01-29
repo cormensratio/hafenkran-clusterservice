@@ -1,23 +1,16 @@
 package de.unipassau.sep19.hafenkran.clusterservice.util;
 
-import de.unipassau.sep19.hafenkran.clusterservice.dto.ResultDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
-import de.unipassau.sep19.hafenkran.clusterservice.serviceclient.impl.ReportingServiceClientImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Scanner;
 import java.util.UUID;
 
 @Slf4j
@@ -28,8 +21,6 @@ public class InitDatabase implements CommandLineRunner {
     private final ExperimentService experimentService;
 
     private final ExecutionService executionService;
-
-    private final ReportingServiceClientImpl reportingServiceClient;
 
     @Value("${mockdata}")
     private boolean mockdata;

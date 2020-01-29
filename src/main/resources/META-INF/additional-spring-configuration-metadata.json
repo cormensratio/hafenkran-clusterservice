@@ -119,6 +119,21 @@
       "name": "user-service-uri",
       "type": "java.lang.String",
       "description": "URI for the UserService."
+    },
+    {
+      "name": "kubernetes.pod-cleanup-scheduler-delay",
+      "type": "java.lang.Long",
+      "description": "Delay in seconds between scheduler runs for cleanup of executions which exceed their booked time limit."
+    },
+    {
+      "name": "kubernetes.config.load-default",
+      "type": "java.lang.Boolean",
+      "description": "Loads the default config located in the users home directory (especially useful for minikube installations)."
+    },
+    {
+      "name": "kubernetes.config.path",
+      "type": "java.lang.String",
+      "description": "The config location if the load-default is not used."
     }
   ]
 }
