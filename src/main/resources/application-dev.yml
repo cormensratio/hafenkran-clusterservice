@@ -35,6 +35,10 @@ kubernetes:
   config:
     load-default: true
     location: /kubernetes/config
+  namespace:
+    limits:
+      cpu: 500
+      memory: 10000
 
 jwt:
   secret: MCgCIQCAS7IFlSvaBOPXwSBHo+7+6C4RbkvYj3fgI5+Abe4pRwIDAQAB

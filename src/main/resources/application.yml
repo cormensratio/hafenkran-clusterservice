@@ -37,6 +37,10 @@ kubernetes:
       bookedTime: 3600
   defaultLogLines: 500
   debugging: false
+  namespace:
+    limits:
+      cpu: 500
+      memory: 10000
 
 dockerClient:
   username:
