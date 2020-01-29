@@ -32,7 +32,7 @@
     },
     {
       "name": "mockKubernetesClient",
-      "type": "java.lang.Boolean",
+      "type": "java.lang.String",
       "description": "Set false if you want to use the KubernetesClient."
     },
     {
@@ -131,14 +131,19 @@
       "description": "URI for the UserService."
     },
     {
-      "name": "kubernetes.config.load-default",
-      "type": "java.lang.String",
-      "description": "Default config."
+      "name": "kubernetes.pod-cleanup-scheduler-delay",
+      "type": "java.lang.Long",
+      "description": "Delay in seconds between scheduler runs for cleanup of executions which exceed their booked time limit."
     },
     {
-      "name": "kubernetes.config.location",
+      "name": "kubernetes.config.load-default",
+      "type": "java.lang.Boolean",
+      "description": "Loads the default config located in the users home directory (especially useful for minikube installations)."
+    },
+    {
+      "name": "kubernetes.config.path",
       "type": "java.lang.String",
-      "description": "Location of kubernetes config."
+      "description": "The config location if the load-default is not used."
     }
   ]
 }
