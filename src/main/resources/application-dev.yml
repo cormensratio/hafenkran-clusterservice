@@ -35,9 +35,10 @@ kubernetes:
       bookedTime: 3600
   defaultLogLines: 500
   debugging: false
+  pod-cleanup-scheduler-delay: 60
   config:
     load-default: true
-    location: /.kube/config
+    path: /kubernetes/config
 
 jwt:
   secret: MCgCIQCAS7IFlSvaBOPXwSBHo+7+6C4RbkvYj3fgI5+Abe4pRwIDAQAB
