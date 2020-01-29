@@ -22,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.annotation.Nonnegative;
 import javax.persistence.RollbackException;
 import javax.validation.Valid;
 import java.util.*;
@@ -61,15 +62,12 @@ public class ExperimentServiceImpl implements ExperimentService {
     public ExperimentDetails createExperiment(@Valid @NonNull ExperimentDetails experimentDetails) {
         experimentDetails.validatePermissions();
 
-        final ExperimentDetails savedExperimentDetails;
-
-        try {
-            savedExperimentDetails = experimentRepository.save(experimentDetails);
-        } catch (RollbackException e) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Experimentname: "
+        if (!experimentRepository.findExperimentDetailsByOwnerIdAndName(experimentDetails.getOwnerId(), experimentDetails.getName()).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Experimentname: "
                     + experimentDetails.getName() + " already used. Must be unique.");
         }
-        log.info(String.format("Experiment with id %s created", savedExperimentDetails.getId()));
+        ExperimentDetails savedExperimentDetails = experimentRepository.save(experimentDetails);
+        log.info(String.format("Experiment with id %s created", experimentDetails.getId()));
         return savedExperimentDetails;
     }
 
@@ -106,7 +104,8 @@ public class ExperimentServiceImpl implements ExperimentService {
     @Override
     public ExperimentDTO updatePermittedUsers(@NonNull UUID experimentId, @NonNull PermittedUsersUpdateDTO permittedUsersUpdateDTO) {
         if (permittedUsersUpdateDTO.getPermittedUsers().isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "You cannot forbid everyone the access. There must be at least one person.");
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "You cannot forbid everyone the access. There must be at least one person.");
         }
 
         ExperimentDetails experimentDetails = experimentRepository.findById(experimentId).orElseThrow(
@@ -115,7 +114,8 @@ public class ExperimentServiceImpl implements ExperimentService {
 
         // If the current user is not permitted or if the current user is no admin
         if (!experimentDetails.getPermittedUsers().contains(currentUser.getId()) || !currentUser.isAdmin()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not allowed to change the user access from the current experiment.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                    "You are not allowed to change the user access from the current experiment.");
         }
 
         experimentDetails.setPermittedUsers(permittedUsersUpdateDTO.getPermittedUsers());
