@@ -243,7 +243,7 @@ public class KubernetesClientImpl implements KubernetesClient {
                 .collect(Collectors.toList());
     }
 
-    public List<String> getAllPodsFromNamespace(@NonNull String namespace) throws ApiException {
+    private List<String> getAllPodsFromNamespace(@NonNull String namespace) throws ApiException {
         V1PodList podList =
                 api.listNamespacedPod(namespace, true, "pretty", null, null, null, 0, null, Integer.MAX_VALUE,
                         Boolean.FALSE);
@@ -343,7 +343,7 @@ public class KubernetesClientImpl implements KubernetesClient {
         log.info("Deleted namespace {}", namespace);
     }
 
-    public String getNamespace(@NonNull ExecutionDetails executionDetails) {
+    private String getNamespace(@NonNull ExecutionDetails executionDetails) {
         return executionDetails.getExperimentDetails().getId().toString();
     }
 
@@ -351,7 +351,7 @@ public class KubernetesClientImpl implements KubernetesClient {
         return executionDetails.getPodName();
     }
 
-    public void deletePodInNamespace(@NonNull String namespace, @NonNull String podName) throws ApiException {
+    private void deletePodInNamespace(@NonNull String namespace, @NonNull String podName) throws ApiException {
         V1DeleteOptions deleteOptions = new V1DeleteOptions();
         api.deleteNamespacedPod(podName, namespace, "pretty", deleteOptions, null, null, null, null);
         log.info("Deleted pod {}", podName);

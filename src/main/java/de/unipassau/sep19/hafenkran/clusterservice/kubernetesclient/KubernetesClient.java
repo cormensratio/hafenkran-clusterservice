@@ -6,7 +6,6 @@ import io.kubernetes.client.ApiException;
 import lombok.NonNull;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Interface providing methods for interacting with a KubernetesClient.
@@ -71,9 +70,5 @@ public interface KubernetesClient {
     void sendSTIN(@NonNull String input, @NonNull ExecutionDetails executionDetails) throws IOException, ApiException;
 
     void deleteNamespace(@NonNull String namespace) throws ApiException;
-
-    List<String> getAllPodsFromNamespace(@NonNull String namespace) throws ApiException;
-
-    void deletePodInNamespace(@NonNull String namespace, @NonNull String podName) throws ApiException;
 
 }

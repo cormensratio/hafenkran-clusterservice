@@ -3,6 +3,7 @@ package de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
+import io.kubernetes.client.ApiException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
@@ -76,6 +77,11 @@ public class KubernetesClientMockImpl implements KubernetesClient {
     @Override
     public void sendSTIN(@NonNull String input, @NonNull ExecutionDetails executionDetails) {
         log.info(String.format("KubernetesClientMockImpl: Sending the following input to execution with id %s: %s", executionDetails.getId(), input));
+    }
+
+    @Override
+    public void deleteNamespace(@NonNull String namespace) throws ApiException {
+        log.info(String.format("KubernetesClientMockImpl: Deleting namespace %", namespace));
     }
 
 }
