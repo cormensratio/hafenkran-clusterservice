@@ -105,7 +105,7 @@ public class KubernetesClientImpl implements KubernetesClient {
         log.info("Kubernetes Client ready!");
 
         factory = new SharedInformerFactory();
-        //createAndStartPodInformer();
+        createAndStartPodInformer();
         log.info("Kubernetes Pod informer ready!");
     }
 
