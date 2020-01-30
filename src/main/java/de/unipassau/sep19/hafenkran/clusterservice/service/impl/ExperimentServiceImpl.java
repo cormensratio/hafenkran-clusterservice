@@ -51,7 +51,6 @@ public class ExperimentServiceImpl implements ExperimentService {
      * {@inheritDoc}
      */
     public ExperimentDetails createExperiment(@Valid @NonNull ExperimentDetails experimentDetails) {
-
         final ExperimentDetails savedExperimentDetails;
 
         try {

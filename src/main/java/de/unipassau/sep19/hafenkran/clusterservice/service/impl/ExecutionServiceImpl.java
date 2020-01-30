@@ -116,7 +116,6 @@ public class ExecutionServiceImpl implements ExecutionService {
      */
     @Override
     public ExecutionDetails createExecution(@NonNull ExecutionDetails executionDetails) {
-
         final ExecutionDetails savedExecutionDetails =
                 executionRepository.save(executionDetails);
 
