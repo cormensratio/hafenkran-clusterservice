@@ -45,20 +45,14 @@ public class MetricsServerClientMockImpl implements MetricsServerClient {
             metricDTO = objectMapper.readValue(jsonDataSourceString, MetricDTO.class);
             metricDTO.setExecutionId(UUID.fromString("00000000-0000-0000-0000-000000000001"));
             metricDTO.setOwnerId(UUID.fromString("00000000-0000-0000-0000-000000000001"));
-            regexCpuUsage(metricDTO);
-            regexMemoryUsage(metricDTO);
 
             metricDTOTwo = objectMapper.readValue(jsonDataSourceString, MetricDTO.class);
             metricDTOTwo.setExecutionId(UUID.fromString("00000000-0000-0000-0000-000000000002"));
             metricDTOTwo.setOwnerId(UUID.fromString("00000000-0000-0000-0000-000000000002"));
-            regexCpuUsage(metricDTOTwo);
-            regexMemoryUsage(metricDTOTwo);
 
             metricDTOThree = objectMapper.readValue(jsonDataSourceString, MetricDTO.class);
             metricDTOThree.setExecutionId(UUID.fromString("00000000-0000-0000-0000-000000000003"));
             metricDTOThree.setOwnerId(UUID.fromString("00000000-0000-0000-0000-000000000003"));
-            regexCpuUsage(metricDTOThree);
-            regexMemoryUsage(metricDTOThree);
 
             Date date = new Date();
             long time = date.getTime();
@@ -74,19 +68,5 @@ public class MetricsServerClientMockImpl implements MetricsServerClient {
         mockPodMetricsList.add(metricDTOTwo);
         mockPodMetricsList.add(metricDTOThree);
         return mockPodMetricsList;
-    }
-
-    private void regexCpuUsage(@NonNull MetricDTO metricDTO) {
-        for (int i = 0; i < metricDTO.getContainers().size(); i++) {
-            String cpuUsage = metricDTO.getContainers().get(i).getUsage().getCpu();
-            metricDTO.getContainers().get(i).getUsage().setCpu(cpuUsage.replaceAll(regex, ""));
-        }
-    }
-
-    private void regexMemoryUsage(@NonNull MetricDTO metricDTO) {
-        for (int i = 0; i < metricDTO.getContainers().size(); i++) {
-            String memoryUsage = metricDTO.getContainers().get(i).getUsage().getMemory();
-            metricDTO.getContainers().get(i).getUsage().setMemory(memoryUsage.replaceAll(regex, ""));
-        }
     }
 }
