@@ -50,7 +50,7 @@ public class ExecutionServiceImpl implements ExecutionService {
     @Value("${kubernetes.deployment.defaults.bookedTime}")
     private long bookedTimeDefault;
 
-    @Value("${mockKubernetesClient}")
+    @Value("${kubernetes.mock.kubernetesClient}")
     private boolean mockKubernetesClient;
 
     /**
@@ -67,7 +67,7 @@ public class ExecutionServiceImpl implements ExecutionService {
         runningExecutions.forEach(e -> {
             if (LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
                     < e.getStartedAt().toEpochSecond(ZoneOffset.UTC) + e.getBookedTime()) {
-                terminateExecution(e.getId());
+                terminateExecution(e.getId(), true);
             }
         });
     }
@@ -128,11 +128,13 @@ public class ExecutionServiceImpl implements ExecutionService {
      * {@inheritDoc}
      */
     @Override
-    public ExecutionDTO terminateExecution(@NonNull UUID executionId) {
+    public ExecutionDTO terminateExecution(@NonNull UUID executionId, boolean skipPermissionValidation) {
 
         ExecutionDetails executionDetails = getExecutionDetails(executionId);
 
-        executionDetails.validatePermissions();
+        if(!skipPermissionValidation) {
+            executionDetails.validatePermissions();
+        }
 
         try {
             kubernetesClient.deletePod(executionDetails);
