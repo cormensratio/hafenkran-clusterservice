@@ -78,4 +78,9 @@ public class KubernetesClientMockImpl implements KubernetesClient {
         log.info(String.format("KubernetesClientMockImpl: Sending the following input to execution with id %s: %s", executionDetails.getId(), input));
     }
 
+    @Override
+    public boolean checkAvailableNamespaceResources(@NonNull ExecutionDetails executionDetails) {
+        return true;
+    }
+
 }
