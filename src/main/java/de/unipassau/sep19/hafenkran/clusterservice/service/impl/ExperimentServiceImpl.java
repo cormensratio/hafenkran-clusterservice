@@ -57,8 +57,12 @@ public class ExperimentServiceImpl implements ExperimentService {
      * {@inheritDoc}
      */
     public ExperimentDetails createExperiment(@Valid @NonNull ExperimentDetails experimentDetails) {
-        if (!experimentRepository.findExperimentDetailsByOwnerIdAndName(experimentDetails.getOwnerId(), experimentDetails.getName()).isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Experimentname: "
+        final ExperimentDetails savedExperimentDetails;
+
+        try {
+            savedExperimentDetails = experimentRepository.save(experimentDetails);
+        } catch (RollbackException e) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Experimentname: "
                     + experimentDetails.getName() + " already used. Must be unique.");
         }
         ExperimentDetails savedExperimentDetails = experimentRepository.save(experimentDetails);

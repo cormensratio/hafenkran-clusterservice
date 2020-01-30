@@ -35,7 +35,6 @@ public class ExperimentDetails extends Resource {
     @NonNull
     private String checksum;
 
-    @Valid
     @NonNull
     @NotBlank
     private String name;
@@ -59,7 +58,7 @@ public class ExperimentDetails extends Resource {
         this.executionDetails = new ArrayList<>();
         this.permittedUsers = new HashSet<>();
         this.permittedUsers.add(ownerId);
-        totalNumberOfExecutionsStarted = 0;
+        this.totalNumberOfExecutionsStarted = 0;
     }
 
     /**
