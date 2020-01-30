@@ -62,9 +62,8 @@ public interface ExperimentService {
      * Deletes an experiment. If {@code deleteEverything} is set true, it will be completely deleted for all users,
      * including all executions.
      *
-     * @param experimentId     The experiment to be deleted.
-     * @param deleteEverything The choice if everything should be deleted for everyone.
+     * @param experimentId The experiment to be deleted.
      */
-    void deleteExperimentById(@NonNull UUID experimentId, @NonNull boolean deleteEverything);
+    void deleteExperimentById(@NonNull UUID experimentId);
 
 }

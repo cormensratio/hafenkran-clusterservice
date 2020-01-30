@@ -13,7 +13,6 @@ import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentReposito
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
 import de.unipassau.sep19.hafenkran.clusterservice.serviceclient.ReportingServiceClient;
 import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
-import io.kubernetes.client.ApiException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -128,7 +127,7 @@ public class ExperimentServiceImpl implements ExperimentService {
         Set<UUID> executionIdList = new HashSet<>();
 
         for (ExperimentDetails experimentDetails : experimentDetailsList) {
-            executionIdList.addAll(deleteExperimentAndAllExecutions(experimentDetails, ownerId, false));
+            executionIdList.addAll(deleteExperimentAndAllExecutions(experimentDetails, ownerId));
         }
 
         // Deletes the results in the ReportingService
@@ -139,12 +138,12 @@ public class ExperimentServiceImpl implements ExperimentService {
      * {@inheritDoc}
      */
     @Override
-    public void deleteExperimentById(@NonNull UUID experimentId, @NonNull boolean deleteEverything) {
+    public void deleteExperimentById(@NonNull UUID experimentId) {
         ExperimentDetails experimentDetails = experimentRepository.findById(experimentId).orElseThrow(
                 () -> new ResourceNotFoundException(ExperimentDetails.class, "experimentId", experimentId.toString()));
         UserDTO currentUser = SecurityContextUtil.getCurrentUserDTO();
 
-        Set<UUID> executionIdList = deleteExperimentAndAllExecutions(experimentDetails, currentUser.getId(), deleteEverything);
+        Set<UUID> executionIdList = deleteExperimentAndAllExecutions(experimentDetails, currentUser.getId());
 
         // Deletes the results in the ReportingService
         reportingServiceClient.deleteResults(executionIdList);
@@ -156,23 +155,14 @@ public class ExperimentServiceImpl implements ExperimentService {
      * @param experimentDetails The experiment to be deleted.
      * @return An Set of ids from the deleted executions.
      */
-    private Set<UUID> deleteExperimentAndAllExecutions(@NonNull ExperimentDetails experimentDetails, @NonNull UUID userId, @NonNull boolean deleteEverything) {
+    private Set<UUID> deleteExperimentAndAllExecutions(@NonNull ExperimentDetails experimentDetails, @NonNull UUID userId) {
         List<ExecutionDetails> executionDetailsList;
 
-        experimentDetails.getPermittedAccounts().remove(userId);
-
-        if (deleteEverything || experimentDetails.getPermittedAccounts().isEmpty()) {
+        if (experimentDetails.getOwnerId().equals(userId)) {
             executionDetailsList = executionRepository.deleteAllByExperimentDetails_Id(experimentDetails.getId());
             experimentRepository.delete(experimentDetails);
-
-            String namespace = experimentDetails.getId().toString();
-            // Deletes the namespace from the experiment in Kubernetes
-            try {
-                kubernetesClient.deleteNamespace(namespace);
-            } catch (ApiException e) {
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "The namespace couldn't be deleted.");
-            }
         } else {
+            experimentDetails.getPermittedAccounts().remove(userId);
             executionDetailsList = executionRepository.deleteAllByOwnerId(userId);
         }
 

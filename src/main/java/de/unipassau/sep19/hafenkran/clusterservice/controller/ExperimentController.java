@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 import java.util.UUID;
 
@@ -125,24 +126,24 @@ public class ExperimentController {
         return experimentService.updatePermittedUsers(experimentId, permittedUsersUpdateDTO);
     }
 
-    @PostMapping("/deleteExperiments")
+    @PostMapping("/delete")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public void deleteExperiments(@RequestParam(value = "experimentId", required = false) UUID experimentId,
-                                  @RequestParam(value = "deleteEverything", defaultValue = "false") boolean deleteEverything,
-                                  @RequestParam(value = "ownerId", required = false) UUID ownerId,
-                                  @RequestParam("secret") String secret) {
-        if (experimentId != null) {
-            experimentService.deleteExperimentById(experimentId, deleteEverything);
-        } else if (ownerId != null) {
-            if (!secret.equals(serviceSecret)) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                        "You are not authorized to call an internal service endpoint");
-            }
-            // /experiments?ownerId=999&deleteEverything=true
-            experimentService.deleteExperimentsByOwnerId(ownerId);
-        } else {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "There must either be an experimentId or an ownerId.");
+    public void deleteExperimentsForOwnerId(@RequestParam(value = "ownerId", required = true) UUID ownerId,
+                                            @RequestParam(value = "secret", required = true) @NotEmpty String secret) {
+        if (!secret.equals(serviceSecret)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                    "You are not authorized to call an internal service endpoint");
         }
+        experimentService.deleteExperimentsByOwnerId(ownerId);
     }
+
+    @PostMapping("/{experimentId}/delete}")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteExperiment(@PathVariable UUID experimentId) {
+        experimentService.deleteExperimentById(experimentId);
+
+    }
+
 }
