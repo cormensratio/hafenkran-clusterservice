@@ -125,14 +125,10 @@ public class ExperimentServiceImpl implements ExperimentService {
     public void deleteExperimentsByOwnerId(@NonNull UUID ownerId) {
         List<ExperimentDetails> experimentDetailsList = experimentRepository.findExperimentDetailsByPermittedUsersContaining(
                 ownerId);
-        Set<UUID> executionIdList = new HashSet<>();
 
         for (ExperimentDetails experimentDetails : experimentDetailsList) {
-            executionIdList.addAll(deleteExperimentAndAllExecutions(experimentDetails, ownerId));
+            deleteExperimentAndAllExecutions(experimentDetails, ownerId);
         }
-
-        // Deletes the results in the ReportingService
-        reportingServiceClient.deleteResults(executionIdList);
     }
 
     /**
@@ -143,34 +139,23 @@ public class ExperimentServiceImpl implements ExperimentService {
         ExperimentDetails experimentDetails = experimentRepository.findById(experimentId).orElseThrow(
                 () -> new ResourceNotFoundException(ExperimentDetails.class, "experimentId", experimentId.toString()));
         UserDTO currentUser = SecurityContextUtil.getCurrentUserDTO();
-
-        Set<UUID> executionIdList = deleteExperimentAndAllExecutions(experimentDetails, currentUser.getId());
-
-        // Deletes the results in the ReportingService
-        reportingServiceClient.deleteResults(executionIdList);
+        deleteExperimentAndAllExecutions(experimentDetails, currentUser.getId());
     }
 
-    /**
-     * Deletes all executions from the experiment and the experiment for all users, also within Kubernetes.
-     *
-     * @param experimentDetails The experiment to be deleted.
-     * @return An Set of ids from the deleted executions.
-     */
-    private Set<UUID> deleteExperimentAndAllExecutions(@NonNull ExperimentDetails experimentDetails, @NonNull UUID userId) {
-        List<ExecutionDetails> executionDetailsList;
-
+    private void deleteExperimentAndAllExecutions(@NonNull ExperimentDetails experimentDetails, @NonNull UUID userId) {
+        experimentDetails.validatePermissions();
         if (experimentDetails.getOwnerId().equals(userId)) {
-            executionRepository.deleteByExperimentDetails_Id(experimentDetails.getId());
+            Set<UUID> executionIds = executionRepository.deleteByExperimentDetails_Id(
+                    experimentDetails.getId()).stream().map(Resource::getId).collect(Collectors.toSet());
             experimentRepository.delete(experimentDetails);
+            reportingServiceClient.deleteResults(executionIds);
+
         } else {
             experimentDetails.getPermittedAccounts().remove(userId);
-            executionRepository.deleteByOwnerIdAndExperimentDetails_Id(userId, experimentDetails.getId());
+            Set<UUID> executionIds = executionRepository.deleteByOwnerIdAndExperimentDetails_Id(userId,
+                    experimentDetails.getId()).stream().map(Resource::getId).collect(Collectors.toSet());
+            reportingServiceClient.deleteResults(executionIds);
         }
-
-        List<ExecutionDetails> allExcDetails = executionRepository.findAllByExperimentDetails_Id(
-                experimentDetails.getId());
-
-        return allExcDetails.stream().map(Resource::getId).collect(Collectors.toSet());
     }
 
 }
