@@ -52,15 +52,15 @@ public interface ExperimentService {
     ExperimentDTO updatePermittedUsers(@NonNull UUID experimentId, @NonNull PermittedUsersUpdateDTO permittedUsersUpdateDTO);
 
     /**
-     * Deletes the access to all experiments from the user.
+     * Deletes all Experiments and Executions from the {@code ownerId}.
      *
-     * @param ownerId The user to delete the access.
+     * @param ownerId The id of the user to delete everything from.
      */
     void deleteExperimentsByOwnerId(@NonNull UUID ownerId);
 
     /**
-     * Deletes an experiment. If {@code deleteEverything} is set true, it will be completely deleted for all users,
-     * including all executions.
+     * Deletes an experiment. If the currentUser is the owner, the whole Experiment and every Execution will be deleted,
+     * if he is not the owner, only his access will be deleted.
      *
      * @param experimentId The experiment to be deleted.
      */
