@@ -8,8 +8,11 @@ import de.unipassau.sep19.hafenkran.clusterservice.metricsserver.MetricsServerCl
 
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
+import de.unipassau.sep19.hafenkran.clusterservice.serviceclient.ServiceClient;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.configurationprocessor.json.JSONArray;
 import org.springframework.boot.configurationprocessor.json.JSONException;
@@ -32,17 +35,17 @@ import java.util.UUID;
 @Component
 public class MetricsServerClientImpl implements MetricsServerClient {
 
-    @Value("${clusterProxy.path}")
+    @Value("${kubernetes.metrics.path}")
     private String clusterProxyPath;
 
     private ExecutionService executionService;
 
+    private ServiceClient serviceClient;
+
     private List<String> excludedNamespaceList;
 
-    private String regex = "[^0-9]";
-
-
     public MetricsServerClientImpl() {
+        this.serviceClient = SpringContext.getBean(ServiceClient.class);
         this.executionService = SpringContext.getBean(ExecutionService.class);
         buildNamespaceExclusionList();
     }
@@ -52,31 +55,12 @@ public class MetricsServerClientImpl implements MetricsServerClient {
      */
     @Override
     public ArrayList<MetricDTO> retrieveMetrics() {
-        String path = "/apis/metrics.k8s.io/v1beta1/pods";
-        String jsonGetResponse = get(path, String.class);
+        String jsonGetResponse = serviceClient.get(clusterProxyPath, String.class, null);
         return retrieveMetricsFromGetRequest(jsonGetResponse);
     }
 
     private void buildNamespaceExclusionList() {
         excludedNamespaceList = Arrays.asList("kube-node-lease", "kube-public", "kube-system", "kubernetes-dashboard");
-    }
-
-    private <T> T get(@NonNull String path, Class<T> responseType) {
-        RestTemplate rt = new RestTemplate();
-        String basePath = clusterProxyPath;
-        String targetPath = basePath + path;
-        ResponseEntity<T> response = rt.exchange(basePath + path, HttpMethod.GET, authHeaders(), responseType);
-        if (!HttpStatus.Series.valueOf(response.getStatusCode()).equals(HttpStatus.Series.SUCCESSFUL)) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    String.format("Could not retrieve data from %s. Reason: %s %s", targetPath,
-                            response.getStatusCodeValue(), response.getBody()));
-        }
-
-        return response.getBody();
-    }
-
-    private HttpEntity authHeaders() {
-        return new HttpEntity<>(new HttpHeaders());
     }
 
     /**
@@ -117,8 +101,6 @@ public class MetricsServerClientImpl implements MetricsServerClient {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             MetricDTO metricDTO = objectMapper.readValue(jsonDataSourceString, MetricDTO.class);
-            regexCpuUsage(metricDTO);
-            regexMemoryUsage(metricDTO);
             return metricDTO;
         } catch (JsonProcessingException e) {
             e.printStackTrace();
@@ -126,17 +108,4 @@ public class MetricsServerClientImpl implements MetricsServerClient {
         return null;
     }
 
-    private void regexCpuUsage(@NonNull MetricDTO metricDTO) {
-        for (int i = 0; i < metricDTO.getContainers().size(); i++) {
-            String cpuUsage = metricDTO.getContainers().get(i).getUsage().getCpu();
-            metricDTO.getContainers().get(i).getUsage().setCpu(cpuUsage.replaceAll(regex, ""));
-        }
-    }
-
-    private void regexMemoryUsage(@NonNull MetricDTO metricDTO) {
-        for (int i = 0; i < metricDTO.getContainers().size(); i++) {
-            String memoryUsage = metricDTO.getContainers().get(i).getUsage().getMemory();
-            metricDTO.getContainers().get(i).getUsage().setMemory(memoryUsage.replaceAll(regex, ""));
-        }
-    }
 }
