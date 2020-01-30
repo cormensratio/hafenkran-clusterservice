@@ -203,7 +203,7 @@ public class ExecutionServiceImpl implements ExecutionService {
      */
     @Override
     public List<ExecutionDTO> retrieveExecutionsDTOListForUserId(@NonNull UUID userId) {
-        List<ExecutionDetails> executionDetailsList = executionRepository.findAllByExperimentDetails_OwnerId(userId);
+        List<ExecutionDetails> executionDetailsList = executionRepository.findAllByOwnerId(userId);
 
         if (executionDetailsList.isEmpty()) {
             return Collections.emptyList();
@@ -263,8 +263,6 @@ public class ExecutionServiceImpl implements ExecutionService {
         final ExecutionDetails executionDetails =
                 executionRepository.findById(executionId).orElseThrow(
                         () -> new ResourceNotFoundException(ExecutionDetails.class, "id", executionId.toString()));
-
-        executionDetails.validatePermissions();
 
         if (status.equals(Status.FINISHED)) {
             executionDetails.setTerminatedAt(LocalDateTime.now());
@@ -385,8 +383,6 @@ public class ExecutionServiceImpl implements ExecutionService {
 
         ExperimentDetails experiment = experimentRepository.findById(namespace).orElseThrow(
                 () -> new ResourceNotFoundException(ExperimentDetails.class, "id", namespace.toString()));
-
-        experiment.validatePermissions();
 
         return executionRepository.findByPodNameAndExperimentDetails(podName, experiment);
     }
