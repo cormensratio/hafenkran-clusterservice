@@ -609,11 +609,11 @@ public class ExecutionServiceImplTest {
         when(mockContext.getAuthentication()).thenReturn(MOCK_USER_AUTH);
 
         // Act
-        ExecutionDTO actualExecutionDTO = subject.terminateExecution(MOCK_USER_EXECUTION_ID, false);
+        ExecutionDTO actualExecutionDTO = subject.terminateExecution(MOCK_USER_EXECUTION_ID);
 
         // Assert
         verify(mockExecutionRepository, times(1)).findById(MOCK_USER_EXECUTION_ID);
-        verify(mockContext, times(3)).getAuthentication();
+        verify(mockContext, times(2)).getAuthentication();
         assertEquals(mockExecutionDTO.getStatus(), actualExecutionDTO.getStatus());
         assertEquals((mockExecutionDTO.getTerminatedAt().getSecond()),
                 actualExecutionDTO.getTerminatedAt().getSecond());
@@ -631,11 +631,11 @@ public class ExecutionServiceImplTest {
         when(mockContext.getAuthentication()).thenReturn(MOCK_ADMIN_AUTH);
 
         // Act
-        ExecutionDTO actualExecutionDTO = subject.terminateExecution(MOCK_ADMIN_EXECUTION_ID, false);
+        ExecutionDTO actualExecutionDTO = subject.terminateExecution(MOCK_ADMIN_EXECUTION_ID);
 
         // Assert
         verify(mockExecutionRepository, times(1)).findById(MOCK_ADMIN_EXECUTION_ID);
-        verify(mockContext, times(3)).getAuthentication();
+        verify(mockContext, times(2)).getAuthentication();
         assertEquals(mockExecutionDTO.getStatus(), actualExecutionDTO.getStatus());
         assertEquals((mockExecutionDTO.getTerminatedAt().getSecond()),
                 actualExecutionDTO.getTerminatedAt().getSecond());
@@ -653,11 +653,11 @@ public class ExecutionServiceImplTest {
         when(mockContext.getAuthentication()).thenReturn(MOCK_ADMIN_AUTH);
 
         // Act
-        ExecutionDTO actualExecutionDTO = subject.terminateExecution(MOCK_USER_EXECUTION_ID, false);
+        ExecutionDTO actualExecutionDTO = subject.terminateExecution(MOCK_USER_EXECUTION_ID);
 
         // Assert
         verify(mockExecutionRepository, times(1)).findById(MOCK_USER_EXECUTION_ID);
-        verify(mockContext, times(3)).getAuthentication();
+        verify(mockContext, times(2)).getAuthentication();
         assertEquals(mockExecutionDTO.getStatus(), actualExecutionDTO.getStatus());
         assertEquals((mockExecutionDTO.getTerminatedAt().getSecond()),
                 actualExecutionDTO.getTerminatedAt().getSecond());
@@ -675,7 +675,7 @@ public class ExecutionServiceImplTest {
         when(mockExecutionRepository.findById(executionDTO.getId())).thenReturn(Optional.empty());
 
         // Act
-        subject.terminateExecution(MOCK_USER_EXECUTION_ID, false);
+        subject.terminateExecution(MOCK_USER_EXECUTION_ID);
 
         // Assert - with rule
     }
@@ -695,7 +695,7 @@ public class ExecutionServiceImplTest {
                 .deletePod(mockExecutionDetails);
 
         // Act
-        subject.terminateExecution(MOCK_USER_EXECUTION_ID, false);
+        subject.terminateExecution(MOCK_USER_EXECUTION_ID);
 
         // Assert - with rule
 

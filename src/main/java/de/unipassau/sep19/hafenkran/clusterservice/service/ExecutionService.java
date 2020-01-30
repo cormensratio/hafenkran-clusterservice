@@ -46,10 +46,9 @@ public interface ExecutionService {
      * Terminates the execution with the specified {@code executionId}.
      *
      * @param executionId The execution to be terminated.
-     * @param skipPermissionValidation if false the validation of the user permissions is skipped.
      * @return An {@link ExecutionDTO} with the new changed status and the termination time.
      */
-    ExecutionDTO terminateExecution(@NonNull UUID executionId, boolean skipPermissionValidation);
+    ExecutionDTO terminateExecution(@NonNull UUID executionId);
 
     /**
      * Returns the {@link ExecutionDTO} from the specified {@code id}.

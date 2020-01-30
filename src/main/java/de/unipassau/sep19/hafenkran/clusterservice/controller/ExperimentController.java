@@ -151,7 +151,7 @@ public class ExperimentController {
      *
      * @param experimentId  The id of the experiment to be deleted.
      */
-    @PostMapping("/{experimentId}/delete}")
+    @PostMapping("/{experimentId}/delete")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public void deleteExperiment(@PathVariable UUID experimentId) {
