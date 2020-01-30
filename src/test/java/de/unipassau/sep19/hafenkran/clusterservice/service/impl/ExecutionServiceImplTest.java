@@ -353,7 +353,7 @@ public class ExecutionServiceImplTest {
         // Assert
         verify(mockExperimentRepository, times(1)).findById(MOCK_USER_EXPERIMENT_ID);
         verify(mockExecutionRepository, times(2)).save(any(ExecutionDetails.class));
-        verify(mockContext, times(4)).getAuthentication();
+        verify(mockContext, times(3)).getAuthentication();
         assertEquals(mockExecutionDTO.getRam(), actualExecutionDTO.getRam());
         assertEquals(mockExecutionDTO.getCpu(), actualExecutionDTO.getCpu());
         assertEquals(mockExecutionDTO.getName(), actualExecutionDTO.getName());
@@ -387,7 +387,7 @@ public class ExecutionServiceImplTest {
         // Assert
         verify(mockExperimentRepository, times(1)).findById(MOCK_USER_EXPERIMENT_ID);
         verify(mockExecutionRepository, times(2)).save(any(ExecutionDetails.class));
-        verify(mockContext, times(4)).getAuthentication();
+        verify(mockContext, times(3)).getAuthentication();
         assertEquals(mockExecutionDTO.getRam(), actualExecutionDTO.getRam());
         assertEquals(mockExecutionDTO.getCpu(), actualExecutionDTO.getCpu());
         assertEquals(mockExecutionDTO.getName(), actualExecutionDTO.getName());
@@ -486,7 +486,7 @@ public class ExecutionServiceImplTest {
         // Assert
         verify(mockExperimentRepository, times(1)).findById(MOCK_USER_EXPERIMENT_ID);
         verify(mockExecutionRepository, times(2)).save(any(ExecutionDetails.class));
-        verify(mockContext, times(4)).getAuthentication();
+        verify(mockContext, times(3)).getAuthentication();
         assertEquals(mockExecutionDTO.getRam(), actualExecutionDTO.getRam());
         assertEquals(mockExecutionDTO.getCpu(), actualExecutionDTO.getCpu());
         assertEquals(mockExecutionDTO.getName(), actualExecutionDTO.getName());
@@ -599,7 +599,7 @@ public class ExecutionServiceImplTest {
         // Assert
         verify(mockExperimentRepository, times(1)).findById(MOCK_USER_EXPERIMENT_ID);
         verify(mockExecutionRepository, times(2)).save(any(ExecutionDetails.class));
-        verify(mockContext, times(4)).getAuthentication();
+        verify(mockContext, times(3)).getAuthentication();
         assertEquals(mockExecutionDTO.getRam(), actual.getRam());
         assertEquals(mockExecutionDTO.getCpu(), actual.getCpu());
         assertEquals(mockExecutionDTO.getName(), actual.getName());
