@@ -128,13 +128,13 @@ public class ExperimentController {
     @PostMapping("/deleteExperiments")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public void deleteExperiments(@RequestParam(value = "experimentId", defaultValue = "null") UUID experimentId,
+    public void deleteExperiments(@RequestParam(value = "experimentId", required = false) UUID experimentId,
                                   @RequestParam(value = "deleteEverything", defaultValue = "false") boolean deleteEverything,
-                                  @RequestParam(value = "ownerId", defaultValue = "null") UUID ownerId,
+                                  @RequestParam(value = "ownerId", required = false) UUID ownerId,
                                   @RequestParam("secret") String secret) {
-        if (!experimentId.toString().equals("null")) {
+        if (experimentId != null) {
             experimentService.deleteExperimentById(experimentId, deleteEverything);
-        } else if (!ownerId.toString().equals("null")) {
+        } else if (ownerId != null) {
             if (!secret.equals(serviceSecret)) {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                         "You are not authorized to call an internal service endpoint");

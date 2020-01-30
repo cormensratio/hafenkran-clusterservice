@@ -22,8 +22,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.annotation.Nonnegative;
-import javax.persistence.RollbackException;
 import javax.validation.Valid;
 import java.util.*;
 
@@ -60,8 +58,6 @@ public class ExperimentServiceImpl implements ExperimentService {
      * {@inheritDoc}
      */
     public ExperimentDetails createExperiment(@Valid @NonNull ExperimentDetails experimentDetails) {
-        experimentDetails.validatePermissions();
-
         if (!experimentRepository.findExperimentDetailsByOwnerIdAndName(experimentDetails.getOwnerId(), experimentDetails.getName()).isEmpty()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Experimentname: "
                     + experimentDetails.getName() + " already used. Must be unique.");
