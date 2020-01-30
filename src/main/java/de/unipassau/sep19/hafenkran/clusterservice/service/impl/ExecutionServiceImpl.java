@@ -247,12 +247,22 @@ public class ExecutionServiceImpl implements ExecutionService {
 
     private ExecutionDetails startExecution(@NonNull ExecutionDetails executionDetails) {
         final String podName;
+        final boolean freeNamespaceResources;
+
         try {
-            podName = kubernetesClient.createPod(executionDetails);
+            freeNamespaceResources = kubernetesClient.checkAvailableNamespaceResources(executionDetails);
+
+            if (freeNamespaceResources) {
+                podName = kubernetesClient.createPod(executionDetails);
+            } else {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "The requested cpu and/or ram exceeds the limit.");
+            }
         } catch (ApiException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while "
                     + "communicating with the cluster while starting the execution.");
         }
+
 
         executionDetails.setPodName(podName);
         executionDetails.setStartedAt(LocalDateTime.now());
