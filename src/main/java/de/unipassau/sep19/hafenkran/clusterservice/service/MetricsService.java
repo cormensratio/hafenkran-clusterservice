@@ -7,6 +7,6 @@ import java.util.ArrayList;
 /**
  * The MetricsServerService for retrieving all podMetrics.
  */
-public interface MetricsServerService {
+public interface MetricsService {
     ArrayList<MetricDTO> retrieveMetrics();
 }
