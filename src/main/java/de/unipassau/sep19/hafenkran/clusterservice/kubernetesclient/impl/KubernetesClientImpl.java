@@ -277,11 +277,31 @@ public class KubernetesClientImpl implements KubernetesClient {
         if (usedMemoryString.length() == 1) { //used memory = 0
             usedMemory = Integer.parseInt(usedMemoryString);
         } else {
-            usedMemory = Integer.parseInt(usedMemoryString.substring(0, usedMemoryString.length() -2));
+            usedMemory = Integer.parseInt(usedMemoryString.substring(0, usedMemoryString.length() - 2));
         }
 
         return (requestedCpu + usedCpu < Long.parseLong(cpuRequestLimit))
                 && (requestedMemory + usedMemory < Long.parseLong(memoryRequestLimit));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean checkIfEnoughNodeCapacityFree(@NonNull String nodeName, @NonNull long usedCpu,
+                                                 @NonNull long usedMemory) throws ApiException {
+        V1Node response = api.readNode(nodeName, "pretty", null, null);
+
+        long cpuLimit = 2500;
+        long memoryLimit = 10000;
+
+        long totalNodeCpuCapacity =
+                response.getStatus().getCapacity().get("cpu").getNumber().intValue() * 1000; //in milliCores
+        long totalNodeMemoryCapacity =
+                response.getStatus().getCapacity().get("memory").getNumber().intValue(); //in kibibyte
+
+        return (cpuLimit + usedCpu <= totalNodeCpuCapacity)
+                && (memoryLimit + usedMemory <= totalNodeMemoryCapacity);
     }
 
     private List<String> getAllNamespaces() throws ApiException {
