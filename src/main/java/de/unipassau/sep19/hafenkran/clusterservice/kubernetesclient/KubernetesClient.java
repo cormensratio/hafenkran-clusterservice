@@ -69,4 +69,12 @@ public interface KubernetesClient {
      */
     void sendSTIN(@NonNull String input, @NonNull ExecutionDetails executionDetails) throws IOException, ApiException;
 
+    /**
+     * Checks if the requested limits for cpu and ram are available on the namespace.
+     *
+     * @param executionDetails The execution with the requested cpu and ram limits.
+     * @return True if the requested limits are available on the namespace, else false.
+     * @throws ApiException if the resource quota cant be found.
+     */
+    boolean checkAvailableNamespaceResources(@NonNull ExecutionDetails executionDetails) throws ApiException;
 }
