@@ -347,7 +347,7 @@ public class KubernetesClientImpl implements KubernetesClient {
                 namespace);
     }
 
-    private void deleteNamespace(@NonNull String namespace) throws ApiException {
+    public void deleteNamespace(@NonNull String namespace) throws ApiException {
         V1DeleteOptions deleteOptions = new V1DeleteOptions();
         api.deleteNamespace(namespace, "pretty", deleteOptions, null, null, null, null);
         log.info("Deleted namespace {}", namespace);

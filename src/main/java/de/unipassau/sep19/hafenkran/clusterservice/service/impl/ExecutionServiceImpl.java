@@ -1,11 +1,6 @@
 package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
-import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
-import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
-import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
-import de.unipassau.sep19.hafenkran.clusterservice.dto.ResultDTO;
-import de.unipassau.sep19.hafenkran.clusterservice.dto.StdinDTO;
-import de.unipassau.sep19.hafenkran.clusterservice.dto.UserDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.*;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
@@ -30,11 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -59,12 +50,19 @@ public class ExecutionServiceImpl implements ExecutionService {
     @Value("${kubernetes.deployment.defaults.bookedTime}")
     private long bookedTimeDefault;
 
+    @Value("${mockKubernetesClient}")
+    private boolean mockKubernetesClient;
+
     /**
      * Automatically goes through all running pods in a fixed interval and terminates the execution
      * if the booked time was exceeded.
      */
     @Scheduled(fixedDelayString = "#{${kubernetes.pod-cleanup-scheduler-delay}*1000}")
     private void terminatePodsAfterBookedTimeExceeded() {
+        if (mockKubernetesClient) {
+            return;
+        }
+
         List<ExecutionDetails> runningExecutions = executionRepository.findAllByStatus(Status.RUNNING);
         runningExecutions.forEach(e -> {
             if (LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)

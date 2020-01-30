@@ -5,9 +5,13 @@ import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.PermittedUsersUpdateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.UserDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
+import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
+import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
+import de.unipassau.sep19.hafenkran.clusterservice.repository.ExecutionRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
+import de.unipassau.sep19.hafenkran.clusterservice.serviceclient.ReportingServiceClient;
 import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -18,9 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Provides {@link ExperimentDetails}, {@link ExperimentDTO} and {@link ExperimentDTOList} specific services.
@@ -31,6 +33,12 @@ import java.util.UUID;
 public class ExperimentServiceImpl implements ExperimentService {
 
     private final ExperimentRepository experimentRepository;
+
+    private final ExecutionRepository executionRepository;
+
+    private final ReportingServiceClient reportingServiceClient;
+
+    private final KubernetesClient kubernetesClient;
 
     private List<ExperimentDetails> findExperimentsListOfUserId(@NonNull UUID userId) {
         List<ExperimentDetails> experimentDetailsByUserId =
@@ -49,8 +57,6 @@ public class ExperimentServiceImpl implements ExperimentService {
      * {@inheritDoc}
      */
     public ExperimentDetails createExperiment(@Valid @NonNull ExperimentDetails experimentDetails) {
-        experimentDetails.validatePermissions();
-
         if (!experimentRepository.findExperimentDetailsByOwnerIdAndName(experimentDetails.getOwnerId(), experimentDetails.getName()).isEmpty()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Experimentname: "
                     + experimentDetails.getName() + " already used. Must be unique.");
@@ -110,6 +116,63 @@ public class ExperimentServiceImpl implements ExperimentService {
         experimentDetails.setPermittedUsers(permittedUsersUpdateDTO.getPermittedUsers());
         experimentRepository.save(experimentDetails);
         return ExperimentDTO.fromExperimentDetails(experimentDetails);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void deleteExperimentsByOwnerId(@NonNull UUID ownerId) {
+        List<ExperimentDetails> experimentDetailsList = experimentRepository.findExperimentDetailsByPermittedUsersContaining(ownerId);
+        Set<UUID> executionIdList = new HashSet<>();
+
+        for (ExperimentDetails experimentDetails : experimentDetailsList) {
+            executionIdList.addAll(deleteExperimentAndAllExecutions(experimentDetails, ownerId));
+        }
+
+        // Deletes the results in the ReportingService
+        reportingServiceClient.deleteResults(executionIdList);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void deleteExperimentById(@NonNull UUID experimentId) {
+        ExperimentDetails experimentDetails = experimentRepository.findById(experimentId).orElseThrow(
+                () -> new ResourceNotFoundException(ExperimentDetails.class, "experimentId", experimentId.toString()));
+        UserDTO currentUser = SecurityContextUtil.getCurrentUserDTO();
+
+        Set<UUID> executionIdList = deleteExperimentAndAllExecutions(experimentDetails, currentUser.getId());
+
+        // Deletes the results in the ReportingService
+        reportingServiceClient.deleteResults(executionIdList);
+    }
+
+    /**
+     * Deletes all executions from the experiment and the experiment for all users, also within Kubernetes.
+     *
+     * @param experimentDetails The experiment to be deleted.
+     * @return An Set of ids from the deleted executions.
+     */
+    private Set<UUID> deleteExperimentAndAllExecutions(@NonNull ExperimentDetails experimentDetails, @NonNull UUID userId) {
+        List<ExecutionDetails> executionDetailsList;
+
+        if (experimentDetails.getOwnerId().equals(userId)) {
+            executionDetailsList = executionRepository.deleteAllByExperimentDetails_Id(experimentDetails.getId());
+            experimentRepository.delete(experimentDetails);
+        } else {
+            experimentDetails.getPermittedAccounts().remove(userId);
+            executionDetailsList = executionRepository.deleteAllByOwnerId(userId);
+        }
+
+        // Deletes the results in the ReportingService
+        Set<UUID> executionIdList = new HashSet<>();
+        for (ExecutionDetails executionDetails : executionDetailsList) {
+            executionIdList.add(executionDetails.getId());
+        }
+
+        return executionIdList;
     }
 
 }

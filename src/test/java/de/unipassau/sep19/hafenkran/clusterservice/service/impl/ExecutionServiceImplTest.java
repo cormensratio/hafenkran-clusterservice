@@ -24,24 +24,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails.Status.RUNNING;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
-import static org.junit.Assert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ExecutionServiceImplTest {
@@ -719,22 +709,22 @@ public class ExecutionServiceImplTest {
         String expectedLog = "Test Log";
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, testUserExperimentDetails, "Test1",
                 1L, 1L, 1L);
-        mockExecutionDetails.setStatus(ExecutionDetails.Status.RUNNING);
+        mockExecutionDetails.setStatus(RUNNING);
         when(mockExecutionRepository.findById(MOCK_USER_EXECUTION_ID)).thenReturn(Optional.of(mockExecutionDetails));
         when(mockKubernetesClient.retrieveLogs(mockExecutionDetails, lines, sinceSeconds,
                 true)).thenReturn(
                 expectedLog);
-        when(mockContext.getAuthentication()).thenReturn(MOCK_USER_AUTH);
+        when(mockContext.getAuthentication()).thenReturn(MOCK_ADMIN_AUTH);
 
         // Act
         String actual = subject.retrieveLogsForExecutionId(MOCK_USER_EXECUTION_ID, 5, 5, true);
 
         // Assert
         assertEquals(expectedLog, actual);
+        verify(mockContext, times(1)).getAuthentication();
         verify(mockExecutionRepository, times(1)).findById(MOCK_USER_EXECUTION_ID);
         verify(mockKubernetesClient, times(1)).retrieveLogs(mockExecutionDetails, lines,
                 sinceSeconds, true);
-        verify(mockContext, times(1)).getAuthentication();
     }
 
     @Test
@@ -747,12 +737,12 @@ public class ExecutionServiceImplTest {
         int sinceSeconds = 5;
         ExecutionDetails mockExecutionDetails = new ExecutionDetails(MOCK_USER_ID, testUserExperimentDetails, "Test1",
                 1L, 1L, 1L);
-        mockExecutionDetails.setStatus(ExecutionDetails.Status.RUNNING);
+        mockExecutionDetails.setStatus(RUNNING);
         when(mockExecutionRepository.findById(MOCK_USER_EXECUTION_ID)).thenReturn(Optional.of(mockExecutionDetails));
         when(mockKubernetesClient.retrieveLogs(mockExecutionDetails, lines, sinceSeconds,
                 true)).thenThrow(
                 ApiException.class);
-        when(mockContext.getAuthentication()).thenReturn(MOCK_USER_AUTH);
+        when(mockContext.getAuthentication()).thenReturn(MOCK_ADMIN_AUTH);
 
         // Act
         subject.retrieveLogsForExecutionId(MOCK_USER_EXECUTION_ID, 5, 5, true);
@@ -763,7 +753,7 @@ public class ExecutionServiceImplTest {
     @Test
     public void testChangeExecutionStatus_noExistingExecutionId_validStatus_throwsException() throws ResourceNotFoundException {
         // Arrange
-        ExecutionDetails.Status mockStatus = ExecutionDetails.Status.RUNNING;
+        ExecutionDetails.Status mockStatus = RUNNING;
         expectedEx.expect(ResourceNotFoundException.class);
         when(mockExecutionRepository.findById(MOCK_USER_EXECUTION_ID)).thenReturn(Optional.empty());
 

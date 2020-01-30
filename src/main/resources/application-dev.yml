@@ -8,7 +8,7 @@ spring:
     password: test
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     show-sql: true
   servlet:
     multipart:
@@ -22,6 +22,7 @@ reporting-service-uri: http://localhost:8083
 user-service-uri: http://localhost:8081
 
 mockdata: true
+mockKubernetesClient: true
 
 kubernetes:
   deployment:

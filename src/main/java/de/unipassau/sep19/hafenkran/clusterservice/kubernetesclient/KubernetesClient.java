@@ -69,4 +69,6 @@ public interface KubernetesClient {
      */
     void sendSTIN(@NonNull String input, @NonNull ExecutionDetails executionDetails) throws IOException, ApiException;
 
+    void deleteNamespace(@NonNull String namespace) throws ApiException;
+
 }
