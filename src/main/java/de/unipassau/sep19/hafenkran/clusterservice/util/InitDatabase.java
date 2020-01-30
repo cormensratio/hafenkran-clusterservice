@@ -37,21 +37,6 @@ public class InitDatabase implements CommandLineRunner {
     @Override
     public void run(String... args) {
 
-        String result = "";
-        Resource resource = new ClassPathResource("mockResultsTar");
-        try {
-            File file = resource.getFile();
-            StringBuilder sb = new StringBuilder();
-            Scanner sc = new Scanner(file);
-            sc.forEachRemaining(sb::append);
-            sc.close();
-            result = sb.toString();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        reportingServiceClient.sendResultsToResultsService(new ResultDTO(UUID.randomUUID(), UUID.randomUUID(), result));
-
-
         if (!mockdata) {
             return;
         }
