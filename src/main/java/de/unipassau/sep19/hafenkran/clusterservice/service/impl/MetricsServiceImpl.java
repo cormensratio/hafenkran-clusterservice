@@ -1,7 +1,7 @@
 package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
 import de.unipassau.sep19.hafenkran.clusterservice.dto.MetricDTO;
-import de.unipassau.sep19.hafenkran.clusterservice.service.MetricsServerService;
+import de.unipassau.sep19.hafenkran.clusterservice.service.MetricsService;
 import de.unipassau.sep19.hafenkran.clusterservice.metricsserver.MetricsServerClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +16,7 @@ import java.util.ArrayList;
 @Slf4j
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-public class MetricsServerServiceImpl implements MetricsServerService {
+public class MetricsServiceImpl implements MetricsService {
 
     private final MetricsServerClient metricsServerClient;
 
