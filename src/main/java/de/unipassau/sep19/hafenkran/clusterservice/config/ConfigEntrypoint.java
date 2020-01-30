@@ -42,7 +42,7 @@ public class ConfigEntrypoint {
 
     @Bean
     @ConditionalOnProperty(
-            value = "mockKubernetesClient",
+            value = "kubernetes.mock.kubernetesClient",
             havingValue = "true",
             matchIfMissing = true
     )
@@ -52,7 +52,7 @@ public class ConfigEntrypoint {
 
     @Bean
     @ConditionalOnProperty(
-            value = "mockKubernetesClient",
+            value = "kubernetes.mock.kubernetesClient",
             havingValue = "false"
     )
     public KubernetesClient kubernetesClient() throws IOException {
@@ -61,7 +61,7 @@ public class ConfigEntrypoint {
 
     @Bean
     @ConditionalOnProperty(
-            value = "mockMetricsServerClient",
+            value = "kubernetes.mock.metricsServer",
             havingValue = "true",
             matchIfMissing = true
     )
@@ -71,7 +71,7 @@ public class ConfigEntrypoint {
 
     @Bean
     @ConditionalOnProperty(
-            value = "mockMetricsServerClient",
+            value = "kubernetes.mock.metricsServer",
             havingValue = "false"
     )
     public MetricsServerClient metricsServerClient() {
