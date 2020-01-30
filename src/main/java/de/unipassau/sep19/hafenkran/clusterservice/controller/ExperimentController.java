@@ -126,6 +126,12 @@ public class ExperimentController {
         return experimentService.updatePermittedUsers(experimentId, permittedUsersUpdateDTO);
     }
 
+    /**
+     * POST-Endpoint for deleting experiments of the owner.
+     *
+     * @param ownerId   The id of owner which experiments should be deleted.
+     * @param secret    The permission for calling internal server endpoints.
+     */
     @PostMapping("/delete")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
@@ -138,6 +144,13 @@ public class ExperimentController {
         experimentService.deleteExperimentsByOwnerId(ownerId);
     }
 
+    /**
+     * POST-Endpoint for deleting one experiment with the {@code experimentId}.
+     * If the user, who is deleting the experiment, isn't the owner, only his access will be deleted.
+     * Else the whole experiment will be deleted for everyone, including all executions.
+     *
+     * @param experimentId  The id of the experiment to be deleted.
+     */
     @PostMapping("/{experimentId}/delete}")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
