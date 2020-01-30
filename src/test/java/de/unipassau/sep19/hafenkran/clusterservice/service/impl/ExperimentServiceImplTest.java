@@ -52,9 +52,6 @@ public class ExperimentServiceImplTest {
     private ReportingServiceClient mockReportingServiceClient;
 
     @Mock
-    private KubernetesClient mockKubernetesClient;
-
-    @Mock
     private SecurityContext mockContext;
 
     private ExperimentDetails testUserExperimentDetails;
@@ -65,7 +62,7 @@ public class ExperimentServiceImplTest {
 
     @Before
     public void setUp() {
-        this.subject = new ExperimentServiceImpl(mockExperimentRepository, mockExecutionRepository, mockReportingServiceClient, mockKubernetesClient);
+        this.subject = new ExperimentServiceImpl(mockExperimentRepository, mockExecutionRepository, mockReportingServiceClient);
         this.testUserExperimentDetails = new ExperimentDetails(MOCK_USER_ID,
                 "testExperiment", "testExperiment,tar", 500);
         this.testAdminExperimentDetails = new ExperimentDetails(MOCK_ADMIN_ID,

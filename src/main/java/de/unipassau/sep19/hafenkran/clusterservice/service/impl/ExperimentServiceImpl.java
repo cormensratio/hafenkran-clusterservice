@@ -5,9 +5,9 @@ import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.PermittedUsersUpdateDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.UserDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
-import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
+import de.unipassau.sep19.hafenkran.clusterservice.model.Resource;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExecutionRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
@@ -23,6 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Provides {@link ExperimentDetails}, {@link ExperimentDTO} and {@link ExperimentDTOList} specific services.
@@ -37,8 +38,6 @@ public class ExperimentServiceImpl implements ExperimentService {
     private final ExecutionRepository executionRepository;
 
     private final ReportingServiceClient reportingServiceClient;
-
-    private final KubernetesClient kubernetesClient;
 
     private List<ExperimentDetails> findExperimentsListOfUserId(@NonNull UUID userId) {
         List<ExperimentDetails> experimentDetailsByUserId =
@@ -57,7 +56,8 @@ public class ExperimentServiceImpl implements ExperimentService {
      * {@inheritDoc}
      */
     public ExperimentDetails createExperiment(@Valid @NonNull ExperimentDetails experimentDetails) {
-        if (!experimentRepository.findExperimentDetailsByOwnerIdAndName(experimentDetails.getOwnerId(), experimentDetails.getName()).isEmpty()) {
+        if (!experimentRepository.findExperimentDetailsByOwnerIdAndName(experimentDetails.getOwnerId(),
+                experimentDetails.getName()).isEmpty()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Experimentname: "
                     + experimentDetails.getName() + " already used. Must be unique.");
         }
@@ -123,7 +123,8 @@ public class ExperimentServiceImpl implements ExperimentService {
      */
     @Override
     public void deleteExperimentsByOwnerId(@NonNull UUID ownerId) {
-        List<ExperimentDetails> experimentDetailsList = experimentRepository.findExperimentDetailsByPermittedUsersContaining(ownerId);
+        List<ExperimentDetails> experimentDetailsList = experimentRepository.findExperimentDetailsByPermittedUsersContaining(
+                ownerId);
         Set<UUID> executionIdList = new HashSet<>();
 
         for (ExperimentDetails experimentDetails : experimentDetailsList) {
@@ -159,20 +160,17 @@ public class ExperimentServiceImpl implements ExperimentService {
         List<ExecutionDetails> executionDetailsList;
 
         if (experimentDetails.getOwnerId().equals(userId)) {
-            executionDetailsList = executionRepository.deleteAllByExperimentDetails_Id(experimentDetails.getId());
+            executionRepository.deleteByExperimentDetails_Id(experimentDetails.getId());
             experimentRepository.delete(experimentDetails);
         } else {
             experimentDetails.getPermittedAccounts().remove(userId);
-            executionDetailsList = executionRepository.deleteAllByOwnerId(userId);
+            executionRepository.deleteByOwnerIdAndExperimentDetails_Id(userId, experimentDetails.getId());
         }
 
-        // Deletes the results in the ReportingService
-        Set<UUID> executionIdList = new HashSet<>();
-        for (ExecutionDetails executionDetails : executionDetailsList) {
-            executionIdList.add(executionDetails.getId());
-        }
+        List<ExecutionDetails> allExcDetails = executionRepository.findAllByExperimentDetails_Id(
+                experimentDetails.getId());
 
-        return executionIdList;
+        return allExcDetails.stream().map(Resource::getId).collect(Collectors.toSet());
     }
 
 }
