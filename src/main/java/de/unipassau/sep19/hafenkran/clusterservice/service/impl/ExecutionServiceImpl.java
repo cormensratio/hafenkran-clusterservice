@@ -18,11 +18,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -47,6 +49,28 @@ public class ExecutionServiceImpl implements ExecutionService {
 
     @Value("${kubernetes.deployment.defaults.bookedTime}")
     private long bookedTimeDefault;
+
+    @Value("${kubernetes.mock.kubernetesClient}")
+    private boolean mockKubernetesClient;
+
+    /**
+     * Automatically goes through all running pods in a fixed interval and terminates the execution
+     * if the booked time was exceeded.
+     */
+    @Scheduled(fixedDelayString = "#{${kubernetes.pod-cleanup-scheduler-delay}*1000}")
+    private void terminatePodsAfterBookedTimeExceeded() {
+        if (mockKubernetesClient) {
+            return;
+        }
+
+        List<ExecutionDetails> runningExecutions = executionRepository.findAllByStatus(Status.RUNNING);
+        runningExecutions.forEach(e -> {
+            if (LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+                    < e.getStartedAt().toEpochSecond(ZoneOffset.UTC) + e.getBookedTime()) {
+                terminateExecution(e.getId(), true);
+            }
+        });
+    }
 
     /**
      * {@inheritDoc}
@@ -93,6 +117,7 @@ public class ExecutionServiceImpl implements ExecutionService {
         final ExecutionDetails savedExecutionDetails =
                 executionRepository.save(executionDetails);
 
+
         log.info(String.format("Execution with id %s created",
                 savedExecutionDetails.getId()));
 
@@ -103,9 +128,13 @@ public class ExecutionServiceImpl implements ExecutionService {
      * {@inheritDoc}
      */
     @Override
-    public ExecutionDTO terminateExecution(@NonNull UUID executionId) {
+    public ExecutionDTO terminateExecution(@NonNull UUID executionId, boolean skipPermissionValidation) {
 
         ExecutionDetails executionDetails = getExecutionDetails(executionId);
+
+        if (!skipPermissionValidation) {
+            executionDetails.validatePermissions();
+        }
 
         try {
             kubernetesClient.deletePod(executionDetails);
@@ -148,7 +177,10 @@ public class ExecutionServiceImpl implements ExecutionService {
 
     private ExecutionDetails retrieveExecutionDetailsById(@NonNull UUID id) {
         final Optional<ExecutionDetails> execution = executionRepository.findById(id);
-        return execution.orElseThrow(() -> new ResourceNotFoundException(ExecutionDetails.class, "id", id.toString()));
+        ExecutionDetails executionDetails = execution.orElseThrow(
+                () -> new ResourceNotFoundException(ExecutionDetails.class, "id", id.toString()));
+        executionDetails.validatePermissions();
+        return execution.get();
     }
 
     /**
@@ -171,7 +203,7 @@ public class ExecutionServiceImpl implements ExecutionService {
      */
     @Override
     public List<ExecutionDTO> retrieveExecutionsDTOListForUserId(@NonNull UUID userId) {
-        List<ExecutionDetails> executionDetailsList = executionRepository.findAllByExperimentDetails_OwnerId(userId);
+        List<ExecutionDetails> executionDetailsList = executionRepository.findAllByOwnerId(userId);
 
         if (executionDetailsList.isEmpty()) {
             return Collections.emptyList();
@@ -246,6 +278,8 @@ public class ExecutionServiceImpl implements ExecutionService {
     }
 
     private ExecutionDetails startExecution(@NonNull ExecutionDetails executionDetails) {
+        executionDetails.validatePermissions();
+
         final String podName;
         final boolean freeNamespaceResources;
 
@@ -358,8 +392,8 @@ public class ExecutionServiceImpl implements ExecutionService {
     public ExecutionDetails getExecutionOfPod(@NonNull String podName, @NonNull UUID namespace) {
 
         ExperimentDetails experiment = experimentRepository.findById(namespace).orElseThrow(
-                () -> new ResourceNotFoundException(ExperimentDetails.class, "id",
-                        namespace.toString()));
+                () -> new ResourceNotFoundException(ExperimentDetails.class, "id", namespace.toString()));
+
         return executionRepository.findByPodNameAndExperimentDetails(podName, experiment);
     }
 
@@ -377,6 +411,8 @@ public class ExecutionServiceImpl implements ExecutionService {
     public ExecutionDTO deleteExecution(@NonNull UUID executionId) {
 
         ExecutionDetails executionDetails = getExecutionDetails(executionId);
+
+        executionDetails.validatePermissions();
 
         if (executionDetails.getStatus().equals(Status.RUNNING)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Can not delete executions in running");

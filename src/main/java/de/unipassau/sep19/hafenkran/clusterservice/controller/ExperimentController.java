@@ -10,12 +10,15 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,6 +36,9 @@ public class ExperimentController {
     private final UploadService uploadService;
 
     private final ExecutionService executionService;
+
+    @Value("${service-user.secret}")
+    private String serviceSecret;
 
     /**
      * GET-Endpoint for receiving a single {@link ExperimentDTO} by its id.
@@ -105,4 +111,52 @@ public class ExperimentController {
 
         return executionService.createAndStartExecution(executionCreateDTO);
     }
+
+    /**
+     * POST-Endpoint for updating an experiment including the userAccess-Management.
+     *
+     * @param experimentId            The id of the experiment to be updated.
+     * @param permittedUsersUpdateDTO The new options from the experiment, that should be updated (including userAccess).
+     * @return The corresponding {@link ExperimentDTO}.
+     */
+    @PostMapping("/{experimentId}/permittedUsers")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public ExperimentDTO updatePermittedUsers(@PathVariable UUID experimentId, @RequestBody PermittedUsersUpdateDTO permittedUsersUpdateDTO) {
+        return experimentService.updatePermittedUsers(experimentId, permittedUsersUpdateDTO);
+    }
+
+    /**
+     * POST-Endpoint for deleting experiments of the owner.
+     *
+     * @param ownerId The id of owner which experiments should be deleted.
+     * @param secret  The permission for calling internal server endpoints.
+     */
+    @PostMapping("/delete")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteExperimentsForOwnerId(@RequestParam(value = "ownerId", required = true) UUID ownerId,
+                                            @RequestParam(value = "secret", required = true) @NotEmpty String secret) {
+        if (!secret.equals(serviceSecret)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                    "You are not authorized to call an internal service endpoint");
+        }
+        experimentService.deleteExperimentsByOwnerId(ownerId);
+    }
+
+    /**
+     * POST-Endpoint for deleting one experiment with the {@code experimentId}.
+     * If the user, who is deleting the experiment, isn't the owner, only his access will be deleted.
+     * Else the whole experiment will be deleted for everyone, including all executions.
+     *
+     * @param experimentId The id of the experiment to be deleted.
+     */
+    @PostMapping("/{experimentId}/delete}")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteExperiment(@PathVariable UUID experimentId) {
+        experimentService.deleteExperimentById(experimentId);
+
+    }
+
 }

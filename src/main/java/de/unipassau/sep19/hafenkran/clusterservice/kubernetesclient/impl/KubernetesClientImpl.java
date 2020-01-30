@@ -22,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.annotation.PostConstruct;
 import javax.ws.rs.InternalServerErrorException;
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -65,11 +66,11 @@ public class KubernetesClientImpl implements KubernetesClient {
     @Value("${kubernetes.debugging}")
     private boolean debugMode;
 
+    @Value("${kubernetes.config.path}")
+    private String kubernetesConfigLocation;
+
     @Value("${kubernetes.config.load-default}")
     private boolean loadDefaultConfig;
-
-    @Value("${kubernetes.config.location}")
-    private String kubernetesConfigLocation;
 
     @Value("${kubernetes.namespace.limits.cpu}")
     private String cpuRequestLimit;
@@ -83,14 +84,22 @@ public class KubernetesClientImpl implements KubernetesClient {
      * <p>
      * Auto detects kubernetes config files to connect to the client and sets
      * up the api to access the cluster.
-     *
-     * @throws IOException if the config file can't be found
      */
-    public KubernetesClientImpl() throws IOException {
-        log.info("Kubernetes Client ready!");
+    public KubernetesClientImpl() {
 
+    }
+
+    /**
+     * Due to the manual initialization of the KubernetesClient in the ConfigEntrypoint the @Value marked fields are
+     * only injected after the construction, which means that all config related fields are null during the construction
+     * of the class.
+     */
+    @PostConstruct
+    private void postConstruct() throws IOException {
         // load kubernetes config file
-        final ApiClient client = Config.defaultClient();
+        final ApiClient client = loadDefaultConfig
+                ? Config.defaultClient()
+                : Config.fromConfig(kubernetesConfigLocation);
 
         // debugging must be set to false for pod informer
         client.setDebugging(debugMode);
@@ -101,8 +110,11 @@ public class KubernetesClientImpl implements KubernetesClient {
 
         // the CoreV1Api loads default api-client from global configuration
         api = new CoreV1Api(client);
+        log.info("Kubernetes Client ready!");
+
         factory = new SharedInformerFactory();
         createAndStartPodInformer();
+        log.info("Kubernetes Pod informer ready!");
     }
 
     /**
@@ -144,7 +156,6 @@ public class KubernetesClientImpl implements KubernetesClient {
      */
     @Override
     public void deletePod(@NonNull ExecutionDetails executionDetails) throws ApiException {
-
         String namespace = getNamespace(executionDetails);
         String podName = getPodName(executionDetails);
 
@@ -174,6 +185,7 @@ public class KubernetesClientImpl implements KubernetesClient {
      */
     @Override
     public String retrieveLogs(@NonNull ExecutionDetails executionDetails, int lines, Integer sinceSeconds, boolean withTimestamps) throws ApiException {
+        executionDetails.validatePermissions();
 
         if (!executionDetails.getStatus().equals(ExecutionDetails.Status.RUNNING)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -207,7 +219,7 @@ public class KubernetesClientImpl implements KubernetesClient {
                         false,
                         false);
 
-        String output = "";
+        final String output;
         try (InputStream is = new Base64InputStream(new BufferedInputStream(proc.getInputStream()))) {
             output = IOUtils.toString(is, StandardCharsets.UTF_8);
         } catch (IOException e) {
@@ -416,7 +428,7 @@ public class KubernetesClientImpl implements KubernetesClient {
                 namespace);
     }
 
-    private void deleteNamespace(@NonNull String namespace) throws ApiException {
+    public void deleteNamespace(@NonNull String namespace) throws ApiException {
         V1DeleteOptions deleteOptions = new V1DeleteOptions();
         api.deleteNamespace(namespace, "pretty", deleteOptions, null, null, null, null);
         log.info("Deleted namespace {}", namespace);
@@ -471,4 +483,5 @@ public class KubernetesClientImpl implements KubernetesClient {
         podInformer.addEventHandler(new PodEventHandler());
         factory.startAllRegisteredInformers();
     }
+
 }

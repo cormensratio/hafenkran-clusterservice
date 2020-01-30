@@ -69,6 +69,8 @@ public interface KubernetesClient {
      */
     void sendSTIN(@NonNull String input, @NonNull ExecutionDetails executionDetails) throws IOException, ApiException;
 
+    void deleteNamespace(@NonNull String namespace) throws ApiException;
+
     /**
      * Checks if the requested limits for cpu and ram are available on the namespace.
      *
