@@ -96,7 +96,9 @@ public class KubernetesClientImpl implements KubernetesClient {
     @PostConstruct
     private void postConstruct() throws IOException {
         // load kubernetes config file
-        final ApiClient client = Config.defaultClient();
+        final ApiClient client = loadDefaultConfig
+                ? Config.defaultClient()
+                : Config.fromConfig(kubernetesConfigLocation);
 
         // debugging must be set to false for pod informer
         client.setDebugging(debugMode);
