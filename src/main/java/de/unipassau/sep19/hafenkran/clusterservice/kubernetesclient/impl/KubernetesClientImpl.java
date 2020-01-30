@@ -7,6 +7,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import io.kubernetes.client.*;
 import io.kubernetes.client.apis.CoreV1Api;
+import io.kubernetes.client.custom.Quantity;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.models.*;
@@ -70,6 +71,13 @@ public class KubernetesClientImpl implements KubernetesClient {
     @Value("${kubernetes.config.location}")
     private String kubernetesConfigLocation;
 
+    @Value("${kubernetes.namespace.limits.cpu}")
+    private String cpuRequestLimit;
+
+    @Value("${kubernetes.namespace.limits.memory}")
+    private String memoryRequestLimit;
+
+
     /**
      * Constructor of KubernetesClientImpl.
      * <p>
@@ -82,9 +90,7 @@ public class KubernetesClientImpl implements KubernetesClient {
         log.info("Kubernetes Client ready!");
 
         // load kubernetes config file
-        final ApiClient client = loadDefaultConfig
-                ? Config.defaultClient()
-                : Config.fromConfig(kubernetesConfigLocation);
+        final ApiClient client = Config.defaultClient();
 
         // debugging must be set to false for pod informer
         client.setDebugging(debugMode);
@@ -123,10 +129,13 @@ public class KubernetesClientImpl implements KubernetesClient {
         String checksum = executionDetails.getExperimentDetails().getChecksum();
         String image = DOCKER_HUB_REPO_PATH + ":" + checksum;
         String podName = executionDetails.getName();
+        long podCpuLimit = executionDetails.getCpu();
+        long podMemoryLimit = executionDetails.getRam();
+
 
         Map<String, String> labels = new HashMap<>();
         labels.put("run", podName);
-        createPodInNamespace(namespace, podName, image, labels);
+        createPodInNamespace(namespace, podName, image, labels, podCpuLimit, podMemoryLimit);
         return api.readNamespacedPod(podName, namespace, "pretty", false, false).getMetadata().getName();
     }
 
@@ -135,6 +144,7 @@ public class KubernetesClientImpl implements KubernetesClient {
      */
     @Override
     public void deletePod(@NonNull ExecutionDetails executionDetails) throws ApiException {
+
         String namespace = getNamespace(executionDetails);
         String podName = getPodName(executionDetails);
 
@@ -232,6 +242,36 @@ public class KubernetesClientImpl implements KubernetesClient {
         result.close();
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean checkAvailableNamespaceResources(@NonNull ExecutionDetails executionDetails) throws ApiException {
+        String namespace = getNamespace(executionDetails);
+        final long requestedCpu = executionDetails.getCpu();
+        final long requestedMemory = executionDetails.getRam();
+
+        V1ResourceQuota resourceQuota = api.readNamespacedResourceQuota("resource-quota", namespace, "pretty", true, false);
+
+        String usedCpuString = resourceQuota.getStatus().getUsed().get("requests.cpu");
+        String usedMemoryString = resourceQuota.getStatus().getUsed().get("requests.memory");
+        final long usedCpu;
+        final long usedMemory;
+        if (usedCpuString.length() == 1) { //used cpu = 0
+            usedCpu = Integer.parseInt(usedCpuString);
+        } else {
+            usedCpu = Integer.parseInt(usedCpuString.substring(0, usedCpuString.length() -1));
+        }
+        if (usedMemoryString.length() == 1) { //used memory = 0
+            usedMemory = Integer.parseInt(usedMemoryString);
+        } else {
+            usedMemory = Integer.parseInt(usedMemoryString.substring(0, usedMemoryString.length() -2));
+        }
+
+        return (requestedCpu + usedCpu < Long.parseLong(cpuRequestLimit))
+                && (requestedMemory + usedMemory < Long.parseLong(memoryRequestLimit));
+    }
+
     private List<String> getAllNamespaces() throws ApiException {
         V1NamespaceList listNamespace =
                 api.listNamespace(true, "pretty", null, null, null, 0, null, Integer.MAX_VALUE, Boolean.FALSE);
@@ -259,10 +299,43 @@ public class KubernetesClientImpl implements KubernetesClient {
                 .withName(namespace)
                 .endMetadata()
                 .build();
+
         api.createNamespace(experimentNamespace, true, "pretty", null);
         log.info("Created namespace {}", namespace);
 
+        if (cpuRequestLimit != null || memoryRequestLimit != null) {
+            createResourceQuota(namespace);
+        }
     }
+
+    private void createResourceQuota(@NonNull String namespace) throws ApiException {
+        Map<String, Quantity> allowedResourceRequests = new HashMap<>();
+
+        if (cpuRequestLimit != null) {
+            allowedResourceRequests.put("requests.cpu", new Quantity(cpuRequestLimit + "m"));
+        }
+
+        if (memoryRequestLimit != null) {
+            allowedResourceRequests.put("requests.memory", new Quantity(memoryRequestLimit + "Ki"));
+        }
+
+        V1ResourceQuota resourceQuota = new V1ResourceQuotaBuilder()
+                .withApiVersion("v1")
+                .withKind("ResourceQuota")
+                .withNewMetadata()
+                .withName("resource-quota")
+                .withNamespace(namespace)
+                .endMetadata()
+                .withNewSpec()
+                .withHard(allowedResourceRequests)
+                .endSpec()
+                .build();
+
+        api.createNamespacedResourceQuota(namespace, resourceQuota, true, "pretty", null);
+
+        log.info("Created resource quota " + resourceQuota.getMetadata().getName() + " in namespace " + namespace);
+    }
+
 
     /**
      * Creates a Kubernetes Pod and sets the Image Pull Secret for it.
@@ -274,12 +347,19 @@ public class KubernetesClientImpl implements KubernetesClient {
      * @throws ApiException if the communication with the api results in an error
      */
     private void createPodInNamespace(@NonNull String namespace, @NonNull String podName, @NonNull String
-            image,
-                                      @NonNull Map<String, String> labels) throws ApiException {
+            image, @NonNull Map<String, String> labels,
+                                      @NonNull long podCpuLimit, @NonNull long podMemoryLimit) throws ApiException {
+
+        Map<String, Quantity> resourceLimits = new HashMap<>();
+        resourceLimits.put("cpu", new Quantity((podCpuLimit) + "m")); //millicore
+        resourceLimits.put("memory", new Quantity((podMemoryLimit) + "Ki")); //Mebibyte
 
         V1Container container = new V1ContainerBuilder()
                 .withName(podName)
                 .withImage(image)
+                .withNewResources()
+                .withLimits(resourceLimits)
+                .endResources()
                 .withImagePullPolicy("IfNotPresent")
                 .withNewStdin(true)
                 .withTty(true)
