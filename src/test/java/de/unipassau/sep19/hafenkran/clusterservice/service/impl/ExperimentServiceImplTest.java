@@ -1,11 +1,36 @@
 package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
+import de.unipassau.sep19.hafenkran.clusterservice.config.JwtAuthentication;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.UserDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
+import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
+import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
+import de.unipassau.sep19.hafenkran.clusterservice.repository.ExecutionRepository;
+import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
+import de.unipassau.sep19.hafenkran.clusterservice.serviceclient.ReportingServiceClient;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.*;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
+
 
 @RunWith(MockitoJUnitRunner.class)
 public class ExperimentServiceImplTest {
-    /*
 
     private static final UUID MOCK_USER_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
     private static final UUID MOCK_ADMIN_ID = UUID.fromString("00000000-0000-0000-0000-000000000002");
@@ -21,6 +46,15 @@ public class ExperimentServiceImplTest {
     private ExperimentRepository mockExperimentRepository;
 
     @Mock
+    private ExecutionRepository mockExecutionRepository;
+
+    @Mock
+    private ReportingServiceClient mockReportingServiceClient;
+
+    @Mock
+    private KubernetesClient mockKubernetesClient;
+
+    @Mock
     private SecurityContext mockContext;
 
     private ExperimentDetails testUserExperimentDetails;
@@ -31,7 +65,7 @@ public class ExperimentServiceImplTest {
 
     @Before
     public void setUp() {
-        this.subject = new ExperimentServiceImpl(mockExperimentRepository);
+        this.subject = new ExperimentServiceImpl(mockExperimentRepository, mockExecutionRepository, mockReportingServiceClient, mockKubernetesClient);
         this.testUserExperimentDetails = new ExperimentDetails(MOCK_USER_ID,
                 "testExperiment", "testExperiment,tar", 500);
         this.testAdminExperimentDetails = new ExperimentDetails(MOCK_ADMIN_ID,
@@ -45,7 +79,6 @@ public class ExperimentServiceImplTest {
 
         // Arrange
         when(mockExperimentRepository.save(testUserExperimentDetails)).thenReturn(testUserExperimentDetails);
-        when(mockContext.getAuthentication()).thenReturn(MOCK_USER_AUTH);
 
         // Act
         ExperimentDetails actual = subject.createExperiment(testUserExperimentDetails);
@@ -54,7 +87,6 @@ public class ExperimentServiceImplTest {
         verify(mockExperimentRepository, times(1)).save(testUserExperimentDetails);
         verify(mockExperimentRepository, times(1))
                 .findExperimentDetailsByOwnerIdAndName(testUserExperimentDetails.getOwnerId(), testUserExperimentDetails.getName());
-        verify(mockContext, times(1)).getAuthentication();
         assertEquals(testUserExperimentDetails, actual);
         verifyNoMoreInteractions(mockExperimentRepository);
     }
@@ -67,7 +99,6 @@ public class ExperimentServiceImplTest {
         expectedEx.expectMessage("Response status 409");
 
         when(mockExperimentRepository.save(testUserExperimentDetails)).thenThrow(new ResponseStatusException(HttpStatus.CONFLICT));
-        when(mockContext.getAuthentication()).thenReturn(MOCK_USER_AUTH);
 
         // Act
         ExperimentDetails actual = subject.createExperiment(testUserExperimentDetails);
@@ -188,5 +219,5 @@ public class ExperimentServiceImplTest {
         verify(mockContext, times(2)).getAuthentication();
         assertThat(actual, containsInAnyOrder(mockUserExperimentDTO, mockAdminExperimentDTO));
         verifyNoMoreInteractions(mockExperimentRepository, mockContext);
-    }*/
+    }
 }
