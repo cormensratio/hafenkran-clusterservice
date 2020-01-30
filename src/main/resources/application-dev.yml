@@ -38,8 +38,8 @@ kubernetes:
   metrics:
     path: http://localhost:8001/apis/metrics.k8s.io/v1beta1/pods
   mock:
-    kubernetesClient: false
-    metricsServer: false
+    kubernetesClient: true
+    metricsServer: true
 
 jwt:
   secret: MCgCIQCAS7IFlSvaBOPXwSBHo+7+6C4RbkvYj3fgI5+Abe4pRwIDAQAB
