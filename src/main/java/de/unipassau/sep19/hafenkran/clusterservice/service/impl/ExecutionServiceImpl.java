@@ -1,6 +1,11 @@
 package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
-import de.unipassau.sep19.hafenkran.clusterservice.dto.*;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionCreateDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ExecutionDTOList;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.ResultDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.StdinDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.UserDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceNotFoundException;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
@@ -25,7 +30,11 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -66,8 +75,8 @@ public class ExecutionServiceImpl implements ExecutionService {
         List<ExecutionDetails> runningExecutions = executionRepository.findAllByStatus(Status.RUNNING);
         runningExecutions.forEach(e -> {
             if (LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
-                    < e.getStartedAt().toEpochSecond(ZoneOffset.UTC) + e.getBookedTime()) {
-                terminateExecution(e.getId(), true);
+                    > e.getStartedAt().toEpochSecond(ZoneOffset.UTC) + e.getBookedTime()) {
+                terminateExecutionInternal(e.getId());
             }
         });
     }
@@ -78,6 +87,8 @@ public class ExecutionServiceImpl implements ExecutionService {
     @Override
     public String retrieveLogsForExecutionId(@NonNull UUID id, int lines, Integer sinceSeconds, boolean withTimestamps) {
         ExecutionDetails executionDetails = retrieveExecutionDetailsById(id);
+
+        executionDetails.validatePermissions();
 
         if (!executionDetails.getStatus().equals(ExecutionDetails.Status.RUNNING)) {
             return "Logs can only be retrieved for running executions!";
@@ -128,13 +139,11 @@ public class ExecutionServiceImpl implements ExecutionService {
      * {@inheritDoc}
      */
     @Override
-    public ExecutionDTO terminateExecution(@NonNull UUID executionId, boolean skipPermissionValidation) {
+    public ExecutionDTO terminateExecution(@NonNull UUID executionId) {
 
         ExecutionDetails executionDetails = getExecutionDetails(executionId);
 
-        if (!skipPermissionValidation) {
-            executionDetails.validatePermissions();
-        }
+        executionDetails.validatePermissions();
 
         try {
             kubernetesClient.deletePod(executionDetails);
@@ -167,20 +176,44 @@ public class ExecutionServiceImpl implements ExecutionService {
         return terminatedExecutionDTO;
     }
 
+
+    private ExecutionDTO terminateExecutionInternal(@NonNull UUID executionId) {
+        ExecutionDetails executionDetails = getExecutionDetails(executionId);
+
+        try {
+            kubernetesClient.deletePod(executionDetails);
+        } catch (ApiException e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while "
+                    + "communicating with the cluster.");
+        }
+
+        executionDetails.setStatus(ExecutionDetails.Status.ABORTED);
+        executionDetails.setTerminatedAt(LocalDateTime.now());
+
+        executionRepository.save(executionDetails);
+
+        ExecutionDTO terminatedExecutionDTO = ExecutionDTO.fromExecutionDetails(executionDetails);
+
+        log.info(String.format("Execution with id %S terminated", executionId));
+        return terminatedExecutionDTO;
+    }
+
     /**
      * {@inheritDoc}
      */
     @Override
     public ExecutionDTO retrieveExecutionDTOById(@NonNull UUID id) {
-        return ExecutionDTO.fromExecutionDetails(retrieveExecutionDetailsById(id));
+        ExecutionDetails executionDetails = retrieveExecutionDetailsById(id);
+
+        executionDetails.validatePermissions();
+
+        return ExecutionDTO.fromExecutionDetails(executionDetails);
     }
 
     private ExecutionDetails retrieveExecutionDetailsById(@NonNull UUID id) {
         final Optional<ExecutionDetails> execution = executionRepository.findById(id);
-        ExecutionDetails executionDetails = execution.orElseThrow(
+        return execution.orElseThrow(
                 () -> new ResourceNotFoundException(ExecutionDetails.class, "id", id.toString()));
-        executionDetails.validatePermissions();
-        return execution.get();
     }
 
     /**
@@ -234,6 +267,7 @@ public class ExecutionServiceImpl implements ExecutionService {
     @Override
     public byte[] getResults(@NonNull UUID executionId) {
         ExecutionDetails executionDetails = retrieveExecutionDetailsById(executionId);
+
         try {
             return Base64.getEncoder().encode(kubernetesClient.retrieveResults(executionDetails).getBytes());
         } catch (ApiException | IOException e) {
@@ -247,6 +281,9 @@ public class ExecutionServiceImpl implements ExecutionService {
     @Override
     public void sendSTDIN(@NonNull UUID executionId, @NonNull StdinDTO stdinDTO) {
         ExecutionDetails executionDetails = retrieveExecutionDetailsById(executionId);
+
+        executionDetails.validatePermissions();
+
         try {
             kubernetesClient.sendSTIN(stdinDTO.getInput(), executionDetails);
         } catch (IOException | ApiException e) {
@@ -314,7 +351,6 @@ public class ExecutionServiceImpl implements ExecutionService {
                 () -> new ResourceNotFoundException(ExperimentDetails.class, "id",
                         executionId.toString()));
 
-        execution.validatePermissions();
         return execution;
     }
 
