@@ -79,4 +79,16 @@ public interface KubernetesClient {
      * @throws ApiException if the resource quota cant be found.
      */
     boolean checkAvailableNamespaceResources(@NonNull ExecutionDetails executionDetails) throws ApiException;
+
+    /**
+     * Checks if there is enough node capacity the create a new namespace with resource quotas.
+     *
+     * @param nodeName   The name of the node which should be checked.
+     * @param usedCpu    The already used cpu of the node.
+     * @param usedMemory The already used memory of the node.
+     * @return True if there is enough free capacity on that node.
+     * @throws ApiException if the node cant be found.
+     */
+    boolean checkIfEnoughNodeCapacityFree(@NonNull String nodeName, @NonNull long usedCpu,
+                                          @NonNull long usedMemory) throws ApiException;
 }
