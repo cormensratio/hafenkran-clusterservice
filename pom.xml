@@ -20,7 +20,6 @@
         <lombok.version>1.18.10</lombok.version>
         <junit.jupiter.version>5.5.2</junit.jupiter.version>
         <jackson.version>2.10.0</jackson.version>
-        <jsonpath.version>2.4.0</jsonpath.version>
         <jjwt.version>0.9.1</jjwt.version>
         <kubernetes-client.version>5.0.0</kubernetes-client.version>
         <docker-java.version>3.1.5</docker-java.version>
@@ -49,11 +48,6 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.jayway.jsonpath</groupId>
-            <artifactId>json-path</artifactId>
-            <version>${jsonpath.version}</version>
         </dependency>
 
         <!-- Database -->
