@@ -3,8 +3,8 @@ package de.unipassau.sep19.hafenkran.clusterservice.metricsserver.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.MetricDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.NodeMetricsDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.metricsserver.MetricsServerClient;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -40,7 +40,11 @@ public class MetricsServerClientMockImpl implements MetricsServerClient {
         MetricDTO metricDTO = null;
         MetricDTO metricDTOTwo = null;
         MetricDTO metricDTOThree = null;
-        String jsonDataSourceString = "{\"metadata\":{\"name\":\"hafenkran-1\",\"namespace\":\"cce4a685-391c-474b-a2ca-7e314edde99c\",\"creationTimestamp\":\"2020-01-16T14:51:14Z\",\"selfLink\":\"/apis/metrics.k8s.io/v1beta1/namespaces/cce4a685-391c-474b-a2ca-7e314edde99c/pods/hafenkran-1\"},\"containers\":[{\"usage\":{\"memory\":\"16496Ki\",\"cpu\":\"0\"},\"name\":\"hafenkran-1\"}],\"window\":\"1m0s\",\"timestamp\":\"2020-01-16T14:51:00Z\"}";
+        String jsonDataSourceString = "{\"metadata\":{\"name\":\"hafenkran-1\",\"namespace\"" +
+                ":\"cce4a685-391c-474b-a2ca-7e314edde99c\",\"creationTimestamp\":\"2020-01-16T14:51:14Z\"" +
+                ",\"selfLink\":\"/apis/metrics.k8s.io/v1beta1/namespaces/cce4a685-391c-474b-a2ca-7e314edde99c/pods/" +
+                "hafenkran-1\"},\"containers\":[{\"usage\":{\"memory\":\"16496Ki\",\"cpu\":\"0\"}," +
+                "\"name\":\"hafenkran-1\"}],\"window\":\"1m0s\",\"timestamp\":\"2020-01-16T14:51:00Z\"}";
         try {
             metricDTO = objectMapper.readValue(jsonDataSourceString, MetricDTO.class);
             metricDTO.setExecutionId(UUID.fromString("00000000-0000-0000-0000-000000000001"));
@@ -68,5 +72,23 @@ public class MetricsServerClientMockImpl implements MetricsServerClient {
         mockPodMetricsList.add(metricDTOTwo);
         mockPodMetricsList.add(metricDTOThree);
         return mockPodMetricsList;
+    }
+
+    @Override
+    public ArrayList<NodeMetricsDTO> retrieveNodeMetrics() {
+        ArrayList<NodeMetricsDTO> nodeMetricsList = new ArrayList<>();
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonDataSourceString = "{\"metadata\":{\"name\":\"minikube\",\"creationTimestamp\":" +
+                "\"2020-01-30T16:45:32Z\",\"selfLink\":\"\\/apis\\/metrics.k8s.io\\/v1beta1\\/nodes\\" +
+                "/minikube\"},\"usage\":{\"memory\":\"1331932Ki\",\"cpu\":\"716m\"},\"window\":\"1m0s\"," +
+                "\"timestamp\":\"2020-01-30T16:45:00Z\"}";
+
+        try {
+            NodeMetricsDTO nodeMetrics = objectMapper.readValue(jsonDataSourceString, NodeMetricsDTO.class);
+            nodeMetricsList.add(nodeMetrics);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return nodeMetricsList;
     }
 }

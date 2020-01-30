@@ -4,23 +4,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.unipassau.sep19.hafenkran.clusterservice.config.SpringContext;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.MetricDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.NodeMetricsDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.metricsserver.MetricsServerClient;
-
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExecutionService;
 import de.unipassau.sep19.hafenkran.clusterservice.serviceclient.ServiceClient;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.configurationprocessor.json.JSONArray;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
-import org.springframework.http.*;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,8 +50,17 @@ public class MetricsServerClientImpl implements MetricsServerClient {
      */
     @Override
     public ArrayList<MetricDTO> retrieveMetrics() {
-        String jsonGetResponse = serviceClient.get(kubernetesMetricsPath, String.class, null);
+        String jsonGetResponse = serviceClient.get(kubernetesMetricsPath + "/pods", String.class, null);
         return retrieveMetricsFromGetRequest(jsonGetResponse);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ArrayList<NodeMetricsDTO> retrieveNodeMetrics() {
+        String jsonGetResponse = serviceClient.get(kubernetesMetricsPath + "/nodes", String.class, null);
+        return retrieveNodeMetricsFromGetRequest(jsonGetResponse);
     }
 
     private void buildNamespaceExclusionList() {
@@ -97,15 +101,41 @@ public class MetricsServerClientImpl implements MetricsServerClient {
         return allPodMetrics;
     }
 
+    private ArrayList<NodeMetricsDTO> retrieveNodeMetricsFromGetRequest(@NonNull String jsonGetResponse) {
+        ArrayList<NodeMetricsDTO> allNodeMetrics = new ArrayList<>();
+        try {
+            JSONObject jsonGetResponseObject = new JSONObject(jsonGetResponse);
+            JSONArray jsonNodeMetricsItemsArray = jsonGetResponseObject.getJSONArray("items");
+            if (jsonNodeMetricsItemsArray != null) {
+                for (int i = 0; i < jsonNodeMetricsItemsArray.length(); i++) {
+                    String jsonDataSourceString = jsonNodeMetricsItemsArray.getJSONObject(i).toString();
+                    NodeMetricsDTO nodeMetricsDTO = buildNodeMetricsDTOFromJsonString(jsonDataSourceString);
+                    allNodeMetrics.add(nodeMetricsDTO);
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return allNodeMetrics;
+    }
+
     private MetricDTO buildPodMetricsDTOFromJsonString(@NonNull String jsonDataSourceString) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            MetricDTO metricDTO = objectMapper.readValue(jsonDataSourceString, MetricDTO.class);
-            return metricDTO;
+            return objectMapper.readValue(jsonDataSourceString, MetricDTO.class);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
         return null;
     }
 
+    private NodeMetricsDTO buildNodeMetricsDTOFromJsonString(@NonNull String jsonDataSourceString) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.readValue(jsonDataSourceString, NodeMetricsDTO.class);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
