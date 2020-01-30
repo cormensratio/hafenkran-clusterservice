@@ -609,7 +609,7 @@ public class ExecutionServiceImplTest {
         when(mockContext.getAuthentication()).thenReturn(MOCK_USER_AUTH);
 
         // Act
-        ExecutionDTO actualExecutionDTO = subject.terminateExecution(MOCK_USER_EXECUTION_ID);
+        ExecutionDTO actualExecutionDTO = subject.terminateExecution(MOCK_USER_EXECUTION_ID, false);
 
         // Assert
         verify(mockExecutionRepository, times(1)).findById(MOCK_USER_EXECUTION_ID);
@@ -631,7 +631,7 @@ public class ExecutionServiceImplTest {
         when(mockContext.getAuthentication()).thenReturn(MOCK_ADMIN_AUTH);
 
         // Act
-        ExecutionDTO actualExecutionDTO = subject.terminateExecution(MOCK_ADMIN_EXECUTION_ID);
+        ExecutionDTO actualExecutionDTO = subject.terminateExecution(MOCK_ADMIN_EXECUTION_ID, false);
 
         // Assert
         verify(mockExecutionRepository, times(1)).findById(MOCK_ADMIN_EXECUTION_ID);
@@ -653,7 +653,7 @@ public class ExecutionServiceImplTest {
         when(mockContext.getAuthentication()).thenReturn(MOCK_ADMIN_AUTH);
 
         // Act
-        ExecutionDTO actualExecutionDTO = subject.terminateExecution(MOCK_USER_EXECUTION_ID);
+        ExecutionDTO actualExecutionDTO = subject.terminateExecution(MOCK_USER_EXECUTION_ID, false);
 
         // Assert
         verify(mockExecutionRepository, times(1)).findById(MOCK_USER_EXECUTION_ID);
@@ -675,7 +675,7 @@ public class ExecutionServiceImplTest {
         when(mockExecutionRepository.findById(executionDTO.getId())).thenReturn(Optional.empty());
 
         // Act
-        subject.terminateExecution(MOCK_USER_EXECUTION_ID);
+        subject.terminateExecution(MOCK_USER_EXECUTION_ID, false);
 
         // Assert - with rule
     }
@@ -695,7 +695,7 @@ public class ExecutionServiceImplTest {
                 .deletePod(mockExecutionDetails);
 
         // Act
-        subject.terminateExecution(MOCK_USER_EXECUTION_ID);
+        subject.terminateExecution(MOCK_USER_EXECUTION_ID, false);
 
         // Assert - with rule
 
