@@ -65,7 +65,7 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
 
     @Override
     public void onDelete(V1Pod pod, boolean deletedFinalStateUnknown) {
-        if(executionService == null){
+        if (executionService == null) {
             this.executionService = SpringContext.getBean(ExecutionService.class);
         }
         ExecutionDetails execution = findExecutionOfPod(pod);
@@ -76,27 +76,27 @@ public class PodEventHandler implements ResourceEventHandler<V1Pod> {
     }
 
     private void setExecutionStatus(@NonNull V1Pod pod, @NonNull UUID executionId) {
-        if(executionService == null){
+        if (executionService == null) {
             this.executionService = SpringContext.getBean(ExecutionService.class);
         }
         switch (pod.getStatus().getPhase()) {
-            // Kubernetes status --> execution status
-            // Running --> RUNNING
-            case "Running":
-                executionService.changeExecutionStatus(executionId, ExecutionDetails.Status.RUNNING);
-                break;
-            // Succeeded --> FINISHED
-            case "Succeeded":
-                executionService.changeExecutionStatus(executionId, ExecutionDetails.Status.FINISHED);
-                break;
-            // Failed --> FAILED
-            case "Failed":
-                executionService.changeExecutionStatus(executionId, ExecutionDetails.Status.FAILED);
+        // Kubernetes status --> execution status
+        // Running --> RUNNING
+        case "Running":
+            executionService.changeExecutionStatus(executionId, ExecutionDetails.Status.RUNNING);
+            break;
+        // Succeeded --> FINISHED
+        case "Succeeded":
+            executionService.changeExecutionStatus(executionId, ExecutionDetails.Status.FINISHED);
+            break;
+        // Failed --> FAILED
+        case "Failed":
+            executionService.changeExecutionStatus(executionId, ExecutionDetails.Status.FAILED);
         }
     }
 
     private ExecutionDetails findExecutionOfPod(@NonNull V1Pod pod) {
-        if(executionService == null){
+        if (executionService == null) {
             this.executionService = SpringContext.getBean(ExecutionService.class);
         }
         String namespace = pod.getMetadata().getNamespace();

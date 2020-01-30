@@ -98,7 +98,7 @@ public class ExperimentServiceImpl implements ExperimentService {
         if (permittedUsersUpdateDTO.getPermittedUsers().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "You cannot forbid everyone the access. There must be at least one person.");
         }
-        
+
         ExperimentDetails experimentDetails = experimentRepository.findById(experimentId).orElseThrow(
                 () -> new ResourceNotFoundException(ExperimentDetails.class, "experimentId", experimentId.toString()));
         UserDTO currentUser = SecurityContextUtil.getCurrentUserDTO();

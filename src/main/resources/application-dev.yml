@@ -21,8 +21,7 @@ dockerHubRepoPath: hafenkran/hafenkran-repo
 reporting-service-uri: http://localhost:8083
 user-service-uri: http://localhost:8081
 
-mockdata: false
-mockKubernetesClient: true
+mockdata: true
 
 kubernetes:
   deployment:
@@ -36,6 +35,11 @@ kubernetes:
   config:
     load-default: true
     path: /kubernetes/config
+  metrics:
+    path: http://localhost:8001/apis/metrics.k8s.io/v1beta1/pods
+  mock:
+    kubernetesClient: false
+    metricsServer: false
 
 jwt:
   secret: MCgCIQCAS7IFlSvaBOPXwSBHo+7+6C4RbkvYj3fgI5+Abe4pRwIDAQAB

@@ -384,7 +384,7 @@ public class ExecutionServiceImpl implements ExecutionService {
     public ExecutionDetails getExecutionOfPod(@NonNull String podName, @NonNull UUID namespace) {
 
         ExperimentDetails experiment = experimentRepository.findById(namespace).orElseThrow(
-                () -> new ResourceNotFoundException(ExperimentDetails.class, "id",namespace.toString()));
+                () -> new ResourceNotFoundException(ExperimentDetails.class, "id", namespace.toString()));
 
         experiment.validatePermissions();
 
