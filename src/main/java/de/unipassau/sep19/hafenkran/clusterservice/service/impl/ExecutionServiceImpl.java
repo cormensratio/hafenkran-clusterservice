@@ -50,7 +50,7 @@ public class ExecutionServiceImpl implements ExecutionService {
     @Value("${kubernetes.deployment.defaults.bookedTime}")
     private long bookedTimeDefault;
 
-    @Value("${mockKubernetesClient}")
+    @Value("${kubernetes.mock.kubernetesClient}")
     private boolean mockKubernetesClient;
 
     /**
