@@ -138,18 +138,18 @@ public class ExperimentServiceImpl implements ExperimentService {
     public void deleteExperimentById(@NonNull UUID experimentId) {
         ExperimentDetails experimentDetails = experimentRepository.findById(experimentId).orElseThrow(
                 () -> new ResourceNotFoundException(ExperimentDetails.class, "experimentId", experimentId.toString()));
+        experimentDetails.validatePermissions();
         UserDTO currentUser = SecurityContextUtil.getCurrentUserDTO();
         deleteExperimentAndAllExecutions(experimentDetails, currentUser.getId());
     }
 
     private void deleteExperimentAndAllExecutions(@NonNull ExperimentDetails experimentDetails, @NonNull UUID userId) {
-        experimentDetails.validatePermissions();
+        /*
         if (experimentDetails.getOwnerId().equals(userId)) {
             Set<UUID> executionIds = executionRepository.deleteByExperimentDetails_Id(
                     experimentDetails.getId()).stream().map(Resource::getId).collect(Collectors.toSet());
             experimentRepository.delete(experimentDetails);
             reportingServiceClient.deleteResults(executionIds);
-
         } else {
             experimentDetails.getPermittedAccounts().remove(userId);
             experimentRepository.save(experimentDetails);
@@ -157,6 +157,9 @@ public class ExperimentServiceImpl implements ExperimentService {
                     experimentDetails.getId()).stream().map(Resource::getId).collect(Collectors.toSet());
             reportingServiceClient.deleteResults(executionIds);
         }
+        */
+        experimentRepository.deleteById(experimentDetails.getId());
+
     }
 
 }
