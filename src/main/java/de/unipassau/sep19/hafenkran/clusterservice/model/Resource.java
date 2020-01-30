@@ -10,11 +10,10 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContext;
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
+import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -41,10 +40,15 @@ public class Resource {
     @Column(nullable = false)
     private UUID ownerId;
 
+    @ElementCollection
+    @Column
+    private Set<UUID> permittedAccounts;
+
     Resource(@NonNull UUID ownerId) {
         this.id = UUID.randomUUID();
         this.createdAt = LocalDateTime.now();
         this.ownerId = ownerId;
+        this.permittedAccounts = Collections.emptySet();
     }
 
     /**
@@ -53,7 +57,7 @@ public class Resource {
      */
     public void validatePermissions() {
         UserDTO user = SecurityContextUtil.getCurrentUserDTO();
-        if (!(user.isAdmin() || user.getId().equals(ownerId))) {
+        if (!(user.isAdmin() || user.getId().equals(ownerId) || permittedAccounts.contains(user.getId()))) {
             log.info(String.format("User %s is not allowed to access %s with id %s", user.getId(),
                     this.getClass().getName(), this.getId()));
             throw new ResourceNotFoundException(this.getClass());

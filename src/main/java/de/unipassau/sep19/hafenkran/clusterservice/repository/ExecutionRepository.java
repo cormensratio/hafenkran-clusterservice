@@ -14,7 +14,7 @@ public interface ExecutionRepository extends CrudRepository<ExecutionDetails, UU
 
     List<ExecutionDetails> findAllByExperimentDetails_Id(@NonNull UUID experimentId);
 
-    List<ExecutionDetails> findAllByExperimentDetails_OwnerId(@NonNull UUID ownerId);
+    List<ExecutionDetails> findAllByOwnerId(@NonNull UUID ownerId);
 
     List<ExecutionDetails> findAllByStatus(@NonNull ExecutionDetails.Status status);
 
@@ -24,5 +24,9 @@ public interface ExecutionRepository extends CrudRepository<ExecutionDetails, UU
     void deleteById(@NonNull UUID executionId);
 
     ExecutionDetails findByPodNameAndExperimentDetails(@NonNull String podName, @NonNull ExperimentDetails experimentDetails);
+
+    List<ExecutionDetails> deleteByExperimentDetails_Id(@NonNull UUID experimentId);
+
+    List<ExecutionDetails> deleteByOwnerIdAndExperimentDetails_Id(@NonNull UUID ownerId, @NonNull UUID experimentId);
 
 }

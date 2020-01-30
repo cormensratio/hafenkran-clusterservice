@@ -38,6 +38,7 @@ public class InitDatabase implements CommandLineRunner {
                         "ColdFusionAlgorithm",
                         "ColdFusionAlgorithm", 300);
         experimentDetails1.setId(UUID.fromString("00000000-0000-0000-0000-000000000001"));
+        experimentDetails1.getPermittedUsers().add(UUID.fromString("00000000-0000-0000-0000-000000000001"));
         experimentService.createExperiment(experimentDetails1);
 
         final ExperimentDetails experimentDetails2 =
@@ -45,6 +46,7 @@ public class InitDatabase implements CommandLineRunner {
                         "CompletePI",
                         "CompletePI", 1024);
         experimentDetails2.setId(UUID.fromString("00000000-0000-0000-0000-000000000002"));
+        experimentDetails2.getPermittedUsers().add(UUID.fromString("00000000-0000-0000-0000-000000000001"));
         experimentService.createExperiment(experimentDetails2);
 
         final ExperimentDetails experimentDetails3 =
@@ -52,6 +54,7 @@ public class InitDatabase implements CommandLineRunner {
                         "CompletePI",
                         "CompletePI", 1024);
         experimentDetails3.setId(UUID.fromString("00000000-0000-0000-0000-000000000003"));
+        experimentDetails3.getPermittedUsers().add(UUID.fromString("00000000-0000-0000-0000-000000000002"));
         experimentService.createExperiment(experimentDetails3);
 
         final ExecutionDetails executionDetails = new ExecutionDetails(

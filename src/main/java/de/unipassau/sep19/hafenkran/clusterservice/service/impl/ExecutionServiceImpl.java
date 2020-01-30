@@ -59,17 +59,24 @@ public class ExecutionServiceImpl implements ExecutionService {
     @Value("${kubernetes.deployment.defaults.bookedTime}")
     private long bookedTimeDefault;
 
+    @Value("${kubernetes.mock.kubernetesClient}")
+    private boolean mockKubernetesClient;
+
     /**
      * Automatically goes through all running pods in a fixed interval and terminates the execution
      * if the booked time was exceeded.
      */
     @Scheduled(fixedDelayString = "#{${kubernetes.pod-cleanup-scheduler-delay}*1000}")
     private void terminatePodsAfterBookedTimeExceeded() {
+        if (mockKubernetesClient) {
+            return;
+        }
+
         List<ExecutionDetails> runningExecutions = executionRepository.findAllByStatus(Status.RUNNING);
         runningExecutions.forEach(e -> {
             if (LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
-                    < e.getStartedAt().toEpochSecond(ZoneOffset.UTC) + e.getBookedTime()) {
-                terminateExecution(e.getId());
+                    > e.getStartedAt().toEpochSecond(ZoneOffset.UTC) + e.getBookedTime()) {
+                terminateExecutionInternal(e.getId());
             }
         });
     }
@@ -80,6 +87,8 @@ public class ExecutionServiceImpl implements ExecutionService {
     @Override
     public String retrieveLogsForExecutionId(@NonNull UUID id, int lines, Integer sinceSeconds, boolean withTimestamps) {
         ExecutionDetails executionDetails = retrieveExecutionDetailsById(id);
+
+        executionDetails.validatePermissions();
 
         if (!executionDetails.getStatus().equals(ExecutionDetails.Status.RUNNING)) {
             return "Logs can only be retrieved for running executions!";
@@ -116,8 +125,6 @@ public class ExecutionServiceImpl implements ExecutionService {
      */
     @Override
     public ExecutionDetails createExecution(@NonNull ExecutionDetails executionDetails) {
-        executionDetails.validatePermissions();
-
         final ExecutionDetails savedExecutionDetails =
                 executionRepository.save(executionDetails);
 
@@ -169,20 +176,44 @@ public class ExecutionServiceImpl implements ExecutionService {
         return terminatedExecutionDTO;
     }
 
+
+    private ExecutionDTO terminateExecutionInternal(@NonNull UUID executionId) {
+        ExecutionDetails executionDetails = getExecutionDetails(executionId);
+
+        try {
+            kubernetesClient.deletePod(executionDetails);
+        } catch (ApiException e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while "
+                    + "communicating with the cluster.");
+        }
+
+        executionDetails.setStatus(ExecutionDetails.Status.ABORTED);
+        executionDetails.setTerminatedAt(LocalDateTime.now());
+
+        executionRepository.save(executionDetails);
+
+        ExecutionDTO terminatedExecutionDTO = ExecutionDTO.fromExecutionDetails(executionDetails);
+
+        log.info(String.format("Execution with id %S terminated", executionId));
+        return terminatedExecutionDTO;
+    }
+
     /**
      * {@inheritDoc}
      */
     @Override
     public ExecutionDTO retrieveExecutionDTOById(@NonNull UUID id) {
-        return ExecutionDTO.fromExecutionDetails(retrieveExecutionDetailsById(id));
+        ExecutionDetails executionDetails = retrieveExecutionDetailsById(id);
+
+        executionDetails.validatePermissions();
+
+        return ExecutionDTO.fromExecutionDetails(executionDetails);
     }
 
     private ExecutionDetails retrieveExecutionDetailsById(@NonNull UUID id) {
         final Optional<ExecutionDetails> execution = executionRepository.findById(id);
-        ExecutionDetails executionDetails = execution.orElseThrow(
+        return execution.orElseThrow(
                 () -> new ResourceNotFoundException(ExecutionDetails.class, "id", id.toString()));
-        executionDetails.validatePermissions();
-        return execution.get();
     }
 
     /**
@@ -205,7 +236,7 @@ public class ExecutionServiceImpl implements ExecutionService {
      */
     @Override
     public List<ExecutionDTO> retrieveExecutionsDTOListForUserId(@NonNull UUID userId) {
-        List<ExecutionDetails> executionDetailsList = executionRepository.findAllByExperimentDetails_OwnerId(userId);
+        List<ExecutionDetails> executionDetailsList = executionRepository.findAllByOwnerId(userId);
 
         if (executionDetailsList.isEmpty()) {
             return Collections.emptyList();
@@ -236,6 +267,7 @@ public class ExecutionServiceImpl implements ExecutionService {
     @Override
     public byte[] getResults(@NonNull UUID executionId) {
         ExecutionDetails executionDetails = retrieveExecutionDetailsById(executionId);
+
         try {
             return Base64.getEncoder().encode(kubernetesClient.retrieveResults(executionDetails).getBytes());
         } catch (ApiException | IOException e) {
@@ -249,6 +281,9 @@ public class ExecutionServiceImpl implements ExecutionService {
     @Override
     public void sendSTDIN(@NonNull UUID executionId, @NonNull StdinDTO stdinDTO) {
         ExecutionDetails executionDetails = retrieveExecutionDetailsById(executionId);
+
+        executionDetails.validatePermissions();
+
         try {
             kubernetesClient.sendSTIN(stdinDTO.getInput(), executionDetails);
         } catch (IOException | ApiException e) {
@@ -265,8 +300,6 @@ public class ExecutionServiceImpl implements ExecutionService {
         final ExecutionDetails executionDetails =
                 executionRepository.findById(executionId).orElseThrow(
                         () -> new ResourceNotFoundException(ExecutionDetails.class, "id", executionId.toString()));
-
-        executionDetails.validatePermissions();
 
         if (status.equals(Status.FINISHED)) {
             executionDetails.setTerminatedAt(LocalDateTime.now());
@@ -308,7 +341,6 @@ public class ExecutionServiceImpl implements ExecutionService {
                 () -> new ResourceNotFoundException(ExperimentDetails.class, "id",
                         executionId.toString()));
 
-        execution.validatePermissions();
         return execution;
     }
 
@@ -387,8 +419,6 @@ public class ExecutionServiceImpl implements ExecutionService {
 
         ExperimentDetails experiment = experimentRepository.findById(namespace).orElseThrow(
                 () -> new ResourceNotFoundException(ExperimentDetails.class, "id", namespace.toString()));
-
-        experiment.validatePermissions();
 
         return executionRepository.findByPodNameAndExperimentDetails(podName, experiment);
     }

@@ -85,7 +85,7 @@ public class KubernetesClientImpl implements KubernetesClient {
      * up the api to access the cluster.
      */
     public KubernetesClientImpl() {
-        log.info("Kubernetes Client ready!");
+
     }
 
     /**
@@ -107,8 +107,11 @@ public class KubernetesClientImpl implements KubernetesClient {
 
         // the CoreV1Api loads default api-client from global configuration
         api = new CoreV1Api(client);
+        log.info("Kubernetes Client ready!");
+
         factory = new SharedInformerFactory();
         createAndStartPodInformer();
+        log.info("Kubernetes Pod informer ready!");
     }
 
     /**
@@ -381,7 +384,7 @@ public class KubernetesClientImpl implements KubernetesClient {
                 namespace);
     }
 
-    private void deleteNamespace(@NonNull String namespace) throws ApiException {
+    public void deleteNamespace(@NonNull String namespace) throws ApiException {
         V1DeleteOptions deleteOptions = new V1DeleteOptions();
         api.deleteNamespace(namespace, "pretty", deleteOptions, null, null, null, null);
         log.info("Deleted namespace {}", namespace);

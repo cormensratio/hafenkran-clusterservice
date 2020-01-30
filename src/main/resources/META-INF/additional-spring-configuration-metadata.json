@@ -31,11 +31,6 @@
       "description": "The secret used for signing JWTs."
     },
     {
-      "name": "mockKubernetesClient",
-      "type": "java.lang.String",
-      "description": "Set false if you want to use the KubernetesClient."
-    },
-    {
       "name": "kubernetes.defaultLogLines",
       "type": "java.lang.Integer",
       "description": "Default amount of lines returned when requesting the logs of an active execution without specifying the amount of lines explicitly."
@@ -144,6 +139,21 @@
       "name": "kubernetes.config.path",
       "type": "java.lang.String",
       "description": "The config location if the load-default is not used."
+    },
+    {
+      "name": "kubernetes.metrics.path",
+      "type": "java.lang.String",
+      "description": "Path to the clusters metrics server."
+    },
+    {
+      "name": "kubernetes.mock.kubernetesClient",
+      "type": "java.lang.String",
+      "description": "Mocks the kubernetes client if true."
+    },
+    {
+      "name": "kubernetes.mock.metricsServer",
+      "type": "java.lang.String",
+      "description": "Mocks the metrics server client if true."
     }
   ]
 }
