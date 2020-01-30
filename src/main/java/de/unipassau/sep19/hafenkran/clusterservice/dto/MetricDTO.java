@@ -19,11 +19,16 @@ public class MetricDTO {
     @JsonProperty("executionId")
     UUID executionId;
 
+    @JsonProperty("ownerId")
     UUID ownerId;
 
+    @JsonProperty("metadata")
     MetadataDTO metadata;
+
+    @JsonProperty("containers")
     List<ContainerDTO> containers;
 
+    @JsonProperty("timestamp")
     Timestamp timestamp;
 
     @JsonCreator
@@ -40,7 +45,11 @@ public class MetricDTO {
     @Setter
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class MetadataDTO {
+
+        @JsonProperty("name")
         String name;
+
+        @JsonProperty("namespace")
         String namespace;
 
         @JsonCreator
@@ -59,6 +68,7 @@ public class MetricDTO {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ContainerDTO {
 
+        @JsonProperty("usage")
         UsageDTO usage;
 
         @JsonCreator
@@ -73,14 +83,19 @@ public class MetricDTO {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class UsageDTO {
 
+        //used for removing units from kubernetes
+        private static final String REGEX = "[^0-9]";
+
+        @JsonProperty("memory")
         String memory;
 
+        @JsonProperty("cpu")
         String cpu;
 
         @JsonCreator
         public UsageDTO(@JsonProperty("memory") String memory, @JsonProperty("cpu") String cpu) {
-            this.memory = memory;
-            this.cpu = cpu;
+            this.memory = memory.replaceAll(REGEX, "");
+            this.cpu = cpu.replaceAll(REGEX, "");
         }
     }
 }
