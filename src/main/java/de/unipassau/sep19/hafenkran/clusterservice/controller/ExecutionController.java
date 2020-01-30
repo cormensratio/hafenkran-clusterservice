@@ -95,7 +95,7 @@ public class ExecutionController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public ExecutionDTO terminateExecution(@NonNull @PathVariable UUID executionId) {
-        return executionService.terminateExecution(executionId, false);
+        return executionService.terminateExecution(executionId);
     }
 
     /**
