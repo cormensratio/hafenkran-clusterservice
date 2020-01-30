@@ -24,10 +24,6 @@ spring:
 experimentsFileUploadLocation:
 
 mockdata: false
-mockKubernetesClient: false
-mockMetricsServerClient: false
-
-clusterProxy.path: http://localhost:8001
 
 jwt:
   secret:
@@ -40,6 +36,15 @@ kubernetes:
       bookedTime: 3600
   defaultLogLines: 500
   debugging: false
+  pod-cleanup-scheduler-delay: 60
+  config:
+    load-default: true
+    path: /kubernetes/config
+  metrics:
+    path: http://localhost:8001/apis/metrics.k8s.io/v1beta1/pods
+  mock:
+    kubernetesClient: false
+    metricsServer: false
 
 dockerClient:
   username:
