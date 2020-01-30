@@ -36,7 +36,7 @@ import java.util.UUID;
 public class MetricsServerClientImpl implements MetricsServerClient {
 
     @Value("${kubernetes.metrics.path}")
-    private String clusterProxyPath;
+    private String kubernetesMetricsPath;
 
     private ExecutionService executionService;
 
@@ -55,7 +55,7 @@ public class MetricsServerClientImpl implements MetricsServerClient {
      */
     @Override
     public ArrayList<MetricDTO> retrieveMetrics() {
-        String jsonGetResponse = serviceClient.get(clusterProxyPath, String.class, null);
+        String jsonGetResponse = serviceClient.get(kubernetesMetricsPath, String.class, null);
         return retrieveMetricsFromGetRequest(jsonGetResponse);
     }
 
