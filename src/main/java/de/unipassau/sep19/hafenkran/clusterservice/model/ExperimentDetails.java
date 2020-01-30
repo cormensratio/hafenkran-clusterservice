@@ -51,6 +51,7 @@ public class ExperimentDetails extends Resource {
         this.size = size;
         this.fileName = fileName;
         this.executionDetails = Collections.emptyList();
+        this.totalNumberOfExecutionsStarted = 0;
     }
 }
 
