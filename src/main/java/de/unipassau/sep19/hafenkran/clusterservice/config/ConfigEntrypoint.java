@@ -3,6 +3,9 @@ package de.unipassau.sep19.hafenkran.clusterservice.config;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl.KubernetesClientImpl;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.impl.KubernetesClientMockImpl;
+import de.unipassau.sep19.hafenkran.clusterservice.metricsserver.MetricsServerClient;
+import de.unipassau.sep19.hafenkran.clusterservice.metricsserver.impl.MetricsServerClientImpl;
+import de.unipassau.sep19.hafenkran.clusterservice.metricsserver.impl.MetricsServerClientMockImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -39,7 +42,7 @@ public class ConfigEntrypoint {
 
     @Bean
     @ConditionalOnProperty(
-            value = "mockKubernetesClient",
+            value = "kubernetes.mock.kubernetesClient",
             havingValue = "true",
             matchIfMissing = true
     )
@@ -49,11 +52,30 @@ public class ConfigEntrypoint {
 
     @Bean
     @ConditionalOnProperty(
-            value = "mockKubernetesClient",
+            value = "kubernetes.mock.kubernetesClient",
             havingValue = "false"
     )
     public KubernetesClient kubernetesClient() throws IOException {
         return new KubernetesClientImpl();
+    }
+
+    @Bean
+    @ConditionalOnProperty(
+            value = "kubernetes.mock.metricsServer",
+            havingValue = "true",
+            matchIfMissing = true
+    )
+    public MetricsServerClient metricsServerMockClient() {
+        return new MetricsServerClientMockImpl();
+    }
+
+    @Bean
+    @ConditionalOnProperty(
+            value = "kubernetes.mock.metricsServer",
+            havingValue = "false"
+    )
+    public MetricsServerClient metricsServerClient() {
+        return new MetricsServerClientImpl();
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
