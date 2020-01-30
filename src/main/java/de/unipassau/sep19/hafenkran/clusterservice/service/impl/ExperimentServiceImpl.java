@@ -152,6 +152,7 @@ public class ExperimentServiceImpl implements ExperimentService {
 
         } else {
             experimentDetails.getPermittedAccounts().remove(userId);
+            experimentRepository.save(experimentDetails);
             Set<UUID> executionIds = executionRepository.deleteByOwnerIdAndExperimentDetails_Id(userId,
                     experimentDetails.getId()).stream().map(Resource::getId).collect(Collectors.toSet());
             reportingServiceClient.deleteResults(executionIds);
