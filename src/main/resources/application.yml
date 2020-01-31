@@ -54,6 +54,10 @@ dockerClient:
   username:
   password:
   email:
+  certPath:
+  configPath:
+  tls: 0
+  host:
   authKey:
 
 service-user:
