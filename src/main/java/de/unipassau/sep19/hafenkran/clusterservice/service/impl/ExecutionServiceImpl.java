@@ -318,12 +318,12 @@ public class ExecutionServiceImpl implements ExecutionService {
         executionDetails.validatePermissions();
 
         final String podName;
-        final boolean freeNamespaceResources;
+        boolean namespaceResourcesAlreadyAllocated;
 
         try {
-            freeNamespaceResources = kubernetesClient.checkAvailableNamespaceResources(executionDetails);
-
-            if (freeNamespaceResources) {
+            namespaceResourcesAlreadyAllocated =
+                    kubernetesClient.checkIfNamespaceResourcesAlreadyAllocated(executionDetails);
+            if (!namespaceResourcesAlreadyAllocated) {
                 podName = kubernetesClient.createPod(executionDetails);
             } else {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
