@@ -109,7 +109,7 @@ public class ExperimentServiceImpl implements ExperimentService {
         UserDTO currentUser = SecurityContextUtil.getCurrentUserDTO();
 
         // If the current user is not permitted or if the current user is no admin
-        if (!experimentDetails.getPermittedUsers().contains(currentUser.getId()) && !currentUser.isAdmin()) {
+        if (!experimentDetails.getPermittedUsers().contains(currentUser.getId()) || !currentUser.isAdmin()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                     "You are not allowed to change the user access from the current experiment.");
         }
@@ -156,9 +156,9 @@ public class ExperimentServiceImpl implements ExperimentService {
             experimentRepository.deleteById(experimentId);
         }
         else {
-            Set<UUID> permittedAccounts = experimentDetails.getPermittedAccounts();
-            permittedAccounts.remove(userId);
-            updatePermittedUsers(experimentId, new PermittedUsersUpdateDTO(permittedAccounts));
+            Set<UUID> permittedUsers = experimentDetails.getPermittedUsers();
+            permittedUsers.remove(userId);
+            experimentRepository.save(experimentDetails);
 
             /*
             Set<UUID> executionIds = executionRepository.deleteByExperimentDetails_Id(
