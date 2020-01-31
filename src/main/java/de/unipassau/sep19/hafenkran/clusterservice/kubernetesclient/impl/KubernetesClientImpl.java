@@ -7,6 +7,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import io.kubernetes.client.*;
 import io.kubernetes.client.apis.CoreV1Api;
+import io.kubernetes.client.custom.Quantity;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.models.*;
@@ -70,6 +71,12 @@ public class KubernetesClientImpl implements KubernetesClient {
 
     @Value("${kubernetes.config.load-default}")
     private boolean loadDefaultConfig;
+
+    @Value("${kubernetes.namespace.limits.cpu}")
+    private String cpuRequestLimit;
+
+    @Value("${kubernetes.namespace.limits.memory}")
+    private String memoryRequestLimit;
 
     /**
      * Constructor of KubernetesClientImpl.
@@ -270,9 +277,41 @@ public class KubernetesClientImpl implements KubernetesClient {
                 .withName(namespace)
                 .endMetadata()
                 .build();
+
         api.createNamespace(experimentNamespace, true, "pretty", null);
         log.info("Created namespace {}", namespace);
 
+        if (cpuRequestLimit != null || memoryRequestLimit != null) {
+            createResourceQuota(namespace);
+        }
+    }
+
+    private void createResourceQuota(@NonNull String namespace) throws ApiException {
+        Map<String, Quantity> allowedResourceRequests = new HashMap<>();
+
+        if (cpuRequestLimit != null) {
+            allowedResourceRequests.put("requests.cpu", new Quantity(cpuRequestLimit));
+        }
+
+        if (memoryRequestLimit != null) {
+            allowedResourceRequests.put("requests.memory", new Quantity(memoryRequestLimit));
+        }
+
+        V1ResourceQuota resourceQuota = new V1ResourceQuotaBuilder()
+                .withApiVersion("v1")
+                .withKind("ResourceQuota")
+                .withNewMetadata()
+                .withName("resource-quota")
+                .withNamespace(namespace)
+                .endMetadata()
+                .withNewSpec()
+                .withHard(allowedResourceRequests)
+                .endSpec()
+                .build();
+
+        api.createNamespacedResourceQuota(namespace, resourceQuota, true, "pretty", null);
+
+        log.info("Created resource quota " + resourceQuota.getMetadata().getName() + " in namespace " + namespace);
     }
 
     /**
