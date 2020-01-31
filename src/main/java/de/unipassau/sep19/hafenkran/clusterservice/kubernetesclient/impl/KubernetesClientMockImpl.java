@@ -4,6 +4,7 @@ import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesCl
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExecutionDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import io.kubernetes.client.ApiException;
+import io.kubernetes.client.models.V1Node;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
@@ -85,8 +86,15 @@ public class KubernetesClientMockImpl implements KubernetesClient {
     }
 
     @Override
-    public boolean checkAvailableNamespaceResources(@NonNull ExecutionDetails executionDetails) {
-        return true;
+    public boolean checkIfNamespaceResourcesAlreadyAllocated(@NonNull ExecutionDetails executionDetails) {
+        log.info("KubernetesClientMockImpl: namespace resources available.");
+        return false;
     }
 
+    @Override
+    public boolean checkIfEnoughNodeCapacityFree(@NonNull String nodeName, @NonNull long usedCpu,
+                                                 @NonNull long usedMemory) {
+        log.info("KubernetesClientMockImpl: enough node capacity free.");
+        return true;
+    }
 }

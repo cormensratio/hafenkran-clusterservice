@@ -258,7 +258,7 @@ public class KubernetesClientImpl implements KubernetesClient {
      * {@inheritDoc}
      */
     @Override
-    public boolean checkAvailableNamespaceResources(@NonNull ExecutionDetails executionDetails) throws ApiException {
+    public boolean checkIfNamespaceResourcesAlreadyAllocated(@NonNull ExecutionDetails executionDetails) throws ApiException {
         String namespace = getNamespace(executionDetails);
         final long requestedCpu = executionDetails.getCpu();
         final long requestedMemory = executionDetails.getRam();
@@ -267,21 +267,34 @@ public class KubernetesClientImpl implements KubernetesClient {
 
         String usedCpuString = resourceQuota.getStatus().getUsed().get("requests.cpu");
         String usedMemoryString = resourceQuota.getStatus().getUsed().get("requests.memory");
+
+        final long parseCpu;
         final long usedCpu;
         final long usedMemory;
-        if (usedCpuString.length() == 1) { //used cpu = 0
-            usedCpu = Integer.parseInt(usedCpuString);
+
+        if (usedCpuString.length() == 1) { //used cpu either 0 or more in full core
+            parseCpu = Long.parseLong(usedCpuString);
+            if (parseCpu != 0) {
+                usedCpu = parseCpu * 1000;
+            } else {
+                usedCpu = parseCpu;
+            }
         } else {
-            usedCpu = Integer.parseInt(usedCpuString.substring(0, usedCpuString.length() -1));
+            if (usedCpuString.substring(usedCpuString.length() - 1).equals("m")) { //cpu with unit millicore
+                usedCpu = Long.parseLong(usedCpuString.substring(0, usedCpuString.length() - 1));
+            } else { //full cpu core with
+                usedCpu = Long.parseLong(usedCpuString) * 1000;
+            }
         }
+
         if (usedMemoryString.length() == 1) { //used memory = 0
             usedMemory = Integer.parseInt(usedMemoryString);
         } else {
             usedMemory = Integer.parseInt(usedMemoryString.substring(0, usedMemoryString.length() - 2));
         }
 
-        return (requestedCpu + usedCpu < Long.parseLong(cpuRequestLimit))
-                && (requestedMemory + usedMemory < Long.parseLong(memoryRequestLimit));
+        return (requestedCpu + usedCpu > Long.parseLong(cpuRequestLimit))
+                || (requestedMemory + usedMemory > Long.parseLong(memoryRequestLimit));
     }
 
     /**
@@ -292,7 +305,7 @@ public class KubernetesClientImpl implements KubernetesClient {
                                                  @NonNull long usedMemory) throws ApiException {
         V1Node response = api.readNode(nodeName, "pretty", null, null);
 
-        long cpuLimit = 2500;
+        long cpuLimit = 1500;
         long memoryLimit = 10000;
 
         long totalNodeCpuCapacity =
@@ -301,7 +314,7 @@ public class KubernetesClientImpl implements KubernetesClient {
                 response.getStatus().getCapacity().get("memory").getNumber().intValue(); //in kibibyte
 
         return (cpuLimit + usedCpu <= totalNodeCpuCapacity)
-                && (memoryLimit + usedMemory <= totalNodeMemoryCapacity);
+                || (memoryLimit + usedMemory <= totalNodeMemoryCapacity);
     }
 
     private List<String> getAllNamespaces() throws ApiException {

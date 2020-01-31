@@ -75,13 +75,15 @@ public interface KubernetesClient {
      * Checks if the requested limits for cpu and ram are available on the namespace.
      *
      * @param executionDetails The execution with the requested cpu and ram limits.
-     * @return True if the requested limits are available on the namespace, else false.
+     * @return False if the requested limits are available on the namespace, else true if the namespace resources are
+     * already allocated.
      * @throws ApiException if the resource quota cant be found.
      */
-    boolean checkAvailableNamespaceResources(@NonNull ExecutionDetails executionDetails) throws ApiException;
+    boolean checkIfNamespaceResourcesAlreadyAllocated(@NonNull ExecutionDetails executionDetails) throws ApiException;
 
     /**
      * Checks if there is enough node capacity the create a new namespace with resource quotas.
+     * Checks if the used resources on a node + requested resources are lower than the node capacity.
      *
      * @param nodeName   The name of the node which should be checked.
      * @param usedCpu    The already used cpu of the node.
