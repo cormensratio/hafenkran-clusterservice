@@ -42,8 +42,7 @@ public class ExperimentDetails extends Resource {
     @NonNull
     private String fileName;
 
-    @OneToMany(cascade = CascadeType.ALL,
-            mappedBy = "experimentdetails", orphanRemoval = true, fetch = FetchType.LAZY)
+    @ElementCollection
     private Set<UUID> permittedUsers;
 
     private long size;
