@@ -78,7 +78,6 @@ public class KubernetesClientImpl implements KubernetesClient {
     @Value("${kubernetes.namespace.limits.memory}")
     private String memoryRequestLimit;
 
-
     /**
      * Constructor of KubernetesClientImpl.
      * <p>
@@ -305,16 +304,13 @@ public class KubernetesClientImpl implements KubernetesClient {
                                                  @NonNull long usedMemory) throws ApiException {
         V1Node response = api.readNode(nodeName, "pretty", null, null);
 
-        long cpuLimit = 1500;
-        long memoryLimit = 10000;
-
         long totalNodeCpuCapacity =
                 response.getStatus().getCapacity().get("cpu").getNumber().intValue() * 1000; //in milliCores
         long totalNodeMemoryCapacity =
                 response.getStatus().getCapacity().get("memory").getNumber().intValue(); //in kibibyte
 
-        return (cpuLimit + usedCpu <= totalNodeCpuCapacity)
-                || (memoryLimit + usedMemory <= totalNodeMemoryCapacity);
+        return (Long.parseLong(cpuRequestLimit) + usedCpu <= totalNodeCpuCapacity)
+                || (Long.parseLong(memoryRequestLimit) + usedMemory <= totalNodeMemoryCapacity);
     }
 
     private List<String> getAllNamespaces() throws ApiException {

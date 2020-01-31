@@ -45,6 +45,10 @@ kubernetes:
   mock:
     kubernetesClient: false
     metricsServer: false
+  namespace:
+    limits:
+      cpu: 500
+      memory: 10000
 
 dockerClient:
   username:
