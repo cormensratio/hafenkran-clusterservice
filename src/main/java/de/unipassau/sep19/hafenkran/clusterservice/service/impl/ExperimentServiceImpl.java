@@ -151,9 +151,9 @@ public class ExperimentServiceImpl implements ExperimentService {
             /*
             Set<UUID> executionIds = executionRepository.deleteByExperimentDetails_Id(
                     experimentId).stream().map(Resource::getId).collect(Collectors.toSet());
+            reportingServiceClient.deleteResults(executionIds);
              */
             experimentRepository.deleteById(experimentId);
-            //reportingServiceClient.deleteResults(executionIds);
         }
         else {
             Set<UUID> permittedAccounts = experimentDetails.getPermittedAccounts();
@@ -161,9 +161,10 @@ public class ExperimentServiceImpl implements ExperimentService {
             updatePermittedUsers(experimentId, new PermittedUsersUpdateDTO(permittedAccounts));
 
             /*
-            Set<UUID> executionIds = executionRepository.deleteByOwnerIdAndExperimentDetails_Id(userId,
+            Set<UUID> executionIds = executionRepository.deleteByExperimentDetails_Id(
                     experimentId).stream().map(Resource::getId).collect(Collectors.toSet());
-            */
+            reportingServiceClient.deleteResults(executionIds);
+             */
         }
 
     }
