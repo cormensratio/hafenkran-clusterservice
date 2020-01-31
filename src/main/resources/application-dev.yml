@@ -40,7 +40,7 @@ kubernetes:
       cpu: 500
       memory: 10000
   metrics:
-    path: http://localhost:8001/apis/metrics.k8s.io/v1beta1/pods
+    path: http://localhost:8001/apis/metrics.k8s.io/v1beta1
   mock:
     kubernetesClient: true
     metricsServer: true
