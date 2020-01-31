@@ -148,11 +148,16 @@ public class ExperimentServiceImpl implements ExperimentService {
         UUID experimentId = experimentDetails.getId();
 
         if (experimentDetails.getOwnerId().equals(userId)) {
+            /*
             Set<UUID> executionIds = executionRepository.deleteByExperimentDetails_Id(
                     experimentId).stream().map(Resource::getId).collect(Collectors.toSet());
+             */
             experimentRepository.deleteById(experimentId);
             //reportingServiceClient.deleteResults(executionIds);
-        } else {
+        }
+        /*
+        else {
+
             Set<UUID> permittedAccounts = experimentDetails.getPermittedAccounts();
             permittedAccounts.remove(userId);
             experimentDetails.setPermittedUsers(permittedAccounts);
@@ -162,6 +167,7 @@ public class ExperimentServiceImpl implements ExperimentService {
                     experimentId).stream().map(Resource::getId).collect(Collectors.toSet());
             //reportingServiceClient.deleteResults(executionIds);
         }
+         */
 
     }
 
