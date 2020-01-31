@@ -1,5 +1,6 @@
 package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
+import com.google.common.collect.ImmutableSet;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.PermittedUsersUpdateDTO;
@@ -108,7 +109,7 @@ public class ExperimentServiceImpl implements ExperimentService {
         UserDTO currentUser = SecurityContextUtil.getCurrentUserDTO();
 
         // If the current user is not permitted or if the current user is no admin
-        if (!experimentDetails.getPermittedUsers().contains(currentUser.getId()) && !currentUser.isAdmin()) {
+        if (!experimentDetails.getPermittedUsers().contains(currentUser.getId()) || !currentUser.isAdmin()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                     "You are not allowed to change the user access from the current experiment.");
         }
@@ -144,21 +145,27 @@ public class ExperimentServiceImpl implements ExperimentService {
     }
 
     private void deleteExperimentAndAllExecutions(@NonNull ExperimentDetails experimentDetails, @NonNull UUID userId) {
-        /*
+        UUID experimentId = experimentDetails.getId();
+
         if (experimentDetails.getOwnerId().equals(userId)) {
+            /*
             Set<UUID> executionIds = executionRepository.deleteByExperimentDetails_Id(
-                    experimentDetails.getId()).stream().map(Resource::getId).collect(Collectors.toSet());
-            experimentRepository.delete(experimentDetails);
+                    experimentId).stream().map(Resource::getId).collect(Collectors.toSet());
             reportingServiceClient.deleteResults(executionIds);
-        } else {
-            experimentDetails.getPermittedAccounts().remove(userId);
-            experimentRepository.save(experimentDetails);
-            Set<UUID> executionIds = executionRepository.deleteByOwnerIdAndExperimentDetails_Id(userId,
-                    experimentDetails.getId()).stream().map(Resource::getId).collect(Collectors.toSet());
-            reportingServiceClient.deleteResults(executionIds);
+             */
+            experimentRepository.deleteById(experimentId);
         }
-        */
-        experimentRepository.deleteById(experimentDetails.getId());
+        else {
+            Set<UUID> permittedUsers = experimentDetails.getPermittedUsers();
+            permittedUsers.remove(userId);
+            experimentRepository.save(experimentDetails);
+
+            /*
+            Set<UUID> executionIds = executionRepository.deleteByExperimentDetails_Id(
+                    experimentId).stream().map(Resource::getId).collect(Collectors.toSet());
+            reportingServiceClient.deleteResults(executionIds);
+             */
+        }
 
     }
 

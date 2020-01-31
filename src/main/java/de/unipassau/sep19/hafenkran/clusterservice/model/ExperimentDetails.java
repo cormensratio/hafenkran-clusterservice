@@ -43,6 +43,8 @@ public class ExperimentDetails extends Resource {
     private String fileName;
 
     @ElementCollection
+    @CollectionTable(name = "experimentdetails_permittedusers", joinColumns = @JoinColumn(name = "experimentdetails_id"))
+    @Column(name = "permittedusers")
     private Set<UUID> permittedUsers;
 
     private long size;
