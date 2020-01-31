@@ -1,5 +1,6 @@
 package de.unipassau.sep19.hafenkran.clusterservice.service.impl;
 
+import com.google.common.collect.ImmutableSet;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTOList;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.PermittedUsersUpdateDTO;
@@ -144,21 +145,23 @@ public class ExperimentServiceImpl implements ExperimentService {
     }
 
     private void deleteExperimentAndAllExecutions(@NonNull ExperimentDetails experimentDetails, @NonNull UUID userId) {
-        /*
+        UUID experimentId = experimentDetails.getId();
+
         if (experimentDetails.getOwnerId().equals(userId)) {
             Set<UUID> executionIds = executionRepository.deleteByExperimentDetails_Id(
-                    experimentDetails.getId()).stream().map(Resource::getId).collect(Collectors.toSet());
-            experimentRepository.delete(experimentDetails);
-            reportingServiceClient.deleteResults(executionIds);
+                    experimentId).stream().map(Resource::getId).collect(Collectors.toSet());
+            experimentRepository.deleteById(experimentId);
+            //reportingServiceClient.deleteResults(executionIds);
         } else {
-            experimentDetails.getPermittedAccounts().remove(userId);
+            Set<UUID> permittedAccounts = experimentDetails.getPermittedAccounts();
+            permittedAccounts.remove(userId);
+            experimentDetails.setPermittedUsers(permittedAccounts);
+
             experimentRepository.save(experimentDetails);
             Set<UUID> executionIds = executionRepository.deleteByOwnerIdAndExperimentDetails_Id(userId,
-                    experimentDetails.getId()).stream().map(Resource::getId).collect(Collectors.toSet());
-            reportingServiceClient.deleteResults(executionIds);
+                    experimentId).stream().map(Resource::getId).collect(Collectors.toSet());
+            //reportingServiceClient.deleteResults(executionIds);
         }
-        */
-        experimentRepository.deleteById(experimentDetails.getId());
 
     }
 
