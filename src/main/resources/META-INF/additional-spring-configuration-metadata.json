@@ -46,6 +46,16 @@
       "description": "The list of namespaces in String representation that are going to be excluded from the kubernetes pod informer update method."
     },
     {
+      "name": "kubernetes.namespace.limits.cpu",
+      "type": "java.lang.String",
+      "description": "Max cpu request limit for a namespace in milliCores."
+    },
+    {
+      "name": "kubernetes.namespace.limits.memory",
+      "type": "java.lang.String",
+      "description": "Max memory request limit for a namespace in Kibibyte."
+    },
+    {
       "name": "reporting-service-uri",
       "type": "java.lang.String",
       "description": "URI for the ReportingService."

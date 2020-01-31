@@ -129,8 +129,8 @@ public class ExperimentController {
     /**
      * POST-Endpoint for deleting experiments of the owner.
      *
-     * @param ownerId   The id of owner which experiments should be deleted.
-     * @param secret    The permission for calling internal server endpoints.
+     * @param ownerId The id of owner which experiments should be deleted.
+     * @param secret  The permission for calling internal server endpoints.
      */
     @PostMapping("/delete")
     @ResponseBody
@@ -149,7 +149,7 @@ public class ExperimentController {
      * If the user, who is deleting the experiment, isn't the owner, only his access will be deleted.
      * Else the whole experiment will be deleted for everyone, including all executions.
      *
-     * @param experimentId  The id of the experiment to be deleted.
+     * @param experimentId The id of the experiment to be deleted.
      */
     @PostMapping("/{experimentId}/delete")
     @ResponseBody
