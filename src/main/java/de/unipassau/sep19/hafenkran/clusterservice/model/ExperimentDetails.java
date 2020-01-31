@@ -10,7 +10,6 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
-import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import java.util.*;
 

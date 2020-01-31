@@ -6,11 +6,13 @@ import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.command.PushImageResultCallback;
 import de.unipassau.sep19.hafenkran.clusterservice.dto.ExperimentDTO;
+import de.unipassau.sep19.hafenkran.clusterservice.dto.NodeMetricsDTO;
 import de.unipassau.sep19.hafenkran.clusterservice.exception.ResourceStorageException;
 import de.unipassau.sep19.hafenkran.clusterservice.kubernetesclient.KubernetesClient;
 import de.unipassau.sep19.hafenkran.clusterservice.model.ExperimentDetails;
 import de.unipassau.sep19.hafenkran.clusterservice.repository.ExperimentRepository;
 import de.unipassau.sep19.hafenkran.clusterservice.service.ExperimentService;
+import de.unipassau.sep19.hafenkran.clusterservice.service.MetricsService;
 import de.unipassau.sep19.hafenkran.clusterservice.service.UploadService;
 import de.unipassau.sep19.hafenkran.clusterservice.util.SecurityContextUtil;
 import io.kubernetes.client.ApiException;
@@ -39,6 +41,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -53,6 +56,7 @@ public class UploadServiceImpl implements UploadService {
     private final ExperimentService experimentService;
     private final KubernetesClient kubernetesClient;
     private final ExperimentRepository experimentRepository;
+    private final MetricsService metricsService;
 
     @Value("${experimentsFileUploadLocation}")
     private String path;
@@ -134,17 +138,33 @@ public class UploadServiceImpl implements UploadService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        experimentService.createExperiment(experimentDetails);
-
+        ArrayList<NodeMetricsDTO> nodeMetricsList = metricsService.retrieveNodeMetrics();
         try {
-            kubernetesClient.createNamespace(experimentDetails);
+            boolean clusterHasEnoughFreeCapacity = false;
+
+            for (NodeMetricsDTO nodeMetric : nodeMetricsList) {
+                if (kubernetesClient.checkIfEnoughNodeCapacityFree(nodeMetric.getMetadata().getName(),
+                        Integer.parseInt(nodeMetric.getUsage().getCpu()),
+                        Integer.parseInt(nodeMetric.getUsage().getMemory()))) {
+                    clusterHasEnoughFreeCapacity = true;
+                    kubernetesClient.createNamespace(experimentDetails);
+                    experimentService.createExperiment(experimentDetails);
+                    break;
+                }
+            }
+
+            if (!clusterHasEnoughFreeCapacity) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "The cluster is at his max capacity. Please try later.");
+            }
         } catch (ApiException e) {
-            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while " +
-                    "communicating with the cluster.", e);
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while "
+                    + "communicating with the cluster.");
         }
 
         return ExperimentDTO.fromExperimentDetails(experimentDetails);
     }
+
 
     private Path getPathToTar(@NonNull ExperimentDetails experimentDetails) {
         return Paths.get(getFileStoragePath(experimentDetails) + "/"

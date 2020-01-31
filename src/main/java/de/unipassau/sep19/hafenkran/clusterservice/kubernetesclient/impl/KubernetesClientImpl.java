@@ -140,10 +140,13 @@ public class KubernetesClientImpl implements KubernetesClient {
         String checksum = executionDetails.getExperimentDetails().getChecksum();
         String image = DOCKER_HUB_REPO_PATH + ":" + checksum;
         String podName = executionDetails.getName();
+        long podCpuLimit = executionDetails.getCpu();
+        long podMemoryLimit = executionDetails.getRam();
+
 
         Map<String, String> labels = new HashMap<>();
         labels.put("run", podName);
-        createPodInNamespace(namespace, podName, image, labels);
+        createPodInNamespace(namespace, podName, image, labels, podCpuLimit, podMemoryLimit);
         return api.readNamespacedPod(podName, namespace, "pretty", false, false).getMetadata().getName();
     }
 
@@ -250,6 +253,66 @@ public class KubernetesClientImpl implements KubernetesClient {
         result.close();
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean checkIfNamespaceResourcesAlreadyAllocated(@NonNull ExecutionDetails executionDetails) throws ApiException {
+        String namespace = getNamespace(executionDetails);
+        final long requestedCpu = executionDetails.getCpu();
+        final long requestedMemory = executionDetails.getRam();
+
+        V1ResourceQuota resourceQuota = api.readNamespacedResourceQuota("resource-quota", namespace, "pretty", true, false);
+
+        String usedCpuString = resourceQuota.getStatus().getUsed().get("requests.cpu");
+        String usedMemoryString = resourceQuota.getStatus().getUsed().get("requests.memory");
+
+        final long parseCpu;
+        final long usedCpu;
+        final long usedMemory;
+
+        if (usedCpuString.length() == 1) { //used cpu either 0 or more in full core
+            parseCpu = Long.parseLong(usedCpuString);
+            if (parseCpu != 0) {
+                usedCpu = parseCpu * 1000;
+            } else {
+                usedCpu = parseCpu;
+            }
+        } else {
+            if (usedCpuString.substring(usedCpuString.length() - 1).equals("m")) { //cpu with unit millicore
+                usedCpu = Long.parseLong(usedCpuString.substring(0, usedCpuString.length() - 1));
+            } else { //full cpu core with
+                usedCpu = Long.parseLong(usedCpuString) * 1000;
+            }
+        }
+
+        if (usedMemoryString.length() == 1) { //used memory = 0
+            usedMemory = Integer.parseInt(usedMemoryString);
+        } else {
+            usedMemory = Integer.parseInt(usedMemoryString.substring(0, usedMemoryString.length() - 2));
+        }
+
+        return (requestedCpu + usedCpu > Long.parseLong(cpuRequestLimit))
+                || (requestedMemory + usedMemory > Long.parseLong(memoryRequestLimit));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean checkIfEnoughNodeCapacityFree(@NonNull String nodeName, @NonNull long usedCpu,
+                                                 @NonNull long usedMemory) throws ApiException {
+        V1Node response = api.readNode(nodeName, "pretty", null, null);
+
+        long totalNodeCpuCapacity =
+                response.getStatus().getCapacity().get("cpu").getNumber().intValue() * 1000; //in milliCores
+        long totalNodeMemoryCapacity =
+                response.getStatus().getCapacity().get("memory").getNumber().intValue(); //in kibibyte
+
+        return (Long.parseLong(cpuRequestLimit) + usedCpu <= totalNodeCpuCapacity)
+                || (Long.parseLong(memoryRequestLimit) + usedMemory <= totalNodeMemoryCapacity);
+    }
+
     private List<String> getAllNamespaces() throws ApiException {
         V1NamespaceList listNamespace =
                 api.listNamespace(true, "pretty", null, null, null, 0, null, Integer.MAX_VALUE, Boolean.FALSE);
@@ -290,11 +353,11 @@ public class KubernetesClientImpl implements KubernetesClient {
         Map<String, Quantity> allowedResourceRequests = new HashMap<>();
 
         if (cpuRequestLimit != null) {
-            allowedResourceRequests.put("requests.cpu", new Quantity(cpuRequestLimit));
+            allowedResourceRequests.put("requests.cpu", new Quantity(cpuRequestLimit + "m"));
         }
 
         if (memoryRequestLimit != null) {
-            allowedResourceRequests.put("requests.memory", new Quantity(memoryRequestLimit));
+            allowedResourceRequests.put("requests.memory", new Quantity(memoryRequestLimit + "Ki"));
         }
 
         V1ResourceQuota resourceQuota = new V1ResourceQuotaBuilder()
@@ -314,6 +377,7 @@ public class KubernetesClientImpl implements KubernetesClient {
         log.info("Created resource quota " + resourceQuota.getMetadata().getName() + " in namespace " + namespace);
     }
 
+
     /**
      * Creates a Kubernetes Pod and sets the Image Pull Secret for it.
      *
@@ -324,12 +388,19 @@ public class KubernetesClientImpl implements KubernetesClient {
      * @throws ApiException if the communication with the api results in an error
      */
     private void createPodInNamespace(@NonNull String namespace, @NonNull String podName, @NonNull String
-            image,
-                                      @NonNull Map<String, String> labels) throws ApiException {
+            image, @NonNull Map<String, String> labels,
+                                      @NonNull long podCpuLimit, @NonNull long podMemoryLimit) throws ApiException {
+
+        Map<String, Quantity> resourceLimits = new HashMap<>();
+        resourceLimits.put("cpu", new Quantity((podCpuLimit) + "m")); //millicore
+        resourceLimits.put("memory", new Quantity((podMemoryLimit) + "Ki")); //Mebibyte
 
         V1Container container = new V1ContainerBuilder()
                 .withName(podName)
                 .withImage(image)
+                .withNewResources()
+                .withLimits(resourceLimits)
+                .endResources()
                 .withImagePullPolicy("IfNotPresent")
                 .withNewStdin(true)
                 .withTty(true)

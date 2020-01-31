@@ -318,9 +318,20 @@ public class ExecutionServiceImpl implements ExecutionService {
         executionDetails.validatePermissions();
 
         final String podName;
+        boolean namespaceResourcesAlreadyAllocated;
+
         try {
-            podName = kubernetesClient.createPod(executionDetails);
+            namespaceResourcesAlreadyAllocated =
+                    kubernetesClient.checkIfNamespaceResourcesAlreadyAllocated(executionDetails);
+            if (!namespaceResourcesAlreadyAllocated) {
+                podName = kubernetesClient.createPod(executionDetails);
+            } else {
+                executionRepository.deleteById(executionDetails.getId());
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "The requested cpu and/or ram exceeds the limit.");
+            }
         } catch (ApiException e) {
+            executionRepository.deleteById(executionDetails.getId());
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "There was an error while "
                     + "communicating with the cluster while starting the execution.");
         }
