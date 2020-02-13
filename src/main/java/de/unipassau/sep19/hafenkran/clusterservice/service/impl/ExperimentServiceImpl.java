@@ -99,19 +99,19 @@ public class ExperimentServiceImpl implements ExperimentService {
      */
     @Override
     public ExperimentDTO updatePermittedUsers(@NonNull UUID experimentId, @NonNull PermittedUsersUpdateDTO permittedUsersUpdateDTO) {
-        if (permittedUsersUpdateDTO.getPermittedUsers().isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "You cannot forbid everyone the access. There must be at least one person.");
-        }
-
         ExperimentDetails experimentDetails = experimentRepository.findById(experimentId).orElseThrow(
                 () -> new ResourceNotFoundException(ExperimentDetails.class, "experimentId", experimentId.toString()));
         UserDTO currentUser = SecurityContextUtil.getCurrentUserDTO();
 
         // If the current user is not permitted or if the current user is no admin
-        if (!experimentDetails.getPermittedUsers().contains(currentUser.getId()) || !currentUser.isAdmin()) {
+        if (!experimentDetails.getPermittedUsers().contains(currentUser.getId()) && !currentUser.isAdmin()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                     "You are not allowed to change the user access from the current experiment.");
+        }
+
+        if (permittedUsersUpdateDTO.getPermittedUsers().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "You cannot forbid everyone the access. There must be at least one person.");
         }
 
         experimentDetails.setPermittedUsers(permittedUsersUpdateDTO.getPermittedUsers());
